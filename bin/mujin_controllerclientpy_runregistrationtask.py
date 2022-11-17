@@ -5,7 +5,7 @@ import json
 import time
 import datetime
 import argparse
-from mujincontrollerclient.controllerclientbase import ControllerClient
+from mujincontrollerclient.controllerwebclientv1 import ControllerWebClientV1
 from mujincontrollerclient import uriutils
 
 import logging
@@ -47,25 +47,25 @@ def _RunMain():
         raise Exception('Have to sepecify either --syncMasterFile or --backup')
     taskName = 'registration-%s-%s' % (command.lower(), datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
-    controllerclient = ControllerClient(options.controllerUrl, options.controllerUsername, options.controllerPassword)
-    controllerclient.Ping()
+    controllerwebclient = ControllerWebClientV1(options.controllerUrl, options.controllerUsername, options.controllerPassword)
+    controllerwebclient.Ping()
 
     # cancel previous jobs
-    for job in controllerclient.GetJobs():
+    for job in controllerwebclient.GetJobs():
         if '/registration-' in job['description']:
-            controllerclient.DeleteJob(job['pk'])
+            controllerwebclient.DeleteJob(job['pk'])
 
     # determine scenepk
     if options.scenepk is None:
-        options.scenepk = uriutils.GetPrimaryKeyFromURI(controllerclient.GetConfig()['sceneuri'])
+        options.scenepk = uriutils.GetPrimaryKeyFromURI(controllerwebclient.GetConfig()['sceneuri'])
 
     # delete previous task
-    for task in controllerclient.GetSceneTasks(options.scenepk):
+    for task in controllerwebclient.GetSceneTasks(options.scenepk):
         if task['tasktype'] == taskType:
-            controllerclient.DeleteSceneTask(options.scenepk, task['pk'])
+            controllerwebclient.DeleteSceneTask(options.scenepk, task['pk'])
 
     # create task
-    task = controllerclient.CreateSceneTask(options.scenepk, {
+    task = controllerwebclient.CreateSceneTask(options.scenepk, {
         'tasktype': taskType,
         'name': taskName,
         'taskparameters': {
@@ -86,7 +86,7 @@ def _RunMain():
 
 
     # run task async
-    jobpk = controllerclient._webclient.APICall('POST', 'job/', data={
+    jobpk = controllerwebclient._webclient.APICall('POST', 'job/', data={
         'scenepk': options.scenepk,
         'target_pk': taskpk,
         'resource_type': 'task',
@@ -97,7 +97,7 @@ def _RunMain():
     startTime = time.time()
     jobProgress = None
     while True:
-        job = ([j for j in controllerclient.GetJobs() if j['pk'] == jobpk] or [None])[0]
+        job = ([j for j in controllerwebclient.GetJobs() if j['pk'] == jobpk] or [None])[0]
         if job is None:
             if jobProgress is not None:
                 # job has been seen before, so must be done now
@@ -131,9 +131,9 @@ def _RunMain():
     result = None
     startTime = time.time()
     while True:
-        task = controllerclient.GetSceneTask(options.scenepk, taskpk)
+        task = controllerwebclient.GetSceneTask(options.scenepk, taskpk)
         if len(task['binpickingresults']) > 0:
-            result = controllerclient.GetBinpickingResult(task['binpickingresults'][0]['pk'])
+            result = controllerwebclient.GetBinpickingResult(task['binpickingresults'][0]['pk'])
             break
         if time.time() - startTime > 5.0:
             raise Exception('Timed out waiting for task result')

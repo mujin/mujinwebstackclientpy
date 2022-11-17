@@ -26,7 +26,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class ControllerWebClient(object):
+class ControllerWebClientRaw(object):
 
     _baseurl = None  # Base URL of the controller
     _username = None  # Username to login with

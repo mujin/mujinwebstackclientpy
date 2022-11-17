@@ -27,8 +27,8 @@ def _ParseArguments():
 
 
 def _FetchServerVersionAndSchema(url, username, password):
-    from mujincontrollerclient.controllerclientraw import ControllerWebClient
-    webClient = ControllerWebClient(url, username, password)
+    from mujincontrollerclient.controllerclientraw import ControllerWebClientRaw
+    webClient = ControllerWebClientRaw(url, username, password)
     response = webClient.Request('HEAD', '/')
     serverVersion = response.headers['Server'].split()[0]
     log.info('server version determined to be: %s', serverVersion)

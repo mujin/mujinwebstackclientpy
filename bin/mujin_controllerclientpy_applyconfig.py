@@ -7,7 +7,7 @@ import json
 import argparse
 import tempfile
 import subprocess
-from mujincontrollerclient.controllerclientbase import ControllerClient
+from mujincontrollerclient.controllerwebclientv1 import ControllerWebClientV1
 
 import logging
 log = logging.getLogger(__name__)
@@ -224,10 +224,10 @@ def _RunMain():
 
     # construct client
     if options.controller:
-        client = ControllerClient('http://%s' % options.controller, options.username, options.password)
-        client.Ping()
-        config = client.GetConfig()
-        target = client.controllerIp
+        controllerwebclient = ControllerWebClientV1('http://%s' % options.controller, options.username, options.password)
+        controllerwebclient.Ping()
+        config = controllerwebclient.GetConfig()
+        target = controllerwebclient.controllerIp
     elif options.config:
         with open(options.config, 'r') as f:
             config = json.load(f)
@@ -258,7 +258,7 @@ def _RunMain():
     # apply the configuration changes
     log.debug('applying configuration on %s', target)
     if options.controller:
-        client.SetConfig(newconfig)
+        controllerwebclient.SetConfig(newconfig)
     elif options.config:
         with open(options.config, 'w') as f:
             f.write(_PrettifyConfig(newconfig))

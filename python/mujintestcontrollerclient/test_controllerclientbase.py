@@ -3,7 +3,7 @@
 import pytest
 import requests_mock
 
-from mujincontrollerclient.controllerclientbase import ControllerClient
+from mujincontrollerclient.controllerwebclientv1 import ControllerWebClientV1
 
 
 @pytest.mark.parametrize('url, username, password', [
@@ -15,7 +15,7 @@ from mujincontrollerclient.controllerclientbase import ControllerClient
 def test_PingAndLogin(url, username, password):
     with requests_mock.Mocker() as mock:
         mock.head('%s/u/%s/' % (url, username))
-        controllerclient = ControllerClient(url, username, password)
+        controllerclient = ControllerWebClientV1(url, username, password)
         controllerclient.Ping()
         controllerclient.Login()
         assert controllerclient.IsLoggedIn()
@@ -24,7 +24,7 @@ def test_PingAndLogin(url, username, password):
 def test_RestartController():
     with requests_mock.Mocker() as mock:
         mock.post('http://controller/restartserver/')
-        ControllerClient('http://controller', 'mujin', 'mujin').RestartController()
+        ControllerWebClientV1('http://controller', 'mujin', 'mujin').RestartController()
 
 
 def test_GetScenes():
@@ -37,7 +37,7 @@ def test_GetScenes():
                 'offset': 0,
             },
         })
-        scenes = ControllerClient('http://controller', 'mujin', 'mujin').GetScenes()
+        scenes = ControllerWebClientV1('http://controller', 'mujin', 'mujin').GetScenes()
         assert len(scenes) == 0
         assert scenes.offset == 0
         assert scenes.limit == 20

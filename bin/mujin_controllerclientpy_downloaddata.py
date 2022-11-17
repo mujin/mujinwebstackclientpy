@@ -23,12 +23,12 @@ def _ParseArguments():
     parser.add_argument('--timeout', type=float, default=600, help='Timeout in seconds (default: %(default)s)')
     return parser.parse_args()
 
-def _CreateControllerClient(url, username, password):
-    from mujincontrollerclient import controllerclientbase
+def _CreateControllerWebClient(url, username, password):
+    from mujincontrollerclient import controllerwebclientv1
 
     # create a controller client for the controller
     log.info('connecting to %s', url) 
-    return controllerclientbase.ControllerClient(
+    return controllerwebclientv1.ControllerWebClientV1(
         controllerurl=url,
         controllerusername=username,
         controllerpassword=password,
@@ -80,7 +80,7 @@ def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
 
-    controllerClient = _CreateControllerClient(options.url, options.username, options.password)
+    controllerClient = _CreateControllerWebClient(options.url, options.username, options.password)
     sceneList = _GetScenes(controllerClient)
     _DownloadBackup(controllerClient, sceneList, timeout=options.timeout)
 
