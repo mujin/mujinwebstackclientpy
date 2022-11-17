@@ -126,12 +126,12 @@ class AuthenticationError(ClientExceptionBase):
     pass
 
 
-class ControllerClientError(ClientExceptionBase):
+class WebstackClientError(ClientExceptionBase):
 
     _response = None # http response that resulted in the error
 
     def __init__(self, message='', response=None):
-        super(ControllerClientError, self).__init__(message)
+        super(WebstackClientError, self).__init__(message)
         self._response = response
 
     @property

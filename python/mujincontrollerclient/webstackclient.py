@@ -11,8 +11,8 @@ import base64
 import email.utils
 
 # Mujin imports
-from . import ControllerClientError
-from . import controllerclientraw
+from . import WebstackClientError
+from . import controllerwebclientraw
 from . import ugettext as _
 from . import json
 from . import urlparse
@@ -79,17 +79,17 @@ def _FormatHTTPDate(dt):
     return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
 
 
-class ControllerWebClientV1(object):
-    """Mujin controller web client (using Webstack API v1)
+class WebstackClient(object):
+    """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).
     """
 
     class ObjectsWrapper(list):
-        """Wraps response for list of objects. Provides extra meta data
+        """Wraps response for list of objects. Provides extra meta data.
         """
         _meta = None  # Meta dict returned from server
 
         def __init__(self, data):
-            super(ControllerWebClientV1.ObjectsWrapper, self).__init__(data['objects'])
+            super(WebstackClient.ObjectsWrapper, self).__init__(data['objects'])
             self._meta = data['meta']
 
         @property
@@ -117,10 +117,11 @@ class ControllerWebClientV1(object):
     def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, additionalHeaders=None):
         """Logs into the Mujin controller.
 
-        :param controllerurl: URL of the mujin controller, e.g. http://controller14
-        :param controllerusername: Username of the mujin controller, e.g. testuser
-        :param controllerpassword: Password of the mujin controller
-        :param additionalHeaders: Additional HTTP headers to be included in requests
+        Args:
+            controllerurl (str): URL of the mujin controller, e.g. http://controller14
+            controllerusername (str): Username of the mujin controller, e.g. testuser
+            controllerpassword (str): Password of the mujin controller
+            additionalHeaders: Additional HTTP headers to be included in requests
         """
 
         # Parse controllerurl
@@ -147,7 +148,7 @@ class ControllerWebClientV1(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, additionalHeaders=additionalHeaders)
+        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, additionalHeaders=additionalHeaders)
 
     def __del__(self):
         self.Destroy()
@@ -191,11 +192,12 @@ class ControllerWebClientV1(object):
         """
         response = self._webclient.Request('HEAD', u'/u/%s/' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to ping controller, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to ping controller, status code is %d') % response.status_code, response=response)
         return response
 
     def GetServerVersion(self, timeout=5):
         """Pings server and gets version
+
         :return: server version in tuple (major, minor, patch, commit)
         """
         response = self.Ping(timeout=timeout)
@@ -208,13 +210,14 @@ class ControllerWebClientV1(object):
 
     def SetLogLevel(self, componentLevels, timeout=5):
         """Set webstack log level
+
         :param componentLevels: Mapping from component name to level name, for example {"some.specific.component": "DEBUG"}
                                 If component name is empty string, it sets the root logger
                                 If level name is empty string, it unsets the level previously set
         """
         response = self._webclient.Request('POST', '/loglevel/', json={'componentLevels': componentLevels}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('failed to set webstack log level, status code is: %d') % response.status_code, response=response)
+            raise WebstackClientError(_('failed to set webstack log level, status code is: %d') % response.status_code, response=response)
 
     #
     # Scene related
@@ -356,6 +359,7 @@ class ControllerWebClientV1(object):
 
     def SetObjectLink(self, objectpk, linkpk, linkdata, fields=None, timeout=5):
         """Sets the instobject values via a WebAPI PUT call
+
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         return self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
@@ -395,6 +399,7 @@ class ControllerWebClientV1(object):
 
     def SetObjectGeometry(self, objectpk, geometrypk, geometrydata, fields=None, timeout=5):
         """Sets the instobject values via a WebAPI PUT call
+
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
@@ -483,12 +488,14 @@ class ControllerWebClientV1(object):
 
     def SetRobotAttachedSensor(self, robotpk, attachedsensorpk, attachedsensordata, fields=None, timeout=5):
         """Sets the attachedsensor values via a WebAPI PUT call
+
         :param attachedsensordata: key-value pairs of the data to modify on the attachedsensor
         """
         return self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
 
     def SetRobotAttachedActuator(self, robotpk, attachedactuatorpk, attachedacturtordata, fields=None, timeout=5):
         """Sets the attachedactuatorpk values via a WebAPI PUT call
+
         :param attachedacturtordata: key-value pairs of the data to modify on the attachedactuator
         """
         return self._webclient.APICall('PUT', u'robot/%s/attachedactuator/%s/' % (robotpk, attachedactuatorpk), data=attachedacturtordata, fields=fields, timeout=timeout)
@@ -511,6 +518,7 @@ class ControllerWebClientV1(object):
 
     def SetRobotGripperInfo(self, robotpk, gripperinfopk, gripperInfoData, fields=None, timeout=5):
         """Sets the gripper values via a WebAPI PUT call
+
         :param gripperInfoData: key-value pairs of the data to modify on the gripper
         """
         return self._webclient.APICall('PUT', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), data=gripperInfoData, fields=fields, timeout=timeout)
@@ -533,6 +541,7 @@ class ControllerWebClientV1(object):
 
     def SetRobotConnectedBody(self, robotpk, connectedBodyPk, connectedBodyData, fields=None, timeout=5):
         """Sets the connected body values via a WebAPI PUT call
+
         :param connectedBodyData: key-value pairs of the data to modify on the connected body
         """
         return self._webclient.APICall('PUT', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), data=connectedBodyData, fields=fields, timeout=timeout)
@@ -568,7 +577,6 @@ class ControllerWebClientV1(object):
     def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
-        Notice: This function can be overwritted in the child class, like RunSceneTaskAsync in planningclient.py
         """
         data = {
             'scenepk': scenepk,
@@ -744,7 +752,7 @@ class ControllerWebClientV1(object):
                                 self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (connectedBodySceneOrObjectPk, attachedsensor['pk']), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
                             del sensormapping[camerafullname]
         if sensormapping:
-            raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
+            raise WebstackClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
 
     #
     # File related
@@ -764,7 +772,7 @@ class ControllerWebClientV1(object):
                 return response.json()
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'), response=response)
+        raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
     def UploadFiles(self, files, timeout=60):
         """Uploads a list of files
@@ -787,7 +795,7 @@ class ControllerWebClientV1(object):
                 return response.json()
             except Exception as e:
                 log.exception('failed to upload files: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'))
+        raise WebstackClientError(response.content.decode('utf-8'))
 
     def DeleteFile(self, filename, timeout=10):
         response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
@@ -796,7 +804,7 @@ class ControllerWebClientV1(object):
                 return response.json()['filename']
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'), response=response)
+        raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
     def DeleteFiles(self, filenames, timeout=10):
         response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, timeout=timeout)
@@ -805,7 +813,7 @@ class ControllerWebClientV1(object):
                 return response.json()['filenames']
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'), response=response)
+        raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
     def ListFiles(self, dirname='', timeout=2):
         response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
@@ -814,14 +822,14 @@ class ControllerWebClientV1(object):
                 return response.json()
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'), response=response)
+        raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
     def FileExists(self, path, timeout=5):
         """Check if a file exists on server
         """
         response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [200, 301, 404]:
-            raise ControllerClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return response.status_code != 404
 
     def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
@@ -836,7 +844,7 @@ class ControllerWebClientV1(object):
         if ifmodifiedsince and response.status_code == 304:
             return response
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
     def FlushAndDownloadFile(self, filename, timeout=5):
@@ -846,7 +854,7 @@ class ControllerWebClientV1(object):
         """
         response = self._webclient.Request('GET', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
     def FlushAndHeadFile(self, filename, timeout=5):
@@ -856,7 +864,7 @@ class ControllerWebClientV1(object):
         """
         response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
@@ -870,7 +878,7 @@ class ControllerWebClientV1(object):
         path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
         if response.status_code not in [200]:
-            raise ControllerClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
@@ -882,7 +890,7 @@ class ControllerWebClientV1(object):
         """
         response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
     #
     # Log related
@@ -902,7 +910,7 @@ class ControllerWebClientV1(object):
 
         response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response.json()
 
     #
@@ -912,7 +920,7 @@ class ControllerWebClientV1(object):
     def QueryScenePKsByBarcodes(self, barcodes, timeout=2):
         response = self._webclient.Request('GET', '/query/barcodes/', params={'barcodes': ','.join(barcodes)})
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code, response=response)
         return response.json()
 
     #
@@ -922,7 +930,7 @@ class ControllerWebClientV1(object):
     def ReportStats(self, data, timeout=5):
         response = self._webclient.Request('POST', '/stats/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to upload stats, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to upload stats, status code is %d') % response.status_code, response=response)
 
     #
     # Config.
@@ -930,6 +938,7 @@ class ControllerWebClientV1(object):
 
     def GetConfig(self, filename=None, timeout=5):
         """Retrieve configuration file content from controller.
+
         :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
         :return: configuration file content dictionary 
         """
@@ -938,11 +947,12 @@ class ControllerWebClientV1(object):
             path = '/config/%s/' % filename
         response = self._webclient.Request('GET', path, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code, response=response)
         return response.json()
 
     def SetConfig(self, data, filename=None, timeout=5):
         """Set configuration file content to controller.
+
         :param data: content dictionary in its entirety
         :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
         """
@@ -951,7 +961,7 @@ class ControllerWebClientV1(object):
             path = '/config/%s/' % filename
         response = self._webclient.Request('PUT', path, data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code not in (200, 202):
-            raise ControllerClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code, response=response)
 
     def DeleteConfig(self, filename, timeout=5):
         """Delete configuration file on controller.
@@ -960,12 +970,12 @@ class ControllerWebClientV1(object):
         path = '/config/%s/' % filename
         response = self._webclient.Request('DELETE', path, timeout=timeout)
         if response.status_code not in (200, 204):
-            raise ControllerClientError(_('Failed to delete configuration on controller, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to delete configuration on controller, status code is %d') % response.status_code, response=response)
 
     def GetSystemInfo(self, timeout=3):
         response = self._webclient.Request('GET', '/systeminfo/')
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code, response=response)
         return response.json()
 
     #
@@ -983,7 +993,7 @@ class ControllerWebClientV1(object):
             'referenceobjectpks': referenceobjectpks,
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to add referenceobjectpks %r to scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
+            raise WebstackClientError(_('Failed to add referenceobjectpks %r to scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
 
     def ModifySceneRemoveReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
         return self.ModifySceneRemoveReferenceObjectPKs(scenepk, [referenceobjectpk], timeout=timeout)
@@ -997,7 +1007,7 @@ class ControllerWebClientV1(object):
             'referenceobjectpks': referenceobjectpks,
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to remove referenceobjectpks %r from scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
+            raise WebstackClientError(_('Failed to remove referenceobjectpks %r from scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
 
     #
     # ITL program related
@@ -1042,7 +1052,7 @@ class ControllerWebClientV1(object):
         :param savecalibration: Whether we want to include calibration files in the backup, defaults to False
         :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
-        :raises ControllerClientError: If request wasn't successful
+        :raises WebstackClientError: If request wasn't successful
         :return: A streaming response to the backup file
         """
         response = self._webclient.Request('GET', '/backup/', stream=True, params={
@@ -1055,7 +1065,7 @@ class ControllerWebClientV1(object):
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
     def Restore(self, file, restoreconfig=True, restoremedia=True, timeout=600):
@@ -1065,7 +1075,7 @@ class ControllerWebClientV1(object):
         :param restoreconfig: Whether we want to restore the configs, defaults to True
         :param restoremedia: Whether we want to restore the media data, defaults to True
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
-        :raises ControllerClientError: If request wasn't successful
+        :raises WebstackClientError: If request wasn't successful
         :return: JSON response
         """
         response = self._webclient.Request('POST', '/backup/', files={'file': file}, params={
@@ -1077,7 +1087,7 @@ class ControllerWebClientV1(object):
                 return response.json()
             except Exception as e:
                 log.exception('failed to restore: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'), response=response)
+        raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
     #
     # Debugging related
@@ -1096,11 +1106,11 @@ class ControllerWebClientV1(object):
 
         :param debugresourcepk: Exact name of the debug resource to download
         :param timeout: Amount of time in seconds to wait before failing, defaults to 10
-        :raises ControllerClientError: If request wasn't successful
+        :raises WebstackClientError: If request wasn't successful
         :return: Contents of the requested resource
         """
         # custom http call because APICall currently only supports json
         response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
