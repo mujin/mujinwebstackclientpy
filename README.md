@@ -1,6 +1,6 @@
 # Mujin Controller Python Client Library
 
-![Build status](https://github.com/mujin/mujincontrollerclientpy/actions/workflows/python.yml/badge.svg)
+![Build status](https://github.com/mujin/mujinwebstackclientpy/actions/workflows/python.yml/badge.svg)
 
 This is an open-source client library communicating with the Mujin Controller WebAPI.
 
@@ -16,7 +16,7 @@ This is an open-source client library communicating with the Mujin Controller We
 
 ## Running on Linux
 
-Load mujincontrollerclient as a module in Python.
+Load mujinwebstackclient as a module in Python.
 
 
 ## Install on Linux
@@ -42,12 +42,12 @@ virtualenv .ve
 # install required packages
 ./.ve/bin/pip install six==1.16.0 requests==2.27.1 pyzmq==22.3.0 graphql-core==3.2.0 typing_extensions==4.2.0
 
-# install mujincontrollerclient
+# install mujinwebstackclient
 ./.ve/bin/pip install .
 ```
 
-Then, use the `mujin_controllerclientpy_generategraphclient.py` to generate the content of the `controllergraphclient.py` file.
+Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `controllergraphclient.py` file.
 
 ```bash
-./.ve/bin/python devbin/mujin_controllerclientpy_generategraphclient.py --url http://controller123 > python/mujincontrollerclient/controllergraphclient.py
+./.ve/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/controllergraphclient.py
 ````

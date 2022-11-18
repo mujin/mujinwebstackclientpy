@@ -3,7 +3,7 @@
 import pytest
 import requests_mock
 
-from python.mujincontrollerclient.webstackclient import WebstackClient
+from python.mujinwebstackclient.webstackclient import WebstackClient
 
 
 @pytest.mark.parametrize('url, username, password', [
@@ -15,10 +15,10 @@ from python.mujincontrollerclient.webstackclient import WebstackClient
 def test_PingAndLogin(url, username, password):
     with requests_mock.Mocker() as mock:
         mock.head('%s/u/%s/' % (url, username))
-        controllerclient = WebstackClient(url, username, password)
-        controllerclient.Ping()
-        controllerclient.Login()
-        assert controllerclient.IsLoggedIn()
+        webclient = WebstackClient(url, username, password)
+        webclient.Ping()
+        webclient.Login()
+        assert webclient.IsLoggedIn()
 
 
 def test_RestartController():

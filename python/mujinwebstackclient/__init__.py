@@ -34,7 +34,7 @@ log = logging.getLogger(__name__)
 
 try:
     import mujincommon.i18n
-    ugettext, ungettext = mujincommon.i18n.GetDomain('mujincontrollerclientpy').GetTranslationFunctions()
+    ugettext, ungettext = mujincommon.i18n.GetDomain('mujinwebstackclientpy').GetTranslationFunctions()
 except ImportError:
     def ugettext(message):
         return message

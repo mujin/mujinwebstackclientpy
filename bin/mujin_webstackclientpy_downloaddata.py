@@ -23,22 +23,22 @@ def _ParseArguments():
     parser.add_argument('--timeout', type=float, default=600, help='Timeout in seconds (default: %(default)s)')
     return parser.parse_args()
 
-def _CreateControllerWebClient(url, username, password):
-    from mujincontrollerclient import controllerwebclientv1
+def _CreateWebstackClient(url, username, password):
+    from mujinwebstackclient import webstackclient
 
     # create a controller client for the controller
     log.info('connecting to %s', url) 
-    return controllerwebclientv1.ControllerWebClientV1(
+    return webstackclient.WebstackClient(
         controllerurl=url,
         controllerusername=username,
         controllerpassword=password,
     )
 
-def _GetScenes(controllerClient):
-    from mujincontrollerclient import uriutils
+def _GetScenes(webClient):
+    from mujinwebstackclient import uriutils
 
     # get the conf file
-    config = controllerClient.GetConfig()
+    config = webClient.GetConfig()
 
     # get the current scene uri from config
     sceneList = []
@@ -57,12 +57,12 @@ def _GetScenes(controllerClient):
 
     return sceneList
 
-def _DownloadBackup(controllerClient, sceneList, timeout=600.0):
+def _DownloadBackup(webClient, sceneList, timeout=600.0):
     import re
     import tarfile
 
     log.info('downloading scenes %s and all configs', sceneList)
-    response = controllerClient.Backup(      
+    response = webClient.Backup(      
         saveconfig=True,
         backupscenepks=sceneList,
         timeout=timeout,
@@ -80,9 +80,9 @@ def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
 
-    controllerClient = _CreateControllerWebClient(options.url, options.username, options.password)
-    sceneList = _GetScenes(controllerClient)
-    _DownloadBackup(controllerClient, sceneList, timeout=options.timeout)
+    webClient = _CreateWebstackClient(options.url, options.username, options.password)
+    sceneList = _GetScenes(webClient)
+    _DownloadBackup(webClient, sceneList, timeout=options.timeout)
 
 if __name__ == "__main__":
     _Main()

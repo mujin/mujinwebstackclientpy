@@ -7,21 +7,21 @@ except (ImportError, SyntaxError):
     from distutils.dist import Distribution
 
 version = {}
-exec(open('python/mujincontrollerclient/version.py').read(), version)
+exec(open('python/mujinwebstackclient/version.py').read(), version)
 
 setup(
     distclass=Distribution,
-    name='mujincontrollerclient',
+    name='mujinwebstackclient',
     version=version['__version__'],
-    packages=['mujincontrollerclient'],
-    package_dir={'mujincontrollerclient': 'python/mujincontrollerclient'},
+    packages=['mujinwebstackclient'],
+    package_dir={'mujinwebstackclient': 'python/mujinwebstackclient'},
     data_files=[
         # using scripts= will cause the first line of the script being modified for python2 or python3
         # put the scripts in data_files will copy them as-is
         ('bin', [
-            'bin/mujin_controllerclientpy_applyconfig.py',
-            'bin/mujin_controllerclientpy_runshell.py',
-            'bin/mujin_controllerclientpy_downloaddata.py',
+            'bin/mujin_webstackclientpy_applyconfig.py',
+            'bin/mujin_webstackclientpy_runshell.py',
+            'bin/mujin_webstackclientpy_downloaddata.py',
         ]),
     ],
     locale_dir='locale',

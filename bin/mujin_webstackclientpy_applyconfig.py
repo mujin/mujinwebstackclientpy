@@ -7,7 +7,7 @@ import json
 import argparse
 import tempfile
 import subprocess
-from mujincontrollerclient.controllerwebclientv1 import ControllerWebClientV1
+from mujinwebstackclient.webstackclient import WebstackClient
 
 import logging
 log = logging.getLogger(__name__)
@@ -224,7 +224,7 @@ def _RunMain():
 
     # construct client
     if options.controller:
-        controllerwebclient = ControllerWebClientV1('http://%s' % options.controller, options.username, options.password)
+        controllerwebclient = WebstackClient('http://%s' % options.controller, options.username, options.password)
         controllerwebclient.Ping()
         config = controllerwebclient.GetConfig()
         target = controllerwebclient.controllerIp

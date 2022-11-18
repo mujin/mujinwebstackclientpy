@@ -20,7 +20,7 @@ import requests.adapters
 
 from . import _
 from . import json
-from . import APIServerError, ControllerClientError, ControllerGraphClientException
+from . import APIServerError, WebstackClientError, ControllerGraphClientException
 
 import logging
 log = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ class ControllerWebClientRaw(object):
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
-            raise ControllerClientError(_('Timeout value (%s sec) is too small') % timeout)
+            raise WebstackClientError(_('Timeout value (%s sec) is too small') % timeout)
 
         url = self._baseurl + path
 

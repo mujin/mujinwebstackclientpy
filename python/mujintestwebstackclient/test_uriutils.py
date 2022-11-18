@@ -2,7 +2,7 @@
 
 import pytest
 
-from mujincontrollerclient import uriutils
+from mujinwebstackclient import uriutils
 
 
 @pytest.mark.parametrize('uri, expected', [

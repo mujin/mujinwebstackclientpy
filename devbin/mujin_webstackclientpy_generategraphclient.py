@@ -18,7 +18,7 @@ def _ConfigureLogging(level=None):
 
 def _ParseArguments():
     import argparse
-    parser = argparse.ArgumentParser(description='Open a shell to use controllerclient')
+    parser = argparse.ArgumentParser(description='Open a shell to use webstackclient')
     parser.add_argument('--loglevel', type=str, default=None, help='The python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL (default: %(default)s)')
     parser.add_argument('--url', type=str, default='http://127.0.0.1', help='URL of the controller (default: %(default)s)')
     parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
@@ -27,7 +27,7 @@ def _ParseArguments():
 
 
 def _FetchServerVersionAndSchema(url, username, password):
-    from mujincontrollerclient.controllerclientraw import ControllerWebClientRaw
+    from mujinwebstackclient.controllerwebclientraw import ControllerWebClientRaw
     webClient = ControllerWebClientRaw(url, username, password)
     response = webClient.Request('HEAD', '/')
     serverVersion = response.headers['Server'].split()[0]

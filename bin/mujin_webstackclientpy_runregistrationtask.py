@@ -5,8 +5,8 @@ import json
 import time
 import datetime
 import argparse
-from mujincontrollerclient.controllerwebclientv1 import ControllerWebClientV1
-from mujincontrollerclient import uriutils
+from mujinwebstackclient.webstackclient import WebstackClient
+from mujinwebstackclient import uriutils
 
 import logging
 log = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def _RunMain():
         raise Exception('Have to sepecify either --syncMasterFile or --backup')
     taskName = 'registration-%s-%s' % (command.lower(), datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
-    controllerwebclient = ControllerWebClientV1(options.controllerUrl, options.controllerUsername, options.controllerPassword)
+    controllerwebclient = WebstackClient(options.controllerUrl, options.controllerUsername, options.controllerPassword)
     controllerwebclient.Ping()
 
     # cancel previous jobs
