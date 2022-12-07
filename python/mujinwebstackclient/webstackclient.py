@@ -8,7 +8,7 @@ Mujin webstack client
 import os
 import datetime
 import base64
-import email.utils
+from email.utils import parsedate
 
 # Mujin imports
 from . import WebstackClientError
@@ -797,7 +797,7 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return {
-            'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
+            'modified': datetime.datetime(*parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
         }
 
@@ -811,7 +811,7 @@ class WebstackClient(object):
         if response.status_code not in [200]:
             raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return {
-            'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
+            'modified': datetime.datetime(*parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
             'hash': response.headers.get('X-Content-SHA1'),
         }
