@@ -114,13 +114,14 @@ class WebstackClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, additionalHeaders=None):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None):
         """Logs into the Mujin controller.
 
         Args:
             controllerurl (str): URL of the mujin controller, e.g. http://controller14
             controllerusername (str): Username of the mujin controller, e.g. testuser
             controllerpassword (str): Password of the mujin controller
+            userAgent (str): User agent to be sent on each request
             additionalHeaders: Additional HTTP headers to be included in requests
         """
 
@@ -148,7 +149,7 @@ class WebstackClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, additionalHeaders=additionalHeaders)
+        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders)
 
     def __del__(self):
         self.Destroy()
@@ -168,6 +169,11 @@ class WebstackClient(object):
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
         self._webclient.SetLocale(locale)
+
+    def SetUserAgent(self, userAgent):
+        """Override user agent string sent on each HTTP request
+        """
+        self._webclient.SetUserAgent(userAgent)
 
     @property
     def graphApi(self):
