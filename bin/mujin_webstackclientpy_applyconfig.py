@@ -224,10 +224,10 @@ def _RunMain():
 
     # construct client
     if options.controller:
-        controllerwebclient = WebstackClient('http://%s' % options.controller, options.username, options.password)
-        controllerwebclient.Ping()
-        config = controllerwebclient.GetConfig()
-        target = controllerwebclient.controllerIp
+        webstackclient = WebstackClient('http://%s' % options.controller, options.username, options.password)
+        webstackclient.Ping()
+        config = webstackclient.GetConfig()
+        target = webstackclient.controllerIp
     elif options.config:
         with open(options.config, 'r') as f:
             config = json.load(f)
@@ -258,7 +258,7 @@ def _RunMain():
     # apply the configuration changes
     log.debug('applying configuration on %s', target)
     if options.controller:
-        controllerwebclient.SetConfig(newconfig)
+        webstackclient.SetConfig(newconfig)
     elif options.config:
         with open(options.config, 'w') as f:
             f.write(_PrettifyConfig(newconfig))

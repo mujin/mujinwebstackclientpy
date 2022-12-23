@@ -47,25 +47,25 @@ def _RunMain():
         raise Exception('Have to sepecify either --syncMasterFile or --backup')
     taskName = 'registration-%s-%s' % (command.lower(), datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
-    controllerwebclient = WebstackClient(options.controllerUrl, options.controllerUsername, options.controllerPassword)
-    controllerwebclient.Ping()
+    webstackclient = WebstackClient(options.controllerUrl, options.controllerUsername, options.controllerPassword)
+    webstackclient.Ping()
 
     # cancel previous jobs
-    for job in controllerwebclient.GetJobs():
+    for job in webstackclient.GetJobs():
         if '/registration-' in job['description']:
-            controllerwebclient.DeleteJob(job['pk'])
+            webstackclient.DeleteJob(job['pk'])
 
     # determine scenepk
     if options.scenepk is None:
-        options.scenepk = uriutils.GetPrimaryKeyFromURI(controllerwebclient.GetConfig()['sceneuri'])
+        options.scenepk = uriutils.GetPrimaryKeyFromURI(webstackclient.GetConfig()['sceneuri'])
 
     # delete previous task
-    for task in controllerwebclient.GetSceneTasks(options.scenepk):
+    for task in webstackclient.GetSceneTasks(options.scenepk):
         if task['tasktype'] == taskType:
-            controllerwebclient.DeleteSceneTask(options.scenepk, task['pk'])
+            webstackclient.DeleteSceneTask(options.scenepk, task['pk'])
 
     # create task
-    task = controllerwebclient.CreateSceneTask(options.scenepk, {
+    task = webstackclient.CreateSceneTask(options.scenepk, {
         'tasktype': taskType,
         'name': taskName,
         'taskparameters': {
@@ -86,7 +86,7 @@ def _RunMain():
 
 
     # run task async
-    jobpk = controllerwebclient._webclient.APICall('POST', 'job/', data={
+    jobpk = webstackclient._webclient.APICall('POST', 'job/', data={
         'scenepk': options.scenepk,
         'target_pk': taskpk,
         'resource_type': 'task',
@@ -97,7 +97,7 @@ def _RunMain():
     startTime = time.time()
     jobProgress = None
     while True:
-        job = ([j for j in controllerwebclient.GetJobs() if j['pk'] == jobpk] or [None])[0]
+        job = ([j for j in webstackclient.GetJobs() if j['pk'] == jobpk] or [None])[0]
         if job is None:
             if jobProgress is not None:
                 # job has been seen before, so must be done now
@@ -131,9 +131,9 @@ def _RunMain():
     result = None
     startTime = time.time()
     while True:
-        task = controllerwebclient.GetSceneTask(options.scenepk, taskpk)
+        task = webstackclient.GetSceneTask(options.scenepk, taskpk)
         if len(task['binpickingresults']) > 0:
-            result = controllerwebclient.GetBinpickingResult(task['binpickingresults'][0]['pk'])
+            result = webstackclient.GetBinpickingResult(task['binpickingresults'][0]['pk'])
             break
         if time.time() - startTime > 5.0:
             raise Exception('Timed out waiting for task result')

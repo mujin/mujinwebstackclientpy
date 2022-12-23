@@ -27,7 +27,7 @@ def _StringifyQueryFields(typeDatabase, typeName, fields=None):
 
 class ControllerGraphClientBase(object):
 
-    _webclient = None # an instance of ControllerWebClient
+    _webclient = None # an instance of ControllerWebClientRaw
 
     def __init__(self, webclient):
         self._webclient = webclient

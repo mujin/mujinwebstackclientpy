@@ -24,11 +24,11 @@ def _ParseArguments():
     return parser.parse_args()
 
 def _CreateWebstackClient(url, username, password):
-    from mujinwebstackclient import webstackclient
+    from mujinwebstackclient.webstackclient import WebstackClient
 
     # create a controller client for the controller
     log.info('connecting to %s', url) 
-    return webstackclient.WebstackClient(
+    return WebstackClient(
         controllerurl=url,
         controllerusername=username,
         controllerpassword=password,
