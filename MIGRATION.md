@@ -4,7 +4,7 @@
 
 Certain classes and packages have been renamed:
 
-- mujincontrollerclient → EITHER mujinwebstackclient OR mujinplanningserverclient
+- mujincontrollerclient → EITHER mujinwebstackclient OR mujinplanningclient
 - controllerclientbase → webstackclient
 - controllerclientraw → controllerwebclientraw
 - ControllerClientError → WebstackClientError
