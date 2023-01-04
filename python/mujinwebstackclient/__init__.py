@@ -15,8 +15,6 @@ try:
 except ImportError:
     import urlparse  # noqa: F401
 
-import zmq  # noqa: F401 # TODO: stub zmq
-
 # use GetMonotonicTime if possible
 try:
     from mujincommon import GetMonotonicTime
