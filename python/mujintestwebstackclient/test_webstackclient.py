@@ -3,7 +3,7 @@
 import pytest
 import requests_mock
 
-from python.mujinwebstackclient.webstackclient import WebstackClient
+from mujinwebstackclient.webstackclient import WebstackClient
 
 
 @pytest.mark.parametrize('url, username, password', [
