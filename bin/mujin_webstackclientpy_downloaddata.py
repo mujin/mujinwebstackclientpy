@@ -26,7 +26,7 @@ def _ParseArguments():
 def _CreateWebstackClient(url, username, password):
     from mujinwebstackclient.webstackclient import WebstackClient
 
-    # create a controller client for the controller
+    # create a webstack client for the controller
     log.info('connecting to %s', url) 
     return WebstackClient(
         controllerurl=url,
