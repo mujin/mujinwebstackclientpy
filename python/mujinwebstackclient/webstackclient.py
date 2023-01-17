@@ -689,11 +689,9 @@ class WebstackClient(object):
     # Sensor mappings related
     #
 
-    def GetSceneSensorMapping(self, scenepk=None, timeout=5):
+    def GetSceneSensorMapping(self, scenepk, timeout=5):
         """Return the mapping of camerafullname to cameraid. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
         """
-        if scenepk is None:
-            scenepk = self.scenepk
         instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields='attachedsensors,connectedBodies,object_pk,name', params={'limit': 0}, timeout=timeout)['objects']
         sensormapping = {}
         for instobject in instobjects:
@@ -722,12 +720,10 @@ class WebstackClient(object):
                             log.warn('attached sensor %s does not have hardware_id', camerafullname)
         return sensormapping
 
-    def SetSceneSensorMapping(self, sensormapping, scenepk=None, timeout=5):
+    def SetSceneSensorMapping(self, sensormapping, scenepk, timeout=5):
         """
         :param sensormapping: The mapping of camerafullname to cameraid. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
         """
-        if scenepk is None:
-            scenepk = self.scenepk
         instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, fields='attachedsensors,connectedBodies,object_pk,name', timeout=timeout)['objects']
         cameracontainernames = set([camerafullname.split('/', 1)[0] for camerafullname in sensormapping.keys()])
         sensormapping = dict(sensormapping)
