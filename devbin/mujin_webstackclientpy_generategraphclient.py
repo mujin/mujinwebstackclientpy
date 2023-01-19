@@ -27,6 +27,8 @@ def _ParseArguments():
 
 
 def _FetchServerVersionAndSchema(url, username, password):
+    import sys
+    sys.path.append('./python')
     from mujinwebstackclient.controllerwebclientraw import ControllerWebClientRaw
     webClient = ControllerWebClientRaw(url, username, password)
     response = webClient.Request('HEAD', '/')

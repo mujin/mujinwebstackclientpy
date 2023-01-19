@@ -41,9 +41,6 @@ virtualenv .ve
 
 # install required packages
 ./.ve/bin/pip install six==1.16.0 requests==2.27.1 graphql-core==3.2.0 typing_extensions==4.2.0
-
-# install mujinwebstackclient
-./.ve/bin/pip install .
 ```
 
 Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `controllergraphclient.py` file.
