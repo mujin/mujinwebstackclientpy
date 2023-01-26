@@ -57,7 +57,7 @@ Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the conten
 ### Jhbuild fails due to flake8:
 If Jhbuild fails on building mujinwebstackclientpy due to a flake8 violation (most likely with a several hundred errors and warnings), this could be happening due to flake8 running a default configuration within a virtual environment.
 
-If this seems to be the case, you must delete the virutal environment for Jhbuild to use our flake8 configuration.
+If this seems to be the case, you can delete the virtual environment.
 ```bash
 # delete the virtual environment
 rm -rf ./.ve
