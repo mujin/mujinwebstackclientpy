@@ -1,3 +1,7 @@
+# 0.1.3 (2023-01-18)
+
+- Update GraphQL client.
+
 # 0.1.2 (2023-01-13)
 
 - Bugfix: Require `scenepk` argument in `GetSceneSensorMapping` and `SetSceneSensorMapping`
