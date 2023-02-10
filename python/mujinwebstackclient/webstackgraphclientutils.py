@@ -3,29 +3,36 @@
 import logging
 log = logging.getLogger(__name__)
 
+def _IsScalarType(typeName):
+    return typeName in (
+        # the followings are part of graphql spec
+        'Int',
+        'Float',
+        'String',
+        'Boolean',
+        'ID',
+        # the followings are mujin customized
+        'Data',
+        'Any',
+        'Void',
+        'DateTime',
+    )
 
-def _StringifyQueryFields(typeDatabase, typeName, fields=None):
-    if typeName not in typeDatabase:
-        return ''
+def _StringifyQueryFields(fields):
     selectedFields = []
-    for fieldName, subTypeName in typeDatabase[typeName].items():
-        if isinstance(fields, (list, set, dict)) and fieldName not in fields:
-            continue
-        if subTypeName:
-            subFields = None
-            if isinstance(fields, dict):
-                subFields = fields.get(fieldName)
-            subQuery = _StringifyQueryFields(typeDatabase, subTypeName, subFields)
-            if subQuery:
+    if isinstance(fields, dict):
+        for fieldName, subFields in fields.items():
+            if subFields:
+                subQuery = _StringifyQueryFields(subFields)
                 selectedFields.append('%s %s' % (fieldName, subQuery))
             else:
                 selectedFields.append(fieldName)
-        else:
+    else:
+        for fieldName in fields:
             selectedFields.append(fieldName)
     return '{%s}' % ', '.join(selectedFields)
 
-
-class ControllerGraphClientBase(object):
+class GraphClientBase(object):
 
     _webclient = None # an instance of ControllerWebClientRaw
 
@@ -39,13 +46,19 @@ class ControllerGraphClientBase(object):
             queryOrMutation (string): either "query" or "mutation"
             operationName (string): name of the operation
             parameterNameTypeValues (list): list of tuple (parameterName, parameterType, parameterValue)
-            returnType (string): name of the return type to look up in typeDatabase, used to construct query fields
+            returnType (string): name of the return type, used to construct query fields
             fields (list[string]): list of fieldName to filter for
             timeout (float): timeout in seconds
         """
         if timeout is None:
             timeout = 5.0
-        queryFields = _StringifyQueryFields(self.typeDatabase, returnType, fields)
+        queryFields = ''
+        if _IsScalarType(returnType):
+            queryFields = '' # scalar types cannot have subfield queries
+        elif not fields:
+            queryFields = '{ __typename }' # query the __typename field if caller didn't want anything back
+        else:
+            queryFields = _StringifyQueryFields(fields)
         queryParameters = ', '.join([
             '$%s: %s' % (parameterName, parameterType)
             for parameterName, parameterType, parameterValue in parameterNameTypeValues

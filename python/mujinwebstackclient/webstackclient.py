@@ -17,7 +17,7 @@ from . import ugettext as _
 from . import json
 from . import urlparse
 from . import uriutils
-from . import controllergraphclient
+from . import webstackgraphclient
 
 # Logging
 import logging
@@ -177,7 +177,7 @@ class WebstackClient(object):
 
     @property
     def graphApi(self):
-        return controllergraphclient.ControllerGraphClient(self._webclient)
+        return webstackgraphclient.GraphClient(self._webclient)
 
     def RestartController(self):
         """Restarts controller
