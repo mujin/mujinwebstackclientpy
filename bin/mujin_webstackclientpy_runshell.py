@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from mujinwebstackclient.webstackclient import WebstackClient
-from mujinwebstackclient import uriutils
+from mujinwebstackclient import uriutils  # noqa: F401 # for convenience
 
 import logging
 log = logging.getLogger(__name__)
