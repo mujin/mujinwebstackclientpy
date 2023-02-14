@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from mujinwebstackclient.webstackclient import WebstackClient
+from mujinwebstackclient import uriutils
 
 import logging
 log = logging.getLogger(__name__)
