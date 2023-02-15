@@ -58,29 +58,16 @@ def _FormatTypeForDocstring(typeName):
     else:
         return _typeName
 
-def _DiscoverType(graphType, typeDatabase):
+def _DiscoverType(graphType):
     baseFieldType = _DereferenceType(graphType)
     baseFieldTypeName = '%s' % baseFieldType
-    baseDescription = ''
-    if hasattr(baseFieldType, 'fields'):
-        baseDescription = baseFieldType.description.strip()
-        if baseFieldTypeName not in typeDatabase:
-            baseFields = {}
-            for fieldName, field in baseFieldType.fields.items():
-                baseFields[fieldName] = _DiscoverType(field.type, typeDatabase)
-                if field.description:
-                    baseFields[fieldName]['description'] = field.description.strip()
-            typeDatabase[baseFieldTypeName] = {
-                'description': baseDescription,
-                'fields': baseFields,
-            }
     return {
         'typeName': '%s' % graphType,
         'baseTypeName': '%s' % baseFieldType,
-        'description': baseDescription,
+        'description': baseFieldType.description.strip(),
     }
 
-def _DiscoverMethods(queryOrMutationType, typeDatabase):
+def _DiscoverMethods(queryOrMutationType):
     methods = []
     for operationName, field in queryOrMutationType.fields.items():
         methods.append({
@@ -88,14 +75,14 @@ def _DiscoverMethods(queryOrMutationType, typeDatabase):
             'parameters': sorted([
                 {
                     'parameterName': argumentName,
-                    'parameterType': _DiscoverType(argument.type, typeDatabase)['typeName'],
+                    'parameterType': _DiscoverType(argument.type)['typeName'],
                     'parameterDescription': argument.description,
                     'parameterNullable': not isinstance(argument.type, graphql.GraphQLNonNull),
                 }
                 for argumentName, argument in field.args.items()
             ], key=lambda x: (x['parameterNullable'], x['parameterName'])),
             'description': field.description,
-            'returnType': _DiscoverType(field.type, typeDatabase),
+            'returnType': _DiscoverType(field.type),
         })
     return methods    
 
@@ -129,23 +116,7 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, return
     print('        ]')
     print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutation, operationName, returnType['baseTypeName']))
 
-def _PrintTypeDatabase(typeDatabase):
-    print('    typeDatabase = {')
-    for typeName, typeDefinition in sorted(typeDatabase.items()):
-        print('')
-        if typeDefinition['description']:
-            for line in typeDefinition['description'].split('\n'):
-                print('        # %s' % line)
-        print('        \'%s\': {' % typeName)
-        for fieldName, fieldDefinition in sorted(typeDefinition['fields'].items()):
-            if fieldDefinition['description']:
-                for line in fieldDefinition['description'].split('\n'):
-                    print('            # %s' % line)
-            print('            \'%s\': \'%s\', # %s' % (fieldName, fieldDefinition['baseTypeName'], fieldDefinition['typeName']))
-        print('        },')
-    print('    }')
-
-def _PrintClient(serverVersion, queryMethods, mutationMethods, typeDatabase):
+def _PrintClient(serverVersion, queryMethods, mutationMethods):
     print('# -*- coding: utf-8 -*-')
     print('#')
     print('# DO NOT EDIT, THIS FILE WAS AUTO-GENERATED')
@@ -153,23 +124,22 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods, typeDatabase):
     print('# GENERATED AGAINST: %s' % serverVersion)
     print('#')
     print('')
-    print('from .controllergraphclientutils import ControllerGraphClientBase')
+    print('from .webstackgraphclientutils import GraphClientBase')
     print('')
-    print('class ControllerGraphQueries:')
+    print('class GraphQueries:')
     print('')
     for queryMethod in queryMethods:
         _PrintMethod('query', **queryMethod)
         print('')
     print('')
-    print('class ControllerGraphMutations:')
+    print('class GraphMutations:')
     print('')
     for mutationMethod in mutationMethods:
         _PrintMethod('mutation', **mutationMethod)
         print('')
     print('')
-    print('class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations):')
-    print('')
-    _PrintTypeDatabase(typeDatabase)
+    print('class GraphClient(GraphClientBase, GraphQueries, GraphMutations):')
+    print('    pass')
     print('')
     print('#')
     print('# DO NOT EDIT, THIS FILE WAS AUTO-GENERATED, SEE HEADER')
@@ -182,11 +152,10 @@ def _Main():
     _ConfigureLogging(options.loglevel)
 
     serverVersion, schema = _FetchServerVersionAndSchema(options.url, options.username, options.password)
-    typeDatabase = {}
-    queryMethods = _DiscoverMethods(schema.query_type, typeDatabase)
-    mutationMethods = _DiscoverMethods(schema.mutation_type, typeDatabase)
+    queryMethods = _DiscoverMethods(schema.query_type)
+    mutationMethods = _DiscoverMethods(schema.mutation_type)
 
-    _PrintClient(serverVersion, queryMethods, mutationMethods, typeDatabase)
+    _PrintClient(serverVersion, queryMethods, mutationMethods)
 
 
 if __name__ == "__main__":
