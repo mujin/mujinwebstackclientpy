@@ -1,3 +1,7 @@
+# 0.3.1 (Simplify CreateCycleLogs)
+
+The arguments `reporterControllerId` and `reporterDateCreated` have been removed from `CreateCycleLogs`.
+
 # 0.1.2 (Bugfix for migration)
 
 The `scenepk` argument in `GetSceneSensorMapping` and `SetSceneSensorMapping` is required now.

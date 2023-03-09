@@ -1,14 +1,18 @@
+# 0.3.1 (2023-03-09)
+
+- Remove unused arguments `reporterControllerId` and `reporterDateCreated` from `CreateCycleLogs`.
+
 # 0.3.0 (2023-02-15)
 
 - Remove automatic query field generation for graphql api. These fields can be
   changed frequently causing the webstack client to be unusuable. Users of
-  graph api now nees to explicitly specify fields and subfields they are
+  graph api now need to explicitly specify fields and subfields they are
   interested in.
 
 
 # 0.2.0 (2022-12-01)
 
-- Regenerate graph client for sensorLInkName.
+- Regenerate graph client for sensorLinkName.
 
 
 # 0.1.3 (2023-01-18)
