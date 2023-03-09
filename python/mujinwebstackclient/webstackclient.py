@@ -650,11 +650,11 @@ class WebstackClient(object):
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
 
-    def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, timeout=5):
+    def CreateCycleLogs(self, cycleLogs, fields=None, timeout=5):
+        """Creates cycle logs. If the `id` field matches a log entry in the database, the entry is overwritten.
+        """
         return self._webclient.APICall('POST', u'cycleLog/', data={
             'cycleLogs': cycleLogs,
-            'reporterControllerId': reporterControllerId,
-            'reporterDateCreated': reporterDateCreated,
         }, fields=fields, timeout=timeout)
 
     #

@@ -1,3 +1,7 @@
+# 0.3.1 (2023-03-09)
+
+- Remove unused arguments `reporterControllerId` and `reporterDateCreated` from `CreateCycleLogs`.
+
 # 0.3.0 (2023-02-15)
 
 - Remove automatic query field generation for graphql api. These fields can be
