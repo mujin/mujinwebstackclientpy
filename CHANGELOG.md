@@ -1,3 +1,9 @@
+# 0.4.0 (2023-03-12)
+
+- Add `GetSchema` API.
+- Generate graph client for `ListModules` API.
+
+
 # 0.3.0 (2023-02-15)
 
 - Remove automatic query field generation for graphql api. These fields can be
