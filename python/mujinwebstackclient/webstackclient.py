@@ -1045,3 +1045,11 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
+
+    def GetSchema(self, schemaId, timeout=10):
+        """Look up json schema by schemaId
+        """
+        response = self._webclient.Request('GET', '/schema/%s/%s.json' % (self._userinfo['locale'], schemaId))
+        if response.status_code != 200:
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+        return response.json()
