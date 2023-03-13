@@ -1,3 +1,8 @@
+# 0.4.1 (2023-03-13)
+
+- Regenerate graph client for new module library APIs.
+
+
 # 0.4.0 (2023-03-12)
 
 - Add `GetSchema` API.
