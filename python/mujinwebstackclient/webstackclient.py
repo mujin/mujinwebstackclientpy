@@ -114,7 +114,7 @@ class WebstackClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None, isInternalClient=False):
         """Logs into the Mujin controller.
 
         Args:
@@ -123,6 +123,7 @@ class WebstackClient(object):
             controllerpassword (str): Password of the mujin controller
             userAgent (str): User agent to be sent on each request
             additionalHeaders: Additional HTTP headers to be included in requests
+            isInternalClient (bool): Should be False when using the public interface. If True, uses ZMQ instead of HTTP.
         """
 
         # Parse controllerurl
@@ -151,6 +152,10 @@ class WebstackClient(object):
         }
         self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders)
 
+        self._webstackZmqClient = None
+        if isInternalClient:
+            self.InitializeZMQ()
+
     def __del__(self):
         self.Destroy()
 
@@ -175,9 +180,20 @@ class WebstackClient(object):
         """
         self._webclient.SetUserAgent(userAgent)
 
+    def InitializeZMQ(self, webstackZmqPort=7801, ctx=None):
+        """Only for internal clients.
+        """
+        # Lazy import because only needed for internal clientss
+        from mujinplanningclient.zmqclient import ZmqClient
+        if ctx is None:
+            import zmq
+            ctx = zmq.Context()
+        self._webstackZmqClient = ZmqClient(self.controllerIp, webstackZmqPort, ctx)
+        log.info("Using ZMQ instead of HTTP to communicate with Webstack (internal client)")
+
     @property
     def graphApi(self):
-        return webstackgraphclient.GraphClient(self._webclient)
+        return webstackgraphclient.GraphClient(self._webclient, self._webstackZmqClient)
 
     def RestartController(self):
         """Restarts controller

@@ -36,8 +36,17 @@ class GraphClientBase(object):
 
     _webclient = None # an instance of ControllerWebClientRaw
 
-    def __init__(self, webclient):
+    def __init__(self, webclient, zmqClient=None):
         self._webclient = webclient
+        self._webstackZmqClient = zmqClient
+
+    def _CallGraphAPIV2(self, query, variables=None, timeout=5.0):
+        payload = {
+            'path': '/api/v2/graphql',
+            'query': query,
+            'variables': variables,
+        }
+        return self._webstackZmqClient.SendCommand(payload, timeout=timeout)
 
     def _CallSimpleGraphAPI(self, queryOrMutation, operationName, parameterNameTypeValues, returnType, fields=None, timeout=None):
         """
@@ -85,7 +94,11 @@ class GraphClientBase(object):
             variables[parameterName] = parameterValue
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
-        data = self._webclient.CallGraphAPI(query, variables, timeout=timeout)
+        if self._webstackZmqClient:
+            data = {}
+            data[operationName] = self._CallGraphAPIV2(query, variables, timeout=timeout)
+        else:
+            data = self._webclient.CallGraphAPI(query, variables, timeout=timeout)
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('got response from graph query: %r', data)
         return data.get(operationName)
