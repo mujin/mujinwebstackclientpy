@@ -46,7 +46,7 @@ class GraphClientBase(object):
             'query': query,
             'variables': variables,
         }
-        return self._webstackZmqClient.SendCommand(payload, timeout=timeout)
+        return self._webstackZmqClient.SendCommand(payload, timeout=timeout)['data']
 
     def _CallSimpleGraphAPI(self, queryOrMutation, operationName, parameterNameTypeValues, returnType, fields=None, timeout=None):
         """
@@ -95,8 +95,7 @@ class GraphClientBase(object):
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
         if self._webstackZmqClient:
-            data = {}
-            data[operationName] = self._CallGraphAPIV2(query, variables, timeout=timeout)
+            data = self._CallGraphAPIV2(query, variables, timeout=timeout)
         else:
             data = self._webclient.CallGraphAPI(query, variables, timeout=timeout)
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
