@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import msgpack
 import logging
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,9 @@ class GraphClientBase(object):
             'query': query,
             'variables': variables,
         }
-        return self._webstackZmqClient.SendCommand(payload, timeout=timeout)['data']
+        payload = msgpack.packb(payload)
+        response = self._webstackZmqClient.SendCommand(payload, timeout=timeout, sendjson=False, recvjson=False)
+        return msgpack.unpackb(response)['data']
 
     def _CallSimpleGraphAPI(self, queryOrMutation, operationName, parameterNameTypeValues, returnType, fields=None, timeout=None):
         """

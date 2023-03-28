@@ -123,7 +123,7 @@ class WebstackClient(object):
             controllerpassword (str): Password of the mujin controller
             userAgent (str): User agent to be sent on each request
             additionalHeaders: Additional HTTP headers to be included in requests
-            isInternalClient (bool): Should be False when using the public interface. If True, uses ZMQ instead of HTTP.
+            isInternalClient (bool): Should be False when using the public interface. If True, uses ZMQ and msgpack instead of HTTP and JSON. Should not be changed by general users.
         """
 
         # Parse controllerurl
