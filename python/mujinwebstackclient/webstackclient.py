@@ -154,8 +154,7 @@ class WebstackClient(object):
         self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders)
 
         self._webstackZmqClient = None
-        if isInternalClient:
-            self.InitializeZMQ(webstackZmqPort=zmqPort)
+        self.SetInternalClient(useInternalCommunication=isInternalClient, zmqPort=zmqPort)
 
     def __del__(self):
         self.Destroy()
@@ -180,6 +179,10 @@ class WebstackClient(object):
         """Override user agent string sent on each HTTP request
         """
         self._webclient.SetUserAgent(userAgent)
+
+    def SetInternalClient(self, useInternalCommunication=True, zmqPort=7801):
+        if useInternalCommunication:
+            self.InitializeZMQ(webstackZmqPort=zmqPort)
 
     def InitializeZMQ(self, webstackZmqPort=7801, ctx=None):
         """Only for internal clients.
