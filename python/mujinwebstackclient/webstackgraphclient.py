@@ -8,7 +8,6 @@
 from .webstackgraphclientutils import GraphClientBase
 
 class GraphQueries:
-
     def GetApplication(self, applicationId, fields=None, timeout=None):
         """Get a specific application.
 
@@ -3984,6 +3983,18 @@ class GraphMutations:
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='RestartRuntimeContainer', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
+
+    def Roundtrip(self, fields=None, timeout=None):
+        """Check if the graphql server is working by a roundtrip request.
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Void:
+        """
+        return self._CallSimpleGraphAPI('query', operationName='Roundtrip', parameterNameTypeValues=[], returnType='Void', fields=fields, timeout=timeout)
 
     def ScanWirelessNetwork(self, fields=None, timeout=None):
         """Trigger scanning of wireless network. The scanned result will appear in hypervisor status.
