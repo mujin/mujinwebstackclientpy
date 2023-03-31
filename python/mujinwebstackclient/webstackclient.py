@@ -114,16 +114,17 @@ class WebstackClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None, isInternalClient=False):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None, isInternalClient=False, zmqPort=7801):
         """Logs into the Mujin controller.
 
         Args:
             controllerurl (str): URL of the mujin controller, e.g. http://controller14
             controllerusername (str): Username of the mujin controller, e.g. testuser
             controllerpassword (str): Password of the mujin controller
-            userAgent (str): User agent to be sent on each request
-            additionalHeaders: Additional HTTP headers to be included in requests
-            isInternalClient (bool): Should be False when using the public interface. If True, uses ZMQ and msgpack instead of HTTP and JSON. Should not be changed by general users.
+            userAgent (str,): User agent to be sent on each request
+            additionalHeaders (optional): Additional HTTP headers to be included in requests
+            isInternalClient (bool, optional): Should be False when using the public interface. If True, uses ZMQ and msgpack instead of HTTP and JSON. Should not be changed by general users.
+            zmqPort (int, optional): For internal communication, the port to use for ZMQ.
         """
 
         # Parse controllerurl
@@ -154,7 +155,7 @@ class WebstackClient(object):
 
         self._webstackZmqClient = None
         if isInternalClient:
-            self.InitializeZMQ()
+            self.InitializeZMQ(webstackZmqPort=zmqPort)
 
     def __del__(self):
         self.Destroy()
