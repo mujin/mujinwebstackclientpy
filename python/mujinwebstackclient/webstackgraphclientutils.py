@@ -43,7 +43,6 @@ class GraphClientBase(object):
 
     def _CallGraphAPIV2(self, query, variables=None, timeout=5.0):
         payload = {
-            'path': '/api/v2/graphql',
             'query': query,
             'variables': variables,
         }
