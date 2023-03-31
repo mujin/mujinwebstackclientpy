@@ -1,4 +1,4 @@
-# 0.4.2 (2023-03-24)
+# 0.5.0 (2023-03-31)
 
 - Allow GraphQL connection via ZMQ for internal clients.
 

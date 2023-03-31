@@ -183,7 +183,7 @@ class WebstackClient(object):
     def InitializeZMQ(self, webstackZmqPort=7801, ctx=None):
         """Only for internal clients.
         """
-        # Lazy import because only needed for internal clientss
+        # Lazy import because only needed for internal clients
         from mujinplanningclient.zmqclient import ZmqClient
         if ctx is None:
             import zmq

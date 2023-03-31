@@ -96,7 +96,7 @@ class GraphClientBase(object):
             variables[parameterName] = parameterValue
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
-        if self._webstackZmqClient:
+        if self._webstackZmqClient is not None:
             data = self._CallGraphAPIV2(query, variables, timeout=timeout)
         else:
             data = self._webclient.CallGraphAPI(query, variables, timeout=timeout)
