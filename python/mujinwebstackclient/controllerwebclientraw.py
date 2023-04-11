@@ -14,6 +14,8 @@
 
 import traceback
 import os
+
+import msgpack
 import requests
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
@@ -200,15 +202,15 @@ class ControllerWebClientRaw(object):
 
     def CallGraphAPI(self, query, variables=None, timeout=5.0):
         response = self.Request('POST', '/api/v2/graphql', headers={
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }, data=json.dumps({
+            'Content-Type': 'application/vnd.msgpack',
+            'Accept': 'application/vnd.msgpack',
+        }, data=msgpack.packb({
             'query': query,
             'variables': variables or {},
-        }), timeout=timeout)
+        }, use_bin_type=True), timeout=timeout)
 
         # try to parse response
-        raw = response.content.decode('utf-8', 'replace').strip()
+        raw = response.content
 
         # repsonse must be 200 OK
         statusCode = response.status_code
@@ -219,9 +221,9 @@ class ControllerWebClientRaw(object):
         content = None
         if len(raw) > 0:
             try:
-                content = json.loads(raw)
+                content = msgpack.unpackb(raw, raw=False)
             except ValueError as e:
-                log.exception('caught exception parsing json response: %s: %s', e, raw)
+                log.exception('caught exception parsing msgpack response: %s: %s', e, raw)
 
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
