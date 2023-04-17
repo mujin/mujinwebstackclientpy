@@ -127,10 +127,12 @@ class ControllerWebClientRaw(object):
         return response
 
     # Python port of the javascript API Call function
-    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, files=None, timeout=5):
-        path = '/api/v1/' + path.lstrip('/')
-        if not path.endswith('/'):
+    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, files=None, timeout=5, apiVersion='v1'):
+        path = '/api/%s/%s' % (apiVersion, path.lstrip('/'))
+        if apiVersion == 'v1' and not path.endswith('/'):
             path += '/'
+        elif apiVersion == 'v2' and path.endswith('/'):
+            path = path[:-1]
 
         if params is None:
             params = {}
