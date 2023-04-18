@@ -22,35 +22,34 @@ from urllib3.connection import HTTPConnection
 class UnixSocketHTTPConnection(HTTPConnection):
     def __init__(self, socketPath, *args, **kwargs):
         super(UnixSocketHTTPConnection, self).__init__(*args, **kwargs)
+        self._socketPath = socketPath
 
-        def create_connection(_, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
-            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            sock.connect(socketPath)
-            return sock
-
-        self._create_connection = create_connection
+    def _new_conn(self):
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(self.timeout)
+        sock.connect(self._socketPath)
+        return sock
 
 
 class UnixSocketConnectionPool(HTTPConnectionPool):
     def __init__(self, socketPath):
         super(UnixSocketConnectionPool, self).__init__('127.0.0.1')
         UnixSocketConnectionPool.ConnectionCls = functools.partial(UnixSocketHTTPConnection, socketPath)
-        self.__socketPath = socketPath
+        self._socketPath = socketPath
 
     def __str__(self):
-        return '%s(path=%s)' % (type(self).__name__, self.__socketPath)
+        return '%s(path=%s)' % (type(self).__name__, self._socketPath)
 
 
 class UnixSocketAdapter(HTTPAdapter):
     def __init__(self, socketPath, *args, **kwargs):
         super(UnixSocketAdapter, self).__init__(*args, **kwargs)
-        self.__pool = UnixSocketConnectionPool(socketPath)
+        self._pool = UnixSocketConnectionPool(socketPath)
 
     def close(self):
-        self.__pool.close()
+        self._pool.close()
         super(UnixSocketAdapter, self).close()
 
     def get_connection(self, url, proxies=None):
         assert not proxies, 'proxies not supported for socket'
-        return self.__pool
+        return self._pool
