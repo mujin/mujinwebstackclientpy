@@ -26,7 +26,8 @@ class UnixSocketHTTPConnection(HTTPConnection):
 
     def _new_conn(self):
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.settimeout(self.timeout)
+        if self.timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+            sock.settimeout(self.timeout)
         sock.connect(self._socketPath)
         return sock
 
