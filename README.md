@@ -11,7 +11,7 @@ This is an open-source client library communicating with the Mujin Controller We
 
 - Versions have three numbers: MAJOR.MINOR.PATCH
   
-  - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
+  - All versions with the same MAJOR.MINOR number have the same API and are ABI compatible.
 
 
 ## Running on Linux
