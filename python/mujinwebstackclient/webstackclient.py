@@ -78,30 +78,31 @@ def _FormatHTTPDate(dt):
     month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1]
     return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
 
-class ObjectsWrapper(list):
-    """Wraps response for list of objects. Provides extra meta data.
-    """
-    _meta = None  # Meta dict returned from server
-
-    def __init__(self, data):
-        super(ObjectsWrapper, self).__init__(data['objects'])
-        self._meta = data['meta']
-
-    @property
-    def totalCount(self):
-        return self._meta['total_count']
-
-    @property
-    def limit(self):
-        return self._meta['limit']
-
-    @property
-    def offset(self):
-        return self._meta['offset']
 
 class WebstackClient(object):
     """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).
     """
+
+    class ObjectsWrapper(list):
+        """Wraps response for list of objects. Provides extra meta data.
+        """
+        _meta = None  # Meta dict returned from server
+
+        def __init__(self, data):
+            super(WebstackClient.ObjectsWrapper, self).__init__(data['objects'])
+            self._meta = data['meta']
+
+        @property
+        def totalCount(self):
+            return self._meta['total_count']
+
+        @property
+        def limit(self):
+            return self._meta['limit']
+
+        @property
+        def offset(self):
+            return self._meta['offset']
 
     _webclient = None
     _userinfo = None  # A dict storing user info, like locale
@@ -241,7 +242,7 @@ class WebstackClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return ObjectsWrapper(self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params))
 
     def GetScene(self, pk, fields=None, timeout=5):
         """Returns requested scene
@@ -294,7 +295,7 @@ class WebstackClient(object):
     def GetSceneInstObjects(self, scenepk, fields=None, timeout=5):
         """Returns the instance objects of the scene
         """
-        return ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, params={'limit': 0}, timeout=timeout))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, params={'limit': 0}, timeout=timeout))
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, timeout=5):
         """Returns the instance objects of the scene
@@ -565,7 +566,7 @@ class WebstackClient(object):
         }
         if tasktype:
             params['tasktype'] = tasktype
-        return ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params))
 
     def GetSceneTask(self, scenepk, taskpk, fields=None, timeout=5):
         return self._webclient.APICall('GET', u'scene/%s/task/%s/' % (scenepk, taskpk), fields=fields, timeout=timeout)
@@ -621,7 +622,7 @@ class WebstackClient(object):
     #
 
     def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
-        return ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
             'limit': limit,
         }))
@@ -647,7 +648,7 @@ class WebstackClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
 
     def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, timeout=5):
         return self._webclient.APICall('POST', u'cycleLog/', data={
@@ -949,7 +950,7 @@ class WebstackClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
 
     def GetITLProgram(self, programName, fields=None, timeout=5):
         """Throws exception if program does not exist."""
@@ -1029,7 +1030,7 @@ class WebstackClient(object):
         :param timeout: Amount of time in seconds to wait before failing, defaults to 5
         :return: Available debug resources
         """
-        return ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
 
     def DownloadDebugResource(self, debugresourcepk, timeout=10):
         """downloads contents of the given debug resource

@@ -1,8 +1,3 @@
-# 0.4.2 (2023-03-27)
-
-- Export ObjectsWrapper.
-
-
 # 0.4.1 (2023-03-13)
 
 - Regenerate graph client for new module library APIs.
