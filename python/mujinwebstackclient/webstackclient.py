@@ -122,7 +122,8 @@ class WebstackClient(object):
             controllerusername (str): Username of the mujin controller, e.g. testuser
             controllerpassword (str): Password of the mujin controller
             userAgent (str): User agent to be sent on each request
-            additionalHeaders: Additional HTTP headers to be included in requests
+            additionalHeaders (dict): Additional HTTP headers to be included in requests
+            unixEndpoint (str): Unix socket endpoint for communicating with HTTP server over unix socket
         """
 
         # Parse controllerurl

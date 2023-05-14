@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import functools
 import socket
 
@@ -20,37 +21,46 @@ from urllib3.connection import HTTPConnection
 
 
 class UnixSocketHTTPConnection(HTTPConnection):
-    def __init__(self, socketPath, *args, **kwargs):
-        super(UnixSocketHTTPConnection, self).__init__(*args, **kwargs)
-        self._socketPath = socketPath
+
+    _unixEndpoint = None # unix socket endpoint
+
+    def __init__(self, unixEndpoint, **kwargs):
+        super(UnixSocketHTTPConnection, self).__init__(**kwargs)
+        self._unixEndpoint = unixEndpoint
 
     def _new_conn(self):
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         if self.timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
             sock.settimeout(self.timeout)
-        sock.connect(self._socketPath)
+        sock.connect(self._unixEndpoint)
         return sock
 
 
 class UnixSocketConnectionPool(HTTPConnectionPool):
-    def __init__(self, socketPath):
+
+    _unixEndpoint = None # unix socket endpoint
+
+    def __init__(self, unixEndpoint):
         super(UnixSocketConnectionPool, self).__init__('127.0.0.1')
-        UnixSocketConnectionPool.ConnectionCls = functools.partial(UnixSocketHTTPConnection, socketPath)
-        self._socketPath = socketPath
+        UnixSocketConnectionPool.ConnectionCls = functools.partial(UnixSocketHTTPConnection, unixEndpoint=unixEndpoint)
+        self._unixEndpoint = unixEndpoint
 
     def __str__(self):
-        return '%s(path=%s)' % (type(self).__name__, self._socketPath)
+        return '%s(unixEndpoint=%s)' % (type(self).__name__, self._unixEndpoint)
 
 
 class UnixSocketAdapter(HTTPAdapter):
-    def __init__(self, socketPath, *args, **kwargs):
-        super(UnixSocketAdapter, self).__init__(*args, **kwargs)
-        self._pool = UnixSocketConnectionPool(socketPath)
+
+    _connectionPool = None # an instance of UnixSocketConnectionPool
+
+    def __init__(self, unixEndpoint, **kwargs):
+        super(UnixSocketAdapter, self).__init__(**kwargs)
+        self._connectionPool = UnixSocketConnectionPool(unixEndpoint)
 
     def close(self):
-        self._pool.close()
+        self._connectionPool.close()
         super(UnixSocketAdapter, self).close()
 
     def get_connection(self, url, proxies=None):
-        assert not proxies, 'proxies not supported for socket'
-        return self._pool
+        assert not proxies, 'proxies not supported for unix socket'
+        return self._connectionPool
