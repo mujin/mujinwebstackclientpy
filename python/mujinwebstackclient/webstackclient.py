@@ -114,7 +114,7 @@ class WebstackClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         """Logs into the Mujin controller.
 
         Args:
@@ -122,7 +122,8 @@ class WebstackClient(object):
             controllerusername (str): Username of the mujin controller, e.g. testuser
             controllerpassword (str): Password of the mujin controller
             userAgent (str): User agent to be sent on each request
-            additionalHeaders: Additional HTTP headers to be included in requests
+            additionalHeaders (dict): Additional HTTP headers to be included in requests
+            unixEndpoint (str): Unix socket endpoint for communicating with HTTP server over unix socket
         """
 
         # Parse controllerurl
@@ -149,7 +150,7 @@ class WebstackClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders)
+        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint)
 
     def __del__(self):
         self.Destroy()

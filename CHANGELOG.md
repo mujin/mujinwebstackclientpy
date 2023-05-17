@@ -1,3 +1,8 @@
+# 0.5.0 (2023-04-18)
+
+- Support HTTP over Unix domain socket via optional `unixEndpoint` argument.
+
+
 # 0.4.1 (2023-03-13)
 
 - Regenerate graph client for new module library APIs.
