@@ -1,3 +1,9 @@
+# 0.5.1 (2023-05-24)
+
+- Add `CreateLogEntries` API and update GraphQL client.
+- Fix readme file references to the old repository.
+
+
 # 0.5.0 (2023-04-18)
 
 - Support HTTP over Unix domain socket via optional `unixEndpoint` argument.
