@@ -1,3 +1,8 @@
+# 0.5.1 (2023-06-16)
+
+- Update GraphQL client.
+
+
 # 0.5.0 (2023-04-18)
 
 - Support HTTP over Unix domain socket via optional `unixEndpoint` argument.
