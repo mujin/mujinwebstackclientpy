@@ -824,6 +824,24 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
+    # 
+    # Blob related
+    # 
+
+    def DownloadBlob(self, blobId, timeout=5):
+        """Downloads a blob with given id
+
+        :return: A streaming response
+        """
+        response = self._webclient.Request('GET', u'/api/v2/blob/%s' % blobId, stream=True, timeout=timeout)
+        if response.status_code == 404:
+            raise WebstackClientError(_('Blob "%s" does not exist, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code == 204:
+            raise WebstackClientError(_('Blob "%s" has no content, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code != 200:
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+        return response
+
     #
     # Log related
     #
