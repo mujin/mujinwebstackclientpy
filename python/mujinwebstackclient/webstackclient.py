@@ -650,8 +650,9 @@ class WebstackClient(object):
         files = []
         for logType, logEntry, attachments in logEntries:
             files.append((u'logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
-            for attachmentName, attachmentData in attachments.iteritems():
-                files.append((u'attachment', (attachmentName, attachmentData)))
+            if attachments is not None:
+                for attachmentName, attachmentData in attachments.iteritems():
+                    files.append((u'attachment', (attachmentName, attachmentData)))
         return self._webclient.APICall('POST', u'logEntry', files=files, timeout=timeout, apiVersion='v2')
 
     #
