@@ -973,7 +973,7 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False,  savedebug=False, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, savedebug=False, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
