@@ -40,8 +40,8 @@ class UnixSocketConnectionPool(HTTPConnectionPool):
 
     _unixEndpoint = None # unix socket endpoint
 
-    def __init__(self, unixEndpoint):
-        super(UnixSocketConnectionPool, self).__init__('127.0.0.1')
+    def __init__(self, unixEndpoint, maxSize=10):
+        super(UnixSocketConnectionPool, self).__init__('127.0.0.1', maxsize=maxSize)
         UnixSocketConnectionPool.ConnectionCls = functools.partial(UnixSocketHTTPConnection, unixEndpoint=unixEndpoint)
         self._unixEndpoint = unixEndpoint
 
