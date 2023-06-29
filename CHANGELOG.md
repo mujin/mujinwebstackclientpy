@@ -1,3 +1,8 @@
+# 0.6.0 (2023-06-28)
+
+- Support backup encrypted system information for debugging purpose.
+
+
 # 0.5.0 (2023-04-18)
 
 - Support HTTP over Unix domain socket via optional `unixEndpoint` argument.
