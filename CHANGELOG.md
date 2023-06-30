@@ -1,7 +1,12 @@
-# 0.5.1 (2023-06-22)
+# 0.6.1 (2023-06-22)
 
 - Regenerate graph client for new module library APIs.
 - Add streaming API to download blobs.
+
+
+# 0.6.0 (2023-06-28)
+
+- Support backup encrypted system information for debugging purpose.
 
 
 # 0.5.0 (2023-04-18)
