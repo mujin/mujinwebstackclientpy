@@ -1,7 +1,8 @@
-# 0.6.1 (2023-06-22)
+# 0.7.0 (2023-06-22)
 
 - Regenerate graph client for new module library APIs.
 - Add streaming API to download blobs.
+- Set the default pool size to 10 for `UnixSocketConnectionPool`.
 
 
 # 0.6.0 (2023-06-28)
