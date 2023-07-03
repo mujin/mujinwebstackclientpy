@@ -1,6 +1,11 @@
-# 0.5.1 (2023-06-28)
+# 0.7.0 (2023-06-28)
 
 - Set the default pool size to 10 for `UnixSocketConnectionPool`.
+
+
+# 0.6.0 (2023-06-28)
+
+- Support backup encrypted system information for debugging purpose.
 
 
 # 0.5.0 (2023-04-18)
