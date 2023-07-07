@@ -1,4 +1,4 @@
-__version__ = '0.5.1'
+__version__ = '0.6.1'
 
 # Do not forget to update CHANGELOG.md
 
