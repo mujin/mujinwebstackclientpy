@@ -89,3 +89,43 @@ class GraphClientBase(object):
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('got response from graph query: %r', data)
         return data.get(operationName)
+
+def BreakLargeGraphQuery(queryFunction):
+    def inner(self, *args, **kwargs):
+        options = kwargs.get('options', {'offset': 0, 'first': 0})
+        if options.get('first', 0) != 0:
+            return queryFunction(self, *args, **kwargs)
+        
+        def _BreakQuery(self, queryFunction, *args, **kwargs):
+            meta = None
+            data = []
+            keyName = ""
+            limit = 100
+            options = kwargs.get('options', {'offset': 0, 'first': 0})
+            offset = options.get('offset', 0)
+            while True:
+                options['first'] = limit
+                options['offset'] = offset
+                kwargs['options'] = options
+                rawResponse = queryFunction(self, *args, **kwargs)
+
+                # merge meta
+                if 'meta' in rawResponse:
+                    if meta is None:
+                        meta = rawResponse['meta']
+                    del rawResponse['meta']
+                    
+                keyName = rawResponse.keys()[0]
+                data.extend(rawResponse[keyName])
+                offset += len(rawResponse[keyName])
+                if len(rawResponse[keyName]) < limit:
+                    break
+
+            response = {keyName: data}
+            if meta is not None:
+                response['meta'] = meta
+            return response
+        
+        return _BreakQuery(self, queryFunction, *args, **kwargs)
+
+    return inner
