@@ -131,9 +131,6 @@ class QueryIterator:
         return self
 
     def next(self):
-        if self._totalLimit > 0 and self._count == self._totalLimit:
-            raise StopIteration
-
         if len(self._items) != 0:
             item = self._items[0]
             self._items = self._items[1:]
@@ -147,7 +144,10 @@ class QueryIterator:
         self._kwargs['offset'] += len(self._items)
         if len(self._items) < self._kwargs['limit']:
             self._shouldStop = True
-        
+        if self._count + len(self._items) >= self._totalLimit:
+            self._shouldStop = True
+            self._items = self._items[:self._totalLimit - self._count]
+
         return self.next()
 
 
