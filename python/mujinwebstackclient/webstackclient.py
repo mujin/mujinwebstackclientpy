@@ -317,7 +317,7 @@ class WebstackClient(object):
         }
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params))
-    
+
     def GetScene(self, pk, fields=None, timeout=5):
         """Returns requested scene
         """
@@ -1029,7 +1029,7 @@ class WebstackClient(object):
         }
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
-    
+
     def GetITLProgram(self, programName, fields=None, timeout=5):
         """Throws exception if program does not exist."""
         return self._webclient.APICall('GET', u'itl/%s/' % programName, fields=fields, timeout=timeout)
