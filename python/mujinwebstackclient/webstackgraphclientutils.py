@@ -151,6 +151,8 @@ class GraphQueryIterator:
         self._kwargs['options'].setdefault('offset', 0)
         self._kwargs['options'].setdefault('first', 0)
         self._totalLimit = self._kwargs['options']['first']
+        if self._totalLimit == 0:
+            self._totalLimit = 9999999999999 # 0 means no limit
         self._count = 0
         self._kwargs['options']['first'] = 100
         self._kwargs.setdefault('fields', {})

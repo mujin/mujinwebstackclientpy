@@ -124,6 +124,8 @@ class QueryIterator:
         self._kwargs.setdefault('offset', 0)
         self._kwargs.setdefault('limit', 0)
         self._totalLimit = self._kwargs['limit']
+        if self._totalLimit == 0:
+            self._totalLimit = 9999999999999 # 0 means no limit
         self._count = 0
         self._kwargs['limit'] = 100
 
