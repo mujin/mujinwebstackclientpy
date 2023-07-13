@@ -79,6 +79,8 @@ def _FormatHTTPDate(dt):
     return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
 
 def BreakLargeQuery(queryFunction):
+    """This decorator break a large query into a few small queries to prevent webstack from consuming too much memory.
+    """
     def inner(self, *args, **kwargs):
         if kwargs.get('limit', 0) != 0:
             return queryFunction(self, *args, **kwargs)
@@ -106,6 +108,14 @@ def BreakLargeQuery(queryFunction):
     return inner    
 
 class QueryIterator:
+    """Converts a large query to a iterator. The iterator will internally query webstack with a few small queries
+    example:
+
+      iterator = QueryIterator(client.GetScenes)
+      iterator = QueryIterator(client.GetScenes, offset=10, limit=10)
+      for scene in QueryIterator(client.GetScenes, offset=10, limit=10):
+          do_something(scene)
+    """
 
     _queryFunction = None
     _args = None

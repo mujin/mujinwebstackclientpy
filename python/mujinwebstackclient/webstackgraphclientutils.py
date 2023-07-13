@@ -91,6 +91,8 @@ class GraphClientBase(object):
         return data.get(operationName)
 
 def BreakLargeGraphQuery(queryFunction):
+    """This decorator break a large graph query into a few small queries to prevent webstack from consuming too much memory.
+    """
     def inner(self, *args, **kwargs):
         options = kwargs.get('options', {'offset': 0, 'first': 0})
         if options.get('first', 0) != 0:
@@ -131,6 +133,13 @@ def BreakLargeGraphQuery(queryFunction):
     return inner
 
 class GraphQueryIterator:
+    """Converts a large graph query to a iterator. The iterator will internally query webstack with a few small queries
+    example:
+
+      iterator = GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}})
+      for environment in GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}}):
+          do_something(environment['id'])
+    """
 
     _queryFunction = None
     _args = None
