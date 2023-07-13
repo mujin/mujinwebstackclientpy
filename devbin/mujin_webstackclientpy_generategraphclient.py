@@ -118,6 +118,55 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, return
     print('        ]')
     print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutation, operationName, returnType['baseTypeName']))
 
+    if queryOrMutation == 'query' and operationName.startswith("List"):
+        iteratorOperationName = operationName.replace("List", "Iterate", 1)
+        print('')
+        builtinParameterNames = ('fields', 'timeout')
+        print('    def %s(self, %s):' % (iteratorOperationName, ', '.join([
+            '%s=None' % parameter['parameterName'] if parameter['parameterNullable'] else parameter['parameterName']
+            for parameter in parameters
+            if parameter['parameterName'] not in builtinParameterNames
+        ] + ['fields=None', 'timeout=None'])))
+        if description:
+            description = description.replace("List", "Iterate through", 1)
+            print('        """%s' % description)
+            print('')
+            print('        Args:')
+            for parameter in parameters:
+                if parameter['parameterName'] in builtinParameterNames:
+                    continue
+                isOptionalString = ", optional" if parameter['parameterNullable'] else ""
+                print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
+            print('            fields (list or dict, optional): Specifies a subset of fields to return.')
+            print('            timeout (float, optional): Number of seconds to wait for response.')
+            print('')
+            print('        Returns:')
+            returnTypeName = _FormatTypeForDocstring(returnType['typeName'])
+            returnTypeName = returnTypeName.replace('List', '')
+            returnTypeName = returnTypeName.replace('ReturnValue', 'Iterator')
+            print('            %s' % returnTypeName)
+            print('        """')
+        print('        args = [')
+        for parameter in parameters:
+            if parameter['parameterName'] in builtinParameterNames:
+                continue
+            if parameter['parameterNullable']:
+                continue
+            print('            %s,' % parameter['parameterName'])
+        print('        ]')
+        print('        kwargs = {')
+        for parameter in parameters:
+            if parameter['parameterName'] in builtinParameterNames:
+                continue
+            if not parameter['parameterNullable']:
+                continue
+            print('            \'%s\': %s,' % (parameter['parameterName'], parameter['parameterName']))
+        print('            \'fields\': fields,')
+        print('            \'timeout\': timeout,')
+        print('        }')
+        print('        return GraphQueryIterator(self.%s, *args, **kwargs)' % (operationName))
+
+
 def _PrintClient(serverVersion, queryMethods, mutationMethods):
     print('# -*- coding: utf-8 -*-')
     print('#')
@@ -127,7 +176,7 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods):
     print('#')
     print('')
     print('from .webstackgraphclientutils import GraphClientBase')
-    print('from .webstackgraphclientutils import BreakLargeGraphQuery')
+    print('from .webstackgraphclientutils import BreakLargeGraphQuery, GraphQueryIterator')
     print('')
     print('class GraphQueries:')
     print('')
