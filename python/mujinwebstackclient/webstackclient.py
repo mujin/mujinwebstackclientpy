@@ -105,6 +105,43 @@ def BreakLargeQuery(queryFunction):
 
     return inner    
 
+class QueryIterator:
+
+    _queryFunction = None
+    _args = None
+    _kwargs = None
+    _items = None
+    _shouldStop = None
+
+    def __init__(self, queryFunction, *args, **kwargs):
+        self._queryFunction = queryFunction
+        self._args = args
+        self._kwargs = kwargs
+        self._items = []
+        self._shouldStop = False
+        self._kwargs.setdefault('offset', 0)
+        self._kwargs['limit'] = 100
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if len(self._items) != 0:
+            item = self._items[0]
+            self._items = self._items[1:]
+            return item
+
+        if self._shouldStop:
+            raise StopIteration
+
+        self._items = self._queryFunction(*self._args, **self._kwargs)
+        self._kwargs['offset'] += len(self._items)
+        if len(self._items) < self._kwargs['limit']:
+            self._shouldStop = True
+        
+        return self.next()
+
+
 class WebstackClient(object):
     """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).
     """
@@ -271,6 +308,11 @@ class WebstackClient(object):
         }
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params))
+    
+    def IterateScenes(self, fields=None, offset=0, timeout=5, **kwargs):
+        """Iterate through all available scenes on controller
+        """
+        return QueryIterator(self.GetScenes, fields=fields, offset=offset, timeout=timeout, **kwargs)
 
     def GetScene(self, pk, fields=None, timeout=5):
         """Returns requested scene
@@ -597,6 +639,9 @@ class WebstackClient(object):
             params['tasktype'] = tasktype
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params))
 
+    def IterateSceneTasks(self, scenepk, fields=None, offset=0, tasktype=None, timeout=5):
+        return QueryIterator(self.GetSceneTasks, scenepk, fields=fields, offset=offset, tasktype=tasktype, timeout=timeout)
+
     def GetSceneTask(self, scenepk, taskpk, fields=None, timeout=5):
         return self._webclient.APICall('GET', u'scene/%s/task/%s/' % (scenepk, taskpk), fields=fields, timeout=timeout)
 
@@ -657,6 +702,9 @@ class WebstackClient(object):
             'limit': limit,
         }))
 
+    def IterateJobs(self, fields=None, offset=0, timeout=5):
+        return QueryIterator(self.GetJobs, fields=fields, offset=offset, timeout=timeout)
+
     def DeleteJob(self, jobpk, timeout=5):
         """Cancels the job with the corresponding jobpk
         """
@@ -680,6 +728,9 @@ class WebstackClient(object):
         }
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
+
+    def IterateCycleLogs(self, fields=None, offset=0, timeout=5, **kwargs):
+        return QueryIterator(self.GetCycleLogs, fields=fields, offset=offset, timeout=timeout, **kwargs)
 
     def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, timeout=5):
         return self._webclient.APICall('POST', u'cycleLog/', data={
@@ -983,6 +1034,9 @@ class WebstackClient(object):
         }
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
+    
+    def IterateITLPrograms(self, fields=None, offset=0, timeout=5, **kwargs):
+        return QueryIterator(self.GetITLPrograms, fields=fields, offset=offset, timeout=timeout, **kwargs)
 
     def GetITLProgram(self, programName, fields=None, timeout=5):
         """Throws exception if program does not exist."""
