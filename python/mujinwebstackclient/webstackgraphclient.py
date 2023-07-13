@@ -6,7 +6,7 @@
 #
 
 from .webstackgraphclientutils import GraphClientBase
-from .webstackgraphclientutils import BreakLargeGraphQuery, GraphQueryIterator
+from .webstackgraphclientutils import BreakLargeGraphQuery
 
 class GraphQueries:
 
@@ -1092,26 +1092,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListApplications', parameterNameTypeValues=parameterNameTypeValues, returnType='ListApplicationsReturnValue', fields=fields, timeout=timeout)
 
-    def IterateApplications(self, options=None, fields=None, timeout=None):
-        """Iterate through all applications.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            ApplicationsIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListApplications, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListAttachedSensors(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List attached sensors defined on a robot.
@@ -1137,34 +1117,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListAttachedSensors', parameterNameTypeValues=parameterNameTypeValues, returnType='ListAttachedSensorsReturnValue', fields=fields, timeout=timeout)
 
-    def IterateAttachedSensors(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through attached sensors defined on a robot.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            AttachedSensorsIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListAttachedSensors, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListBodies(self, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List bodies in an environment.
@@ -1188,32 +1140,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListBodies', parameterNameTypeValues=parameterNameTypeValues, returnType='ListBodiesReturnValue', fields=fields, timeout=timeout)
 
-    def IterateBodies(self, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through bodies in an environment.
-
-        Args:
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            BodiesIterator
-        """
-        args = [
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListBodies, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListConfigurations(self, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List available configurations.
@@ -1234,30 +1160,6 @@ class GraphQueries:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListConfigurations', parameterNameTypeValues=parameterNameTypeValues, returnType='ListConfigurationsReturnValue', fields=fields, timeout=timeout)
-
-    def IterateConfigurations(self, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through available configurations.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved configurations. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            ConfigurationsIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListConfigurations, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListConnectedBodies(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -1284,34 +1186,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListConnectedBodies', parameterNameTypeValues=parameterNameTypeValues, returnType='ListConnectedBodiesReturnValue', fields=fields, timeout=timeout)
 
-    def IterateConnectedBodies(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through connected bodies defined on a robot.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            ConnectedBodiesIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListConnectedBodies, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListDetectorModules(self, options=None, fields=None, timeout=None):
         """List detector modules.
@@ -1329,26 +1203,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListDetectorModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListDetectorModulesReturnValue', fields=fields, timeout=timeout)
 
-    def IterateDetectorModules(self, options=None, fields=None, timeout=None):
-        """Iterate through detector modules.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            DetectorModulesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListDetectorModules, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListDeviceBridgeModules(self, options=None, fields=None, timeout=None):
         """List device bridge modules.
@@ -1365,26 +1219,6 @@ class GraphQueries:
             ('options', 'ListOptionsInput', options),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListDeviceBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListDeviceBridgeModulesReturnValue', fields=fields, timeout=timeout)
-
-    def IterateDeviceBridgeModules(self, options=None, fields=None, timeout=None):
-        """Iterate through device bridge modules.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            DeviceBridgeModulesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListDeviceBridgeModules, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListEnvironments(self, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -1406,30 +1240,6 @@ class GraphQueries:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListEnvironments', parameterNameTypeValues=parameterNameTypeValues, returnType='ListEnvironmentsReturnValue', fields=fields, timeout=timeout)
-
-    def IterateEnvironments(self, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through all environments.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            EnvironmentsIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListEnvironments, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListGeometries(self, bodyId, environmentId, linkId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -1458,36 +1268,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGeometries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGeometriesReturnValue', fields=fields, timeout=timeout)
 
-    def IterateGeometries(self, bodyId, environmentId, linkId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through geometries in a link.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            linkId (str): ID of the link.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            GeometriesIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-            linkId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListGeometries, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListGrabbeds(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List grabbed objects in a body.
@@ -1512,34 +1292,6 @@ class GraphQueries:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGrabbeds', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGrabbedsReturnValue', fields=fields, timeout=timeout)
-
-    def IterateGrabbeds(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through grabbed objects in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            GrabbedsIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListGrabbeds, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListGraspSets(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -1566,34 +1318,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGraspSets', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGraspSetsReturnValue', fields=fields, timeout=timeout)
 
-    def IterateGraspSets(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through grasp sets in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            GraspSetsIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListGraspSets, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListGripperBridgeModules(self, options=None, fields=None, timeout=None):
         """List gripper bridge modules.
@@ -1610,26 +1334,6 @@ class GraphQueries:
             ('options', 'ListOptionsInput', options),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGripperBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGripperBridgeModulesReturnValue', fields=fields, timeout=timeout)
-
-    def IterateGripperBridgeModules(self, options=None, fields=None, timeout=None):
-        """Iterate through gripper bridge modules.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            GripperBridgeModulesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListGripperBridgeModules, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListGripperInfos(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -1656,34 +1360,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGripperInfos', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGripperInfosReturnValue', fields=fields, timeout=timeout)
 
-    def IterateGripperInfos(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through gripper infos defined on a robot.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            GripperInfosIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListGripperInfos, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListIKParameterizations(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List ikparams in a body.
@@ -1708,34 +1384,6 @@ class GraphQueries:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListIKParameterizations', parameterNameTypeValues=parameterNameTypeValues, returnType='ListIKParameterizationsReturnValue', fields=fields, timeout=timeout)
-
-    def IterateIKParameterizations(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through ikparams in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            IKParameterizationsIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListIKParameterizations, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListJoints(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -1762,34 +1410,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListJoints', parameterNameTypeValues=parameterNameTypeValues, returnType='ListJointsReturnValue', fields=fields, timeout=timeout)
 
-    def IterateJoints(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through joints in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            JointsIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListJoints, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListLinks(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List links in a body.
@@ -1815,34 +1435,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListLinks', parameterNameTypeValues=parameterNameTypeValues, returnType='ListLinksReturnValue', fields=fields, timeout=timeout)
 
-    def IterateLinks(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through links in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            LinksIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListLinks, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListLogEntries(self, logTypes=None, options=None, fields=None, timeout=None):
         """List available log entries.
@@ -1862,28 +1454,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListLogEntries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListLogEntriesReturnValue', fields=fields, timeout=timeout)
 
-    def IterateLogEntries(self, logTypes=None, options=None, fields=None, timeout=None):
-        """Iterate through available log entries.
-
-        Args:
-            logTypes ([String], optional): Filter by log entry type
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            LogEntriesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'logTypes': logTypes,
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListLogEntries, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListModules(self, moduleTypes=None, options=None, fields=None, timeout=None):
         """List available modules.
@@ -1902,28 +1472,6 @@ class GraphQueries:
             ('options', 'ListOptionsInput', options),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListModulesReturnValue', fields=fields, timeout=timeout)
-
-    def IterateModules(self, moduleTypes=None, options=None, fields=None, timeout=None):
-        """Iterate through available modules.
-
-        Args:
-            moduleTypes ([String], optional): Filter by module type.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            ModulesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'moduleTypes': moduleTypes,
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListModules, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListPositionConfigurations(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -1950,34 +1498,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListPositionConfigurations', parameterNameTypeValues=parameterNameTypeValues, returnType='ListPositionConfigurationsReturnValue', fields=fields, timeout=timeout)
 
-    def IteratePositionConfigurations(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through position configurations in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            PositionConfigurationsIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListPositionConfigurations, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListPrograms(self, options=None, fields=None, timeout=None):
         """List all programs.
@@ -1994,26 +1514,6 @@ class GraphQueries:
             ('options', 'ListOptionsInput', options),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListPrograms', parameterNameTypeValues=parameterNameTypeValues, returnType='ListProgramsReturnValue', fields=fields, timeout=timeout)
-
-    def IteratePrograms(self, options=None, fields=None, timeout=None):
-        """Iterate through all programs.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            ProgramsIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListPrograms, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListRevisions(self, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -2038,32 +1538,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListRevisions', parameterNameTypeValues=parameterNameTypeValues, returnType='ListRevisionsReturnValue', fields=fields, timeout=timeout)
 
-    def IterateRevisions(self, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through revisions of an environment.
-
-        Args:
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            RevisionsIterator
-        """
-        args = [
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListRevisions, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListRobotBridgeModules(self, options=None, fields=None, timeout=None):
         """List robot bridge modules.
@@ -2081,26 +1555,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListRobotBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListRobotBridgeModulesReturnValue', fields=fields, timeout=timeout)
 
-    def IterateRobotBridgeModules(self, options=None, fields=None, timeout=None):
-        """Iterate through robot bridge modules.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            RobotBridgeModulesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListRobotBridgeModules, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListSensorBridgeModules(self, options=None, fields=None, timeout=None):
         """List sensor bridge modules.
@@ -2117,26 +1571,6 @@ class GraphQueries:
             ('options', 'ListOptionsInput', options),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListSensorBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListSensorBridgeModulesReturnValue', fields=fields, timeout=timeout)
-
-    def IterateSensorBridgeModules(self, options=None, fields=None, timeout=None):
-        """Iterate through sensor bridge modules.
-
-        Args:
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            SensorBridgeModulesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'options': options,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListSensorBridgeModules, *args, **kwargs)
 
     @BreakLargeGraphQuery
     def ListStatEntries(self, endedAt=None, intervalType=None, options=None, startedAt=None, statTypes=None, fields=None, timeout=None):
@@ -2187,58 +1621,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListStatEntries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListStatEntriesReturnValue', fields=fields, timeout=timeout)
 
-    def IterateStatEntries(self, endedAt=None, intervalType=None, options=None, startedAt=None, statTypes=None, fields=None, timeout=None):
-        """Iterate throughs all or specific types of statistics entries for a given time interval.
-
-        Args:
-            endedAt (DateTime, optional): The time until which statistics entries are requested. Statistics will be returned including the interval that includes this time.
-            intervalType (str, optional): The length of the intervals (i.e. the resolution) in which the statistic will be returned. One of:
-                    - minute
-                    - fiveMinutes
-                    - hour
-                    - day
-                    - week
-                    - month
-                    - year
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            startedAt (DateTime, optional): The time from which statistics entries are requested. Statistics will be returned from the interval that includes this time. For example, a request for hourly data starting from 12:30 will return hourly data starting from 12:00.
-            statTypes ([String], optional): The type of statistics entries to list, defaults to list all. Example values:
-                    - system
-                    - timeToFirstPick
-                    - timeWaitedForPickContainerToArrive
-                    - idleTime
-                    - blockageTime
-                    - starvationTime
-                    - numberOfContainersPerLocation
-                    - numberOfPickedPartsPerOrderRequest
-                    - partWeight
-                    - partTransferSpeedMultiplier
-                    - multiPick
-                    - pickCycleExecutionStatus
-                    - orderCycleFinishCode
-                    - numberOfHumanInterventions
-                    - numberOfRobotInterruptions
-                    - systemThroughput
-                    - directRobotThroughput
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            StatEntriesIterator
-        """
-        args = [
-        ]
-        kwargs = {
-            'endedAt': endedAt,
-            'intervalType': intervalType,
-            'options': options,
-            'startedAt': startedAt,
-            'statTypes': statTypes,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListStatEntries, *args, **kwargs)
-
     @BreakLargeGraphQuery
     def ListTools(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List tools defined on a robot.
@@ -2263,34 +1645,6 @@ class GraphQueries:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListTools', parameterNameTypeValues=parameterNameTypeValues, returnType='ListToolsReturnValue', fields=fields, timeout=timeout)
-
-    def IterateTools(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Iterate through tools defined on a robot.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            options (ListOptionsInput, optional): Optional list query parameters, used to filter returned results.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            ToolsIterator
-        """
-        args = [
-            bodyId,
-            environmentId,
-        ]
-        kwargs = {
-            'options': options,
-            'resolveReferences': resolveReferences,
-            'units': units,
-            'fields': fields,
-            'timeout': timeout,
-        }
-        return GraphQueryIterator(self.ListTools, *args, **kwargs)
 
     def Ping(self, host, size=None, ttl=None, fields=None, timeout=None):
         """Ping a remote host.
