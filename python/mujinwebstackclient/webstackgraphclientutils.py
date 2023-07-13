@@ -97,38 +97,13 @@ def BreakLargeGraphQuery(queryFunction):
         options = kwargs.get('options', {'offset': 0, 'first': 0})
         if options.get('first', 0) != 0:
             return queryFunction(self, *args, **kwargs)
-        
-        def _BreakQuery(self, queryFunction, *args, **kwargs):
-            meta = None
-            data = []
-            keyName = ""
-            limit = 100
-            options = kwargs.get('options', {'offset': 0, 'first': 0})
-            offset = options.get('offset', 0)
-            while True:
-                options['first'] = limit
-                options['offset'] = offset
-                kwargs['options'] = options
-                rawResponse = queryFunction(self, *args, **kwargs)
 
-                # merge meta
-                if 'meta' in rawResponse:
-                    if meta is None:
-                        meta = rawResponse['meta']
-                    del rawResponse['meta']
-                    
-                keyName = rawResponse.keys()[0]
-                data.extend(rawResponse[keyName])
-                offset += len(rawResponse[keyName])
-                if len(rawResponse[keyName]) < limit:
-                    break
-
-            response = {keyName: data}
-            if meta is not None:
-                response['meta'] = meta
-            return response
-        
-        return _BreakQuery(self, queryFunction, *args, **kwargs)
+        iterator = GraphQueryIterator(queryFunction, *args, **kwargs)
+        data = [item for item in iterator]
+        response = {iterator.keyName: data}
+        if iterator.meta is not None:
+            response['meta'] = iterator.meta
+        return response
 
     return inner
 
@@ -148,6 +123,8 @@ class GraphQueryIterator:
     _shouldStop = None
     _totalLimit = None
     _count = None
+    _meta = None
+    _keyName = None
 
     def __init__(self, queryFunction, *args, **kwargs):
         self._queryFunction = queryFunction
@@ -165,8 +142,6 @@ class GraphQueryIterator:
         self._count = 0
         self._kwargs['options']['first'] = 100
         self._kwargs.setdefault('fields', {})
-        if 'meta' in self._kwargs['fields']:
-            del self._kwargs['fields']['meta']
 
     def __iter__(self):
         return self
@@ -181,7 +156,11 @@ class GraphQueryIterator:
         if self._shouldStop:
             raise StopIteration
 
-        self._items = self._queryFunction(*self._args, **self._kwargs).values()[0]
+        rawResponse = self._queryFunction(*self._args, **self._kwargs)
+        if 'meta' in rawResponse:
+            self._meta = rawResponse['meta']
+            del rawResponse['meta']
+        self._keyName, self._items = rawResponse.items()[0]
 
         self._kwargs['options']['offset'] += len(self._items)
         if len(self._items) < self._kwargs['options']['first']:
@@ -191,3 +170,11 @@ class GraphQueryIterator:
             self._items = self._items[:self._totalLimit - self._count]
         
         return self.next()
+
+    @property
+    def keyName(self):
+        return self._keyName
+
+    @property
+    def meta(self):
+        return self._meta
