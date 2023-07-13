@@ -1,3 +1,9 @@
+# 0.7.0 (2023-07-13)
+
+- Add a decorator to break large query into a few small queries.
+- Update graph client generation algorithm and regenerate the graph client.
+
+
 # 0.6.0 (2023-06-28)
 
 - Support backup encrypted system information for debugging purpose.
