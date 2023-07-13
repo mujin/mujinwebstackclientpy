@@ -78,6 +78,32 @@ def _FormatHTTPDate(dt):
     month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1]
     return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
 
+def BreakLargeQuery(queryFunction):
+    def inner(self, *args, **kwargs):
+        if kwargs.get('limit', 0) != 0:
+            return queryFunction(self, *args, **kwargs)
+        
+        def _BreakQuery(self, queryFunction, *args, **kwargs):
+            data = []
+            limit = 100
+            initialOffset = kwargs.get('offset', 0)
+            offset = initialOffset
+            totalCount = 0
+            while True:
+                kwargs['limit'] = limit
+                kwargs['offset'] = offset
+                items = queryFunction(self, *args, **kwargs)
+                data.extend(items)
+                totalCount = items.totalCount
+                offset += len(items)
+                if len(items) < limit:
+                    break
+
+            return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': totalCount, 'limit':0, 'offset': initialOffset}})
+        
+        return _BreakQuery(self, queryFunction, *args, **kwargs)
+
+    return inner    
 
 class WebstackClient(object):
     """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).
@@ -235,6 +261,7 @@ class WebstackClient(object):
         """
         return self.UploadFile(f, timeout=timeout)['filename']
 
+    @BreakLargeQuery
     def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         """List all available scene on controller
         """
@@ -560,6 +587,7 @@ class WebstackClient(object):
     # Task related
     #
 
+    @BreakLargeQuery
     def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, timeout=5):
         params = {
             'offset': offset,
@@ -622,6 +650,7 @@ class WebstackClient(object):
     # Job related
     #
 
+    @BreakLargeQuery
     def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
@@ -643,6 +672,7 @@ class WebstackClient(object):
     # Cycle Log
     #
 
+    @BreakLargeQuery
     def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
@@ -945,6 +975,7 @@ class WebstackClient(object):
     # ITL program related
     #
 
+    @BreakLargeQuery
     def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
