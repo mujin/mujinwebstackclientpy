@@ -129,3 +129,45 @@ def BreakLargeGraphQuery(queryFunction):
         return _BreakQuery(self, queryFunction, *args, **kwargs)
 
     return inner
+
+class GraphQueryIterator:
+
+    _queryFunction = None
+    _args = None
+    _kwargs = None
+    _items = None
+    _shouldStop = None
+
+    def __init__(self, queryFunction, *args, **kwargs):
+        self._queryFunction = queryFunction
+        self._args = args
+        self._kwargs = kwargs
+        self._items = []
+        self._shouldStop = False
+        if self._kwargs.get('options', None) is None:
+            self._kwargs['options'] = {'offset': 0, 'first': 0}
+        self._kwargs['options'].setdefault('offset', 0)
+        self._kwargs['options']['first'] = 100
+        self._kwargs.setdefault('fields', {})
+        if 'meta' in self._kwargs['fields']:
+            del self._kwargs['fields']['meta']
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if len(self._items) != 0:
+            item = self._items[0]
+            self._items = self._items[1:]
+            return item
+
+        if self._shouldStop:
+            raise StopIteration
+
+        self._items = self._queryFunction(*self._args, **self._kwargs).values()[0]
+
+        self._kwargs['options']['offset'] += len(self._items)
+        if len(self._items) < self._kwargs['options']['first']:
+            self._shouldStop = True
+        
+        return self.next()
