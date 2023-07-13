@@ -2,7 +2,7 @@
 
 - Add a decorator to break large query into a few small queries.
 - Update graph client generation algorithm and regenerate the graph client.
-- Introduce iterator version APIs for large queries.
+- Introduce iterator for large queries.
 
 
 # 0.6.0 (2023-06-28)
