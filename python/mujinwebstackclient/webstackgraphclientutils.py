@@ -137,6 +137,8 @@ class GraphQueryIterator:
     _kwargs = None
     _items = None
     _shouldStop = None
+    _totalLimit = None
+    _count = None
 
     def __init__(self, queryFunction, *args, **kwargs):
         self._queryFunction = queryFunction
@@ -147,6 +149,9 @@ class GraphQueryIterator:
         if self._kwargs.get('options', None) is None:
             self._kwargs['options'] = {'offset': 0, 'first': 0}
         self._kwargs['options'].setdefault('offset', 0)
+        self._kwargs['options'].setdefault('first', 0)
+        self._totalLimit = self._kwargs['options']['first']
+        self._count = 0
         self._kwargs['options']['first'] = 100
         self._kwargs.setdefault('fields', {})
         if 'meta' in self._kwargs['fields']:
@@ -156,9 +161,13 @@ class GraphQueryIterator:
         return self
 
     def next(self):
+        if self._totalLimit > 0 and self._count == self._totalLimit:
+            raise StopIteration
+
         if len(self._items) != 0:
             item = self._items[0]
             self._items = self._items[1:]
+            self._count += 1
             return item
 
         if self._shouldStop:
