@@ -1,4 +1,4 @@
-# 0.7.0 (2023-07-13)
+# 0.6.1 (2023-07-13)
 
 - Add a decorator to break large query into a few small queries.
 - Update graph client generation algorithm and regenerate the graph client.
