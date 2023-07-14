@@ -162,7 +162,11 @@ class GraphQueryIterator:
         if 'meta' in rawResponse:
             self._meta = rawResponse['meta']
             del rawResponse['meta']
-        self._keyName, self._items = rawResponse.items()[0]
+        if '__typename' in rawResponse:
+            self._keyName = '__typename'
+            self._items = [rawResponse['__typename']]
+        else:
+            self._keyName, self._items = rawResponse.items()[0]
 
         self._kwargs['options']['offset'] += len(self._items)
         if len(self._items) < self._kwargs['options']['first']:
