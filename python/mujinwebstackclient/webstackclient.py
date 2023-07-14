@@ -86,7 +86,7 @@ def BreakLargeQuery(queryFunction):
             return queryFunction(self, *args, **kwargs)
         
         initialOffset = kwargs.get('offset', 0)
-        iterator = QueryIterator(queryFunction, *args, **kwargs)
+        iterator = QueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
         return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': iterator.totalCount, 'limit':0, 'offset': initialOffset}})
 
@@ -109,12 +109,13 @@ class QueryIterator:
     _shouldStop = None
     _totalLimit = None
     _count = None
+    _totalCount = None
 
     def __init__(self, queryFunction, *args, **kwargs):
         self._queryFunction = queryFunction
         self._args = args
         self._kwargs = kwargs
-        self._items = WebstackClient.ObjectsWrapper({'objects': [], 'meta':{}})
+        self._items = []
         self._shouldStop = False
         self._kwargs.setdefault('offset', 0)
         self._kwargs.setdefault('limit', 0)
@@ -138,6 +139,7 @@ class QueryIterator:
             raise StopIteration
 
         self._items = self._queryFunction(*self._args, **self._kwargs)
+        self._totalCount = self._items.totalCount
         self._kwargs['offset'] += len(self._items)
         if len(self._items) < self._kwargs['limit']:
             self._shouldStop = True
@@ -149,7 +151,7 @@ class QueryIterator:
 
     @property
     def totalCount(self):
-        return self._items.totalCount
+        return self._totalCount
 
 class WebstackClient(object):
     """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).

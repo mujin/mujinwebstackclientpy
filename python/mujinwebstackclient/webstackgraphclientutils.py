@@ -98,7 +98,7 @@ def BreakLargeGraphQuery(queryFunction):
         if options.get('first', 0) != 0:
             return queryFunction(self, *args, **kwargs)
 
-        iterator = GraphQueryIterator(queryFunction, *args, **kwargs)
+        iterator = GraphQueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
         response = {iterator.keyName: data}
         if iterator.meta is not None:
@@ -112,6 +112,8 @@ class GraphQueryIterator:
     example:
 
       iterator = GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}})
+      for body in GraphQueryIterator(client.graphApi.ListBodies, "test1", fields={'bodies': {'id': None}}):
+          do_something(body['id'])
       for environment in GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}}):
           do_something(environment['id'])
     """
