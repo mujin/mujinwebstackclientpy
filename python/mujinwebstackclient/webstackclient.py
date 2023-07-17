@@ -102,16 +102,18 @@ class QueryIterator:
           do_something(scene)
     """
 
-    _queryFunction = None
-    _args = None
-    _kwargs = None
-    _items = None
-    _shouldStop = None
-    _totalLimit = None
-    _count = None
-    _totalCount = None
+    _queryFunction = None # the actual webstack client query function (e.g. client.GetScenes)
+    _args = None # positional arguments supplied to the query function (e.g. scenepk)
+    _kwargs = None # keyword arguments supplied to the query function (e.g. offset=10, limit=20)
+    _items = None # internal buffer for items retrieved from webstack
+    _shouldStop = None # boolean flag indicates whether need to query webstack again
+    _totalLimit = None # the number of items user requests (0 means no limit)
+    _count = None # the number of items already returned to user
+    _totalCount = None # the number of items available on webstack
 
     def __init__(self, queryFunction, *args, **kwargs):
+        """Initialize all internal variables
+        """
         self._queryFunction = queryFunction
         self._args = args
         self._kwargs = kwargs
@@ -130,21 +132,30 @@ class QueryIterator:
         return self
 
     def next(self):
+        """Retrieve the next item from iterator
+        """
+
+        # return an item from internal buffer if buffer is not empty
         if len(self._items) != 0:
             item = self._items[0]
             self._items = self._items[1:]
             self._count += 1
             return item
 
+        # stop iteration if internal buffer is empty and no need to query webstack again
         if self._shouldStop:
             raise StopIteration
 
+        # query webstack if buffer is empty
         self._items = self._queryFunction(*self._args, **self._kwargs)
         self._totalCount = self._items.totalCount
         self._kwargs['offset'] += len(self._items)
+
         if len(self._items) < self._kwargs['limit']:
+            # webstack does not have more items
             self._shouldStop = True
         if self._totalLimit != 0 and self._count + len(self._items) >= self._totalLimit:
+            # all remaining items user requests are in internal buffer, no need to query webstack again
             self._shouldStop = True
             self._items = self._items[:self._totalLimit - self._count]
 
