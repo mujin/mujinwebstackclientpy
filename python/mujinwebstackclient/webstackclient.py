@@ -120,10 +120,11 @@ class QueryIterator:
         self._kwargs.setdefault('offset', 0)
         self._kwargs.setdefault('limit', 0)
         self._totalLimit = self._kwargs['limit']
-        if self._totalLimit == 0:
-            self._totalLimit = 9999999999999 # 0 means no limit
         self._count = 0
-        self._kwargs['limit'] = min(self._kwargs['limit'], 100)
+        if self._kwargs['limit'] > 0:
+            self._kwargs['limit'] = min(self._kwargs['limit'], 100)
+        else:
+            self._kwargs['limit'] = 100
 
     def __iter__(self):
         return self
@@ -143,7 +144,7 @@ class QueryIterator:
         self._kwargs['offset'] += len(self._items)
         if len(self._items) < self._kwargs['limit']:
             self._shouldStop = True
-        if self._count + len(self._items) >= self._totalLimit:
+        if self._totalLimit != 0 and self._count + len(self._items) >= self._totalLimit:
             self._shouldStop = True
             self._items = self._items[:self._totalLimit - self._count]
 

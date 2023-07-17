@@ -111,6 +111,7 @@ class GraphQueryIterator:
     """Converts a large graph query to a iterator. The iterator will internally query webstack with a few small queries
     example:
 
+      iterator = GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}})
       iterator = GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}}, options={'first': 10, 'offset': 5})
       for body in GraphQueryIterator(client.graphApi.ListBodies, "test1", fields={'bodies': {'id': None}}):
           do_something(body['id'])
@@ -139,10 +140,11 @@ class GraphQueryIterator:
         self._kwargs['options'].setdefault('offset', 0)
         self._kwargs['options'].setdefault('first', 0)
         self._totalLimit = self._kwargs['options']['first']
-        if self._totalLimit == 0:
-            self._totalLimit = 9999999999999 # 0 means no limit
         self._count = 0
-        self._kwargs['options']['first'] = min(self._kwargs['options']['first'], 100)
+        if self._kwargs['options']['first'] > 0:
+            self._kwargs['options']['first'] = min(self._kwargs['options']['first'], 100)
+        else:
+            self._kwargs['options']['first'] = 100
         self._kwargs.setdefault('fields', {})
 
     def __iter__(self):
@@ -171,7 +173,7 @@ class GraphQueryIterator:
         self._kwargs['options']['offset'] += len(self._items)
         if len(self._items) < self._kwargs['options']['first']:
             self._shouldStop = True
-        if self._count + len(self._items) >= self._totalLimit:
+        if self._totalLimit != 0 and self._count + len(self._items) >= self._totalLimit:
             self._shouldStop = True
             self._items = self._items[:self._totalLimit - self._count]
         
