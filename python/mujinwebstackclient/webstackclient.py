@@ -123,7 +123,7 @@ class QueryIterator:
         if self._totalLimit == 0:
             self._totalLimit = 9999999999999 # 0 means no limit
         self._count = 0
-        self._kwargs['limit'] = 100
+        self._kwargs['limit'] = min(self._kwargs['limit'], 100)
 
     def __iter__(self):
         return self
