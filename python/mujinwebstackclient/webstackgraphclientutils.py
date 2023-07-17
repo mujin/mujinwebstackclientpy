@@ -142,7 +142,7 @@ class GraphQueryIterator:
         if self._totalLimit == 0:
             self._totalLimit = 9999999999999 # 0 means no limit
         self._count = 0
-        self._kwargs['options']['first'] = 100
+        self._kwargs['options']['first'] = min(self._kwargs['options']['first'], 100)
         self._kwargs.setdefault('fields', {})
 
     def __iter__(self):
