@@ -90,6 +90,9 @@ def BreakLargeQuery(queryFunction):
         data = [item for item in iterator]
         return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': iterator.totalCount, 'limit':0, 'offset': initialOffset}})
 
+    # relay the docstring
+    inner.__doc__ = queryFunction.__doc__
+
     return inner    
 
 class QueryIterator:

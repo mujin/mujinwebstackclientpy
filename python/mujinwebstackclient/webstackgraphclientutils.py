@@ -105,6 +105,9 @@ def BreakLargeGraphQuery(queryFunction):
             response['meta'] = {'totalCount': iterator.totalCount}
         return response
 
+    # relay the docstring
+    inner.__doc__ = queryFunction.__doc__
+
     return inner
 
 class GraphQueryIterator:
