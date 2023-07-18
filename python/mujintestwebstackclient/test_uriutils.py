@@ -27,7 +27,7 @@ def test_GetFragmentFromURI(uri, fragmentSeparator, expected):
     (u'mujin:/测试_test..mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_SHARP, b'%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'),
     (u'mujin:/private/s/gittest.mujin.dae', uriutils.FRAGMENT_SEPARATOR_SHARP, b'private%2Fs%2Fgittest.mujin.dae'),
 ])
-def test_GetPrimaryKeyFromURI(uri, fragmentSeparator, expected):
+def test_GetPrimaryKeyFromURsdsdI(uri, fragmentSeparator, expected):
     assert uriutils.GetPrimaryKeyFromURI(uri, fragmentSeparator=fragmentSeparator) == expected
 
 
