@@ -154,6 +154,9 @@ class GraphQueryIterator:
     def __iter__(self):
         return self
 
+    def __next__(self):
+        return self.next()
+
     def next(self):
         """Retrieve the next item from iterator
         """
@@ -178,7 +181,7 @@ class GraphQueryIterator:
             self._keyName = '__typename'
             self._items = [rawResponse['__typename']]
         else:
-            self._keyName, self._items = rawResponse.items()[0]
+            self._keyName, self._items = list(rawResponse.items())[0]
         self._kwargs['options']['offset'] += len(self._items)
 
         if len(self._items) < self._kwargs['options']['first']:

@@ -132,6 +132,9 @@ class QueryIterator:
 
     def __iter__(self):
         return self
+    
+    def __next__(self):
+        return self.next()
 
     def next(self):
         """Retrieve the next item from iterator
