@@ -9,6 +9,7 @@ import os
 import datetime
 import base64
 from email.utils import parsedate
+from functools import wraps
 
 # Mujin imports
 from . import WebstackClientError
@@ -81,6 +82,7 @@ def _FormatHTTPDate(dt):
 def BreakLargeQuery(queryFunction):
     """This decorator break a large query into a few small queries to prevent webstack from consuming too much memory.
     """
+    @wraps(queryFunction)
     def inner(self, *args, **kwargs):
         if kwargs.get('limit', 0) != 0:
             return queryFunction(self, *args, **kwargs)
@@ -89,9 +91,6 @@ def BreakLargeQuery(queryFunction):
         iterator = QueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
         return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': iterator.totalCount, 'limit':0, 'offset': initialOffset}})
-
-    # relay the docstring
-    inner.__doc__ = queryFunction.__doc__
 
     return inner    
 

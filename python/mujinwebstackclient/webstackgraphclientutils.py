@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from functools import wraps
 import logging
 log = logging.getLogger(__name__)
 
@@ -93,6 +94,7 @@ class GraphClientBase(object):
 def BreakLargeGraphQuery(queryFunction):
     """This decorator break a large graph query into a few small queries to prevent webstack from consuming too much memory.
     """
+    @wraps(queryFunction)
     def inner(self, *args, **kwargs):
         options = kwargs.get('options', {'offset': 0, 'first': 0})
         if options.get('first', 0) != 0:
@@ -104,9 +106,6 @@ def BreakLargeGraphQuery(queryFunction):
         if iterator.totalCount is not None:
             response['meta'] = {'totalCount': iterator.totalCount}
         return response
-
-    # relay the docstring
-    inner.__doc__ = queryFunction.__doc__
 
     return inner
 
