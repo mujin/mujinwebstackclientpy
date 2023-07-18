@@ -155,10 +155,14 @@ class GraphQueryIterator:
         return self
 
     def __next__(self):
+        """Retrieve the next item from iterator
+           Required by Python3
+        """
         return self.next()
 
     def next(self):
         """Retrieve the next item from iterator
+            Required by Python2
         """
 
         # return an item from internal buffer if buffer is not empty
