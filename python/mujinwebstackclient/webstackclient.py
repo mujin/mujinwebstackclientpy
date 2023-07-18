@@ -163,6 +163,8 @@ class QueryIterator:
 
     @property
     def totalCount(self):
+        """the number of available items in webstack
+        """
         return self._totalCount
 
 class WebstackClient(object):

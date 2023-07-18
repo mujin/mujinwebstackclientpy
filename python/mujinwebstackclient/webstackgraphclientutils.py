@@ -101,8 +101,8 @@ def BreakLargeGraphQuery(queryFunction):
         iterator = GraphQueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
         response = {iterator.keyName: data}
-        if iterator.meta is not None:
-            response['meta'] = iterator.meta
+        if iterator.totalCount is not None:
+            response['meta'] = {'totalCount': iterator.totalCount}
         return response
 
     return inner
@@ -126,8 +126,8 @@ class GraphQueryIterator:
     _shouldStop = None # boolean flag indicates whether need to query webstack again
     _totalLimit = None # the number of items user requests (0 means no limit)
     _count = None # the number of items already returned to user
-    _meta = None # meta data retrieve from webstack
-    _keyName = None # keyName of actual data in the dictionary retrieved from webstack
+    _totalCount = None # the number of available items in webstack
+    _keyName = None # the name of actual data in the dictionary retrieved from webstack (e.g. 'bodies', 'environments', 'geometries')
 
     def __init__(self, queryFunction, *args, **kwargs):
         """Initialize all internal variables
@@ -170,7 +170,7 @@ class GraphQueryIterator:
         # query webstack if buffer is empty
         rawResponse = self._queryFunction(*self._args, **self._kwargs)
         if 'meta' in rawResponse:
-            self._meta = rawResponse['meta']
+            self._totalCount = rawResponse['meta']['totalCount']
             del rawResponse['meta']
         if '__typename' in rawResponse:
             self._keyName = '__typename'
@@ -191,12 +191,13 @@ class GraphQueryIterator:
 
     @property
     def keyName(self):
-        """meta data retrieve from webstack
+        """the name of actual data in the dictionary retrieved from webstack
+           e.g. 'bodies', 'environments', 'geometries'
         """
         return self._keyName
-
+    
     @property
-    def meta(self):
-        """keyName of actual data in the dictionary retrieved from webstack
+    def totalCount(self):
+        """the number of available items in webstack
         """
-        return self._meta
+        return self._totalCount
