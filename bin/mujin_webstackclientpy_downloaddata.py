@@ -75,6 +75,7 @@ def _DownloadBackup(webClient, sceneList, timeout=600.0):
     with tarfile.open(fileobj=response.raw, mode='r|gz') as tar:
         tar.extractall(path=downloadDirectory)
     log.info('download completed, data saved to: %s', downloadDirectory)
+    return downloadDirectory
 
 def _Main():
     options = _ParseArguments()
@@ -82,7 +83,8 @@ def _Main():
 
     webClient = _CreateWebstackClient(options.url, options.username, options.password)
     sceneList = _GetScenes(webClient)
-    _DownloadBackup(webClient, sceneList, timeout=options.timeout)
+    downloadDirectory = _DownloadBackup(webClient, sceneList, timeout=options.timeout)
+    print(downloadDirectory) # other scripts can read stdout and learn the directory path
 
 if __name__ == "__main__":
     _Main()
