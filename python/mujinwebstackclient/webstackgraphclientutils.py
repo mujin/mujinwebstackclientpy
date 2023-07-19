@@ -99,12 +99,20 @@ def BreakLargeGraphQuery(queryFunction):
         options = kwargs.get('options', {'offset': 0, 'first': 0})
         if options.get('first', 0) != 0:
             return queryFunction(self, *args, **kwargs)
+        
+        rawResponse = queryFunction(self, *args, **kwargs)
 
         iterator = GraphQueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
         response = {iterator.keyName: data}
         if iterator.totalCount is not None:
             response['meta'] = {'totalCount': iterator.totalCount}
+
+        assert rawResponse['meta']['totalCount'] == iterator.totalCount
+        data2 = rawResponse[iterator.keyName]
+        assert len(data2) == len(data)
+        for a, b in zip(data, data2):
+            assert a == b
         return response
 
     return inner

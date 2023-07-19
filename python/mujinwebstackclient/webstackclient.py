@@ -87,9 +87,17 @@ def BreakLargeQuery(queryFunction):
         if kwargs.get('limit', 0) != 0:
             return queryFunction(self, *args, **kwargs)
         
+        data2 = queryFunction(self, *args, **kwargs)
+        
         initialOffset = kwargs.get('offset', 0)
         iterator = QueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
+
+        assert data2.totalCount == iterator.totalCount
+        assert len(data2) == len(data)
+        for a, b in zip(data, data2):
+            assert a == b
+
         return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': iterator.totalCount, 'limit':0, 'offset': initialOffset}})
 
     return inner    
