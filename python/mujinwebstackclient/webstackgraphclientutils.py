@@ -97,7 +97,8 @@ def BreakLargeGraphQuery(queryFunction):
     @wraps(queryFunction)
     def inner(self, *args, **kwargs):
         options = kwargs.get('options', {'offset': 0, 'first': 0})
-        if options.get('first', 0) != 0:
+        limit = options.get('first', 0)
+        if limit > 0 and limit <= 100:
             return queryFunction(self, *args, **kwargs)
 
         iterator = GraphQueryIterator(queryFunction, *((self,) + args), **kwargs)
