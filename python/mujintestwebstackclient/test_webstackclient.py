@@ -29,16 +29,16 @@ def test_RestartController():
 
 def test_GetScenes():
     with requests_mock.Mocker() as mock:
-        mock.get('http://controller/api/v1/scene/?format=json&limit=0&offset=0', json={
+        mock.get('http://controller/api/v1/scene/?format=json&limit=100&offset=0', json={
             'objects': [],
             'meta': {
                 'total_count': 101,
-                'limit': 20,
+                'limit': 100,
                 'offset': 0,
             },
         })
-        scenes = WebstackClient('http://controller', 'mujin', 'mujin').GetScenes()
+        scenes = WebstackClient('http://controller', 'mujin', 'mujin').GetScenes(limit=100)
         assert len(scenes) == 0
         assert scenes.offset == 0
-        assert scenes.limit == 20
+        assert scenes.limit == 100
         assert scenes.totalCount == 101
