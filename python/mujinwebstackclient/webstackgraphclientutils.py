@@ -108,7 +108,8 @@ def BreakLargeGraphQuery(queryFunction):
         if iterator.totalCount is not None:
             response['meta'] = {'totalCount': iterator.totalCount}
 
-        assert rawResponse['meta']['totalCount'] == iterator.totalCount
+        if 'meta' in rawResponse and 'totalCount' in rawResponse['meta']:
+            assert rawResponse['meta']['totalCount'] == iterator.totalCount
         data2 = rawResponse[iterator.keyName]
         assert len(data2) == len(data)
         for a, b in zip(data, data2):
