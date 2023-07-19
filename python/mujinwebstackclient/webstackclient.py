@@ -84,8 +84,7 @@ def BreakLargeQuery(queryFunction):
     """
     @wraps(queryFunction)
     def inner(self, *args, **kwargs):
-        limit = kwargs.get('limit', 0)
-        if limit > 0 and limit <= 100:
+        if kwargs.get('limit', 0) != 0:
             return queryFunction(self, *args, **kwargs)
         
         initialOffset = kwargs.get('offset', 0)
