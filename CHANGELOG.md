@@ -1,3 +1,5 @@
+- Handle PrimaryKey as str on Python3
+
 # 0.6.0 (2023-06-28)
 
 - Support backup encrypted system information for debugging purpose.
@@ -50,4 +52,3 @@
 # 0.1.0 (2022-11-17)
 
 - Port from mujincontrollerclientpy.
-
