@@ -5,6 +5,11 @@
 - Set the default pool size to 10 for `UnixSocketConnectionPool`.
 
 
+# 0.6.1 (2023-07-17)
+
+- Print download directory when downloading scene files.
+
+
 # 0.6.0 (2023-06-28)
 
 - Support backup encrypted system information for debugging purpose.
