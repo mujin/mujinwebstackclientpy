@@ -212,7 +212,14 @@ class WebstackClient(object):
         if not serverString.startswith('mujinwebstack/'):
             return (0, 0, 0, 'unknown')
         serverVersion = serverString[len('mujinwebstack/'):]
-        serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersion.split('.', 4)
+        serverVersionParts = serverVersion.split('+', 1)
+        if len(serverVersionParts) == 1:
+            # handle old format 1.2.3.commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersionParts[0].split('.', 3)
+        else:
+            # handle new format 1.2.3+commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch = serverVersionParts[0].split('.', 2)
+            serverVersionCommit = serverVersionParts[1]
         return (int(serverVersionMajor), int(serverVersionMinor), int(serverVersionPatch), serverVersionCommit)
 
     def SetLogLevel(self, componentLevels, timeout=5):

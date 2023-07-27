@@ -1,4 +1,8 @@
-# 0.7.0 (2023-06-22)
+# 0.7.1 (2023-07-27)
+
+- Handle new webstack semantic version format.
+
+# 0.7.0 (2023-06-28)
 
 - Regenerate graph client for new module library APIs.
 - Add streaming API to download blobs.
