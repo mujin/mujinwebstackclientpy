@@ -1,3 +1,8 @@
+# 0.7.1 (2023-07-27)
+
+- Handle new webstack semantic version format.
+
+
 # 0.7.0 (2023-06-28)
 
 - Set the default pool size to 10 for `UnixSocketConnectionPool`.
