@@ -227,7 +227,7 @@ def GetFragmentFromURI(uri, **kwargs):
     """
     return MujinResourceIdentifier(uri=uri, **kwargs).fragment
 
-def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT):
+def GetPrimaryKeyFromURI(uri, **kwargs):
     u"""
     input:
         uri: A mujin scheme uri which is utf-8 decoded unicode.
