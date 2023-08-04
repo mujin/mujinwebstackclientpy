@@ -1,12 +1,18 @@
-# 0.7.1 (2023-07-13)
+# 0.7.2 (2023-07-13)
 
 - Add a decorator to break large query into a few small queries.
 - Update graph client generation algorithm and regenerate the graph client.
 - Introduce iterator for large queries.
 
 
+# 0.7.1 (2023-07-27)
+
+- Handle new webstack semantic version format.
+
 # 0.7.0 (2023-06-28)
 
+- Regenerate graph client for new module library APIs.
+- Add streaming API to download blobs.
 - Set the default pool size to 10 for `UnixSocketConnectionPool`.
 
 
