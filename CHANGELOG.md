@@ -1,7 +1,23 @@
-# 0.6.1 (2023-05-24)
+# 0.7.2 (2023-05-24)
 
 - Add `CreateLogEntries` API and update GraphQL client.
 - Fix readme file references to the old repository.
+
+
+# 0.7.1 (2023-07-27)
+
+- Handle new webstack semantic version format.
+
+# 0.7.0 (2023-06-28)
+
+- Regenerate graph client for new module library APIs.
+- Add streaming API to download blobs.
+- Set the default pool size to 10 for `UnixSocketConnectionPool`.
+
+
+# 0.6.1 (2023-07-17)
+
+- Print download directory when downloading scene files.
 
 
 # 0.6.0 (2023-06-28)

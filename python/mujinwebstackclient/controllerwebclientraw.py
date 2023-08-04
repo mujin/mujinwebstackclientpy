@@ -234,7 +234,10 @@ class ControllerWebClientRaw(object):
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
             message = content['errors'][0].get('message', raw)
-            raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response)
+            errorCode = None
+            if 'extensions' in content['errors'][0]:
+                errorCode = content['errors'][0]['extensions'].get('errorCode', None)
+            raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response, errorCode=errorCode)
 
         if content is None or 'data' not in content:
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)

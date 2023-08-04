@@ -9,6 +9,28 @@ from .webstackgraphclientutils import GraphClientBase
 
 class GraphQueries:
 
+    def GetAppearanceParameters(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Get appearance parameters in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            AppearanceParameters: A set of parameters that vision detector uses.
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('query', operationName='GetAppearanceParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='AppearanceParameters', fields=fields, timeout=timeout)
+
     def GetApplication(self, applicationId, fields=None, timeout=None):
         """Get a specific application.
 
@@ -192,28 +214,6 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='GetDetectorModuleByDetectorID', parameterNameTypeValues=parameterNameTypeValues, returnType='DetectorModule', fields=fields, timeout=timeout)
 
-    def GetDetectorParameters(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Get detector parameters in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            DetectorParameters: A set of parameters that vision detector uses.
-        """
-        parameterNameTypeValues = [
-            ('bodyId', 'String!', bodyId),
-            ('environmentId', 'String!', environmentId),
-            ('resolveReferences', 'Boolean', resolveReferences),
-            ('units', 'UnitSelectionInput', units),
-        ]
-        return self._CallSimpleGraphAPI('query', operationName='GetDetectorParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='DetectorParameters', fields=fields, timeout=timeout)
-
     def GetDeviceBridgeModuleByDeviceBridgeType(self, deviceBridgeType, fields=None, timeout=None):
         """Get device bridge module by device bridge type.
 
@@ -269,6 +269,28 @@ class GraphQueries:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('query', operationName='GetEnvironments', parameterNameTypeValues=parameterNameTypeValues, returnType='Environment', fields=fields, timeout=timeout)
+
+    def GetFeedbackHistory(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Get feedback history in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            FeedbackHistory: The history of feedback from robotic system such as measured mass, final status of pick (success/piecelost etc.), options that were used for chucking etc.
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('query', operationName='GetFeedbackHistory', parameterNameTypeValues=parameterNameTypeValues, returnType='FeedbackHistory', fields=fields, timeout=timeout)
 
     def GetGeometry(self, bodyId, environmentId, geometryId, linkId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Get a particular geometry in a link.
@@ -858,6 +880,28 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='GetTool', parameterNameTypeValues=parameterNameTypeValues, returnType='Tool', fields=fields, timeout=timeout)
 
+    def GetUntypedAppearanceParameters(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Get untyped appearance parameters in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('query', operationName='GetUntypedAppearanceParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
+
     def GetUntypedApplicationConfiguration(self, applicationId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Get application configuration without typing.
 
@@ -899,28 +943,6 @@ class GraphQueries:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('query', operationName='GetUntypedConfiguration', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
-
-    def GetUntypedDetectorParameters(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Get untyped detector parameters in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            Any: 
-        """
-        parameterNameTypeValues = [
-            ('bodyId', 'String!', bodyId),
-            ('environmentId', 'String!', environmentId),
-            ('resolveReferences', 'Boolean', resolveReferences),
-            ('units', 'UnitSelectionInput', units),
-        ]
-        return self._CallSimpleGraphAPI('query', operationName='GetUntypedDetectorParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def GetUntypedHypervisorStatus(self, fields=None, timeout=None):
         """Get untyped status of hypervisor.
@@ -1011,6 +1033,22 @@ class GraphQueries:
             ('schemaId', 'String!', schemaId),
         ]
         return self._CallSimpleGraphAPI('query', operationName='GetUntypedSchema', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
+
+    def GetVisionTaskModuleByVisionTaskType(self, visionTaskType, fields=None, timeout=None):
+        """Get vision task module by vision task type.
+
+        Args:
+            visionTaskType (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            VisionTaskModule: 
+        """
+        parameterNameTypeValues = [
+            ('visionTaskType', 'String!', visionTaskType),
+        ]
+        return self._CallSimpleGraphAPI('query', operationName='GetVisionTaskModuleByVisionTaskType', parameterNameTypeValues=parameterNameTypeValues, returnType='VisionTaskModule', fields=fields, timeout=timeout)
 
     def IsAttachedSensorMoveable(self, attachedSensorName, bodyName, environmentId, fields=None, timeout=None):
         """Check and see if attached sensor is moveable on a robot
@@ -2298,6 +2336,30 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CopyTool', parameterNameTypeValues=parameterNameTypeValues, returnType='Tool', fields=fields, timeout=timeout)
 
+    def CreateAppearanceParameters(self, appearanceParameters, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Create a new appearance parameters in a body.
+
+        Args:
+            appearanceParameters (AppearanceParametersInput): Properties to be applied on the newly created appearance parameters.
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            AppearanceParameters: A set of parameters that vision detector uses.
+        """
+        parameterNameTypeValues = [
+            ('appearanceParameters', 'AppearanceParametersInput!', appearanceParameters),
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='CreateAppearanceParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='AppearanceParameters', fields=fields, timeout=timeout)
+
     def CreateAttachedSensor(self, attachedSensor, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Create a new attached sensor on a robot.
 
@@ -2392,30 +2454,6 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CreateConnectedBody', parameterNameTypeValues=parameterNameTypeValues, returnType='ConnectedBody', fields=fields, timeout=timeout)
 
-    def CreateDetectorParameters(self, bodyId, detectorParameters, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Create a new detector parameters in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            detectorParameters (DetectorParametersInput): Properties to be applied on the newly created detector parameters.
-            environmentId (str): ID of the environment.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            DetectorParameters: A set of parameters that vision detector uses.
-        """
-        parameterNameTypeValues = [
-            ('bodyId', 'String!', bodyId),
-            ('detectorParameters', 'DetectorParametersInput!', detectorParameters),
-            ('environmentId', 'String!', environmentId),
-            ('resolveReferences', 'Boolean', resolveReferences),
-            ('units', 'UnitSelectionInput', units),
-        ]
-        return self._CallSimpleGraphAPI('mutation', operationName='CreateDetectorParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='DetectorParameters', fields=fields, timeout=timeout)
-
     def CreateEnvironment(self, environment, resolveReferences=None, units=None, fields=None, timeout=None):
         """Create a new environment.
 
@@ -2435,6 +2473,30 @@ class GraphMutations:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CreateEnvironment', parameterNameTypeValues=parameterNameTypeValues, returnType='Environment', fields=fields, timeout=timeout)
+
+    def CreateFeedbackHistory(self, bodyId, environmentId, feedbackHistory, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Create a new feedback history in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            feedbackHistory (FeedbackHistoryInput): Properties to be applied on the newly created feedback history.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            FeedbackHistory: The history of feedback from robotic system such as measured mass, final status of pick (success/piecelost etc.), options that were used for chucking etc.
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('feedbackHistory', 'FeedbackHistoryInput!', feedbackHistory),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='CreateFeedbackHistory', parameterNameTypeValues=parameterNameTypeValues, returnType='FeedbackHistory', fields=fields, timeout=timeout)
 
     def CreateGeometry(self, bodyId, environmentId, geometry, linkId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Create a new geometry in a link.
@@ -2720,6 +2782,28 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CreateTool', parameterNameTypeValues=parameterNameTypeValues, returnType='Tool', fields=fields, timeout=timeout)
 
+    def DeleteAppearanceParameters(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Delete a appearance parameters in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Void: 
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='DeleteAppearanceParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
+
     def DeleteApplication(self, applicationId, fields=None, timeout=None):
         """Delete an application.
 
@@ -2868,28 +2952,6 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='DeleteConnectedBody', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
-    def DeleteDetectorParameters(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Delete a detector parameters in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            environmentId (str): ID of the environment.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            Void: 
-        """
-        parameterNameTypeValues = [
-            ('bodyId', 'String!', bodyId),
-            ('environmentId', 'String!', environmentId),
-            ('resolveReferences', 'Boolean', resolveReferences),
-            ('units', 'UnitSelectionInput', units),
-        ]
-        return self._CallSimpleGraphAPI('mutation', operationName='DeleteDetectorParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
-
     def DeleteEnvironment(self, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Delete an environment.
 
@@ -2929,6 +2991,28 @@ class GraphMutations:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='DeleteEnvironments', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
+
+    def DeleteFeedbackHistory(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Delete a feedback history in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Void: 
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='DeleteFeedbackHistory', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def DeleteGeometry(self, bodyId, environmentId, geometryId, linkId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Delete a geometry in a link.
@@ -3156,6 +3240,30 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='DeleteProgramReference', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
+    def DeleteReadable(self, bodyId, environmentId, readableId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Delete an existing readable interface in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            readableId (str): ID of the readable.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Void: 
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('readableId', 'String!', readableId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='DeleteReadable', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
+
     def DeleteRobotMotionParameters(self, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Delete a robot motion parameters in a body.
 
@@ -3252,7 +3360,7 @@ class GraphMutations:
             timeout (float, optional): Number of seconds to wait for response.
 
         Returns:
-            [MujinImage]: 
+            [MujinImage]: Holds data related to a captured images.
         """
         parameterNameTypeValues = [
             ('options', 'VisionManagerOptionsInput', options),
@@ -3461,6 +3569,30 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='MergeUntypedConfiguration', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
+    def ModifyAppearanceParameters(self, appearanceParameters, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Modify an existing appearance parameters in a body.
+
+        Args:
+            appearanceParameters (AppearanceParametersInput): Properties to be modified on the appearance parameters.
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            AppearanceParameters: A set of parameters that vision detector uses.
+        """
+        parameterNameTypeValues = [
+            ('appearanceParameters', 'AppearanceParametersInput!', appearanceParameters),
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='ModifyAppearanceParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='AppearanceParameters', fields=fields, timeout=timeout)
+
     def ModifyAttachedSensor(self, attachedSensor, attachedSensorId, bodyId, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Modify an existing attached sensor on a robot.
 
@@ -3561,30 +3693,6 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='ModifyConnectedBody', parameterNameTypeValues=parameterNameTypeValues, returnType='ConnectedBody', fields=fields, timeout=timeout)
 
-    def ModifyDetectorParameters(self, bodyId, detectorParameters, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
-        """Modify an existing detector parameters in a body.
-
-        Args:
-            bodyId (str): ID of the body.
-            detectorParameters (DetectorParametersInput): Properties to be modified on the detector parameters.
-            environmentId (str): ID of the environment.
-            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
-            units (UnitSelectionInput, optional): Optional unit selection.
-            fields (list or dict, optional): Specifies a subset of fields to return.
-            timeout (float, optional): Number of seconds to wait for response.
-
-        Returns:
-            DetectorParameters: A set of parameters that vision detector uses.
-        """
-        parameterNameTypeValues = [
-            ('bodyId', 'String!', bodyId),
-            ('detectorParameters', 'DetectorParametersInput!', detectorParameters),
-            ('environmentId', 'String!', environmentId),
-            ('resolveReferences', 'Boolean', resolveReferences),
-            ('units', 'UnitSelectionInput', units),
-        ]
-        return self._CallSimpleGraphAPI('mutation', operationName='ModifyDetectorParameters', parameterNameTypeValues=parameterNameTypeValues, returnType='DetectorParameters', fields=fields, timeout=timeout)
-
     def ModifyEnvironment(self, environment, environmentId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Modify an existing environment.
 
@@ -3606,6 +3714,30 @@ class GraphMutations:
             ('units', 'UnitSelectionInput', units),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='ModifyEnvironment', parameterNameTypeValues=parameterNameTypeValues, returnType='Environment', fields=fields, timeout=timeout)
+
+    def ModifyFeedbackHistory(self, bodyId, environmentId, feedbackHistory, resolveReferences=None, units=None, fields=None, timeout=None):
+        """Modify an existing feedback history in a body.
+
+        Args:
+            bodyId (str): ID of the body.
+            environmentId (str): ID of the environment.
+            feedbackHistory (FeedbackHistoryInput): Properties to be modified on the feedback history.
+            resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            FeedbackHistory: The history of feedback from robotic system such as measured mass, final status of pick (success/piecelost etc.), options that were used for chucking etc.
+        """
+        parameterNameTypeValues = [
+            ('bodyId', 'String!', bodyId),
+            ('environmentId', 'String!', environmentId),
+            ('feedbackHistory', 'FeedbackHistoryInput!', feedbackHistory),
+            ('resolveReferences', 'Boolean', resolveReferences),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='ModifyFeedbackHistory', parameterNameTypeValues=parameterNameTypeValues, returnType='FeedbackHistory', fields=fields, timeout=timeout)
 
     def ModifyGeometry(self, bodyId, environmentId, geometry, geometryId, linkId, resolveReferences=None, units=None, fields=None, timeout=None):
         """Modify an existing geometry in a link.
@@ -4134,7 +4266,7 @@ class GraphMutations:
             timeout (float, optional): Number of seconds to wait for response.
 
         Returns:
-            [MujinImage]: 
+            [MujinImage]: Holds data related to a captured images.
         """
         parameterNameTypeValues = [
             ('parameters', 'Any', parameters),
@@ -4189,14 +4321,16 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='SyncConfigurationsToRemote', parameterNameTypeValues=parameterNameTypeValues, returnType='SyncConfigurationsToRemoteReturnValue', fields=fields, timeout=timeout)
 
-    def SyncEnvironments(self, environmentIds, remoteUrl, addKeywords=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None):
+    def SyncEnvironments(self, remoteUrl, addKeywords=None, downloadReferenceObjects=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None):
         """Sync environments from remote webstack.
 
 
         Args:
-            environmentIds ([String]): List of environment IDs to download.
             remoteUrl (str): URL to remote webstack, e.g. "http://username:password@controller123".
             addKeywords ([String], optional): If set, add keywords to the modified environments.
+            downloadReferenceObjects (bool, optional): If set to true, download objects referenced in bodies.
+            dynamicEnvironments ([EnvironmentInput], optional): List of dynamic environments to download extract referenced environment IDs from.
+            environmentIds ([String], optional): List of environment IDs to download.
             fileNamePatterns ([String], optional): List of regular expression patterns to determine what files to sync inside each environment.
             ignoreDownloadFailures (bool, optional): If set to true, ignores download failures.
             remotePassword (str, optional): Optional credential to use when authenticating with remote webstack, if credentials are not given in remoteUrl already.
@@ -4208,9 +4342,11 @@ class GraphMutations:
             SyncEnvironmentsFromRemoteReturnValue: 
         """
         parameterNameTypeValues = [
-            ('environmentIds', '[String!]!', environmentIds),
             ('remoteUrl', 'String!', remoteUrl),
             ('addKeywords', '[String!]', addKeywords),
+            ('downloadReferenceObjects', 'Boolean', downloadReferenceObjects),
+            ('dynamicEnvironments', '[EnvironmentInput!]', dynamicEnvironments),
+            ('environmentIds', '[String!]', environmentIds),
             ('fileNamePatterns', '[String!]', fileNamePatterns),
             ('ignoreDownloadFailures', 'Boolean', ignoreDownloadFailures),
             ('remotePassword', 'String', remotePassword),
@@ -4218,13 +4354,15 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='SyncEnvironments', parameterNameTypeValues=parameterNameTypeValues, returnType='SyncEnvironmentsFromRemoteReturnValue', fields=fields, timeout=timeout)
 
-    def SyncEnvironmentsFromRemote(self, environmentIds, remoteUrl, addKeywords=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None):
+    def SyncEnvironmentsFromRemote(self, remoteUrl, addKeywords=None, downloadReferenceObjects=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None):
         """Sync environments from remote webstack.
 
         Args:
-            environmentIds ([String]): List of environment IDs to download.
             remoteUrl (str): URL to remote webstack, e.g. "http://username:password@controller123".
             addKeywords ([String], optional): If set, add keywords to the modified environments.
+            downloadReferenceObjects (bool, optional): If set to true, download objects referenced in bodies.
+            dynamicEnvironments ([EnvironmentInput], optional): List of dynamic environments to download extract referenced environment IDs from.
+            environmentIds ([String], optional): List of environment IDs to download.
             fileNamePatterns ([String], optional): List of regular expression patterns to determine what files to sync inside each environment.
             ignoreDownloadFailures (bool, optional): If set to true, ignores download failures.
             remotePassword (str, optional): Optional credential to use when authenticating with remote webstack, if credentials are not given in remoteUrl already.
@@ -4236,9 +4374,11 @@ class GraphMutations:
             SyncEnvironmentsFromRemoteReturnValue: 
         """
         parameterNameTypeValues = [
-            ('environmentIds', '[String!]!', environmentIds),
             ('remoteUrl', 'String!', remoteUrl),
             ('addKeywords', '[String!]', addKeywords),
+            ('downloadReferenceObjects', 'Boolean', downloadReferenceObjects),
+            ('dynamicEnvironments', '[EnvironmentInput!]', dynamicEnvironments),
+            ('environmentIds', '[String!]', environmentIds),
             ('fileNamePatterns', '[String!]', fileNamePatterns),
             ('ignoreDownloadFailures', 'Boolean', ignoreDownloadFailures),
             ('remotePassword', 'String', remotePassword),
@@ -4246,17 +4386,19 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='SyncEnvironmentsFromRemote', parameterNameTypeValues=parameterNameTypeValues, returnType='SyncEnvironmentsFromRemoteReturnValue', fields=fields, timeout=timeout)
 
-    def SyncEnvironmentsToRemote(self, environmentIds, remoteUrl, addKeywords=None, fileNamePatterns=None, ignoreUploadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None):
+    def SyncEnvironmentsToRemote(self, remoteUrl, addKeywords=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreUploadFailures=None, remotePassword=None, remoteUsername=None, uploadReferenceObjects=None, fields=None, timeout=None):
         """Sync environments to remote webstack.
 
         Args:
-            environmentIds ([String]): List of environment IDs to upload.
             remoteUrl (str): URL to remote webstack, e.g. "http://username:password@controller123".
             addKeywords ([String], optional): If set, add keywords to the modified environments.
+            dynamicEnvironments ([EnvironmentInput], optional): List of dynamic environments to download extract referenced environment IDs from.
+            environmentIds ([String], optional): List of environment IDs to upload.
             fileNamePatterns ([String], optional): List of regular expression patterns to determine what files to sync inside each environment.
             ignoreUploadFailures (bool, optional): If set to true, ignores upload failures.
             remotePassword (str, optional): Optional credential to use when authenticating with remote webstack, if credentials are not given in remoteUrl already.
             remoteUsername (str, optional): Optional credential to use when authenticating with remote webstack, if credentials are not given in remoteUrl already.
+            uploadReferenceObjects (bool, optional): If set to true, upload objects referenced in bodies.
             fields (list or dict, optional): Specifies a subset of fields to return.
             timeout (float, optional): Number of seconds to wait for response.
 
@@ -4264,13 +4406,15 @@ class GraphMutations:
             SyncEnvironmentsToRemoteReturnValue: 
         """
         parameterNameTypeValues = [
-            ('environmentIds', '[String!]!', environmentIds),
             ('remoteUrl', 'String!', remoteUrl),
             ('addKeywords', '[String!]', addKeywords),
+            ('dynamicEnvironments', '[EnvironmentInput!]', dynamicEnvironments),
+            ('environmentIds', '[String!]', environmentIds),
             ('fileNamePatterns', '[String!]', fileNamePatterns),
             ('ignoreUploadFailures', 'Boolean', ignoreUploadFailures),
             ('remotePassword', 'String', remotePassword),
             ('remoteUsername', 'String', remoteUsername),
+            ('uploadReferenceObjects', 'Boolean', uploadReferenceObjects),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='SyncEnvironmentsToRemote', parameterNameTypeValues=parameterNameTypeValues, returnType='SyncEnvironmentsToRemoteReturnValue', fields=fields, timeout=timeout)
 

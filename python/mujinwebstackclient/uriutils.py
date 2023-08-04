@@ -121,18 +121,26 @@ def _ParseURIFast(uri, fragmentSeparator):
     /测试_test.mujin.dae@body0_motion
     """
     uri = _EnsureUnicode(uri)
-    scheme, rest = uri.split(u':', 1)
+    colonindex = uri.find(':')
+    if colonindex < 0:
+        # no ':', so scheme is empty
+        scheme = ''
+        rest = uri
+    else:
+        scheme = uri[:colonindex]
+        rest = uri[(colonindex+1):]
     if scheme != SCHEME_MUJIN:
-        # If scheme is not mujin specified, use the standard uri parse
-        # TODO (binbin): figure out who calls this with non-mujin scheme
-        # TODO (ziyan): simon claim that there is conversion between mujin scheme and file scheme, all of them are done inside openrave, please verify, maybe remove in this case
-        if scheme != SCHEME_FILE:
-            raise URIError(_('scheme not supported %r: %s') % (scheme, uri))
-        
         # For rfc urlparse, make sure fragment_separator is #
         # if fragmentSeparator != FRAGMENT_SEPARATOR_SHARP:
         #     raise URIError(_('fragment separator %r not supported for current scheme: %s') % (fragmentSeparator, uri))
         r = urlparse.urlparse(uri, allow_fragments=bool(fragmentSeparator))
+        
+        # If scheme is not mujin specified, use the standard uri parse
+        # TODO (binbin): figure out who calls this with non-mujin scheme
+        # TODO (ziyan): simon claim that there is conversion between mujin scheme and file scheme, all of them are done inside openrave, please verify, maybe remove in this case
+        if r.scheme and r.scheme != SCHEME_FILE:
+            raise URIError(_('scheme not supported %r: %s') % (scheme, uri))
+        
         # Make all uri path, no matter what scheme it is, to be unicode.
         return _EnsureUnicode(r.scheme), _EnsureUnicode(r.netloc), _EnsureUnicode(r.path), _EnsureUnicode(r.params), _EnsureUnicode(r.query), _EnsureUnicode(r.fragment)
     
@@ -174,8 +182,9 @@ def _UnparseURI(parts, fragmentSeparator):
     scheme = parts.scheme
     if scheme != SCHEME_MUJIN:
         # TODO(binbin): also verify who calls this with non-mujin scheme
-        if scheme != SCHEME_FILE:
+        if scheme and scheme != SCHEME_FILE:
             raise URIError(_('scheme not supported %r: %r') % (scheme, parts))
+        
         # For rfc urlparse, make sure fragment_separator is  #
         if fragmentSeparator != FRAGMENT_SEPARATOR_SHARP:
             raise URIError(_('fragment separator %r not supported for current scheme: %r') % (fragmentSeparator, parts))
@@ -218,7 +227,7 @@ def GetFragmentFromURI(uri, **kwargs):
     """
     return MujinResourceIdentifier(uri=uri, **kwargs).fragment
 
-def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT):
+def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT, **kwargs):
     u"""
     input:
         uri: A mujin scheme uri which is utf-8 decoded unicode.
@@ -230,26 +239,9 @@ def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKe
     >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
     """
-    if uri is None or len(uri) == 0:
-        return EMPTY_STRING_UTF8
-    
-    scheme, netloc, path, params, query, fragment = _ParseURIFast(uri, fragmentSeparator)
-    #filename = EMPTY_STRING_UNICODE
-    if scheme == 'file':
-        # _mujinPath is empty...
-        #if os.path.commonprefix([self._mujinPath, parts.path]) != self._mujinPath:
-        #    raise URIError(_('scheme is file, but file absolute path is different from given mujinPath: %s') % uri)
-        filename = path#[len(self._mujinPath):]
-    elif scheme == 'mujin':
-        filename = path[1:]
-    else:
-        raise URIError(_('scheme %s isn\'t supported from uri %r') % (scheme, uri))
-    
-    primaryKey = _Quote(filename)
-    if fragment and primaryKeySeparator:
-        return primaryKey + primaryKeySeparator + _EnsureUTF8(fragment)
-    else:
-        return primaryKey
+    kwargs['fragmentSeparator'] = fragmentSeparator
+    kwargs['primaryKeySeparator'] = primaryKeySeparator
+    return MujinResourceIdentifier(uri=uri, **kwargs).primaryKey
 
 def GetPrimaryKeyFromFilename(filename, **kwargs):
     """ Extract primaryKey from filename .
@@ -485,8 +477,9 @@ class MujinResourceIdentifier(object):
                 filename = parts.path[len(self._mujinPath):] # is logic really necessary?
         elif self._scheme == 'mujin':
             filename = parts.path[1:]
-        else:
+        elif self._scheme: # allow empty scheme
             raise URIError(_('scheme %s isn\'t supported from uri %r') % (parts.scheme, uri))
+        
         self._InitFromFilename(filename)
 
     def _InitFromPrimaryKey(self, primaryKey):
@@ -585,7 +578,7 @@ class MujinResourceIdentifier(object):
     @property
     def parseResult(self):
         path = _Unquote(self._primaryKey)
-        if not path.startswith(u'/'):
+        if not path.startswith(u'/') and path:
             path = u'/' + path
         return urlparse.ParseResult(
             scheme=self._scheme,

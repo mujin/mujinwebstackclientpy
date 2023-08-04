@@ -214,7 +214,14 @@ class WebstackClient(object):
         if not serverString.startswith('mujinwebstack/'):
             return (0, 0, 0, 'unknown')
         serverVersion = serverString[len('mujinwebstack/'):]
-        serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersion.split('.', 4)
+        serverVersionParts = serverVersion.split('+', 1)
+        if len(serverVersionParts) == 1:
+            # handle old format 1.2.3.commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersionParts[0].split('.', 3)
+        else:
+            # handle new format 1.2.3+commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch = serverVersionParts[0].split('.', 2)
+            serverVersionCommit = serverVersionParts[1]
         return (int(serverVersionMajor), int(serverVersionMinor), int(serverVersionPatch), serverVersionCommit)
 
     def SetLogLevel(self, componentLevels, timeout=5):
@@ -820,6 +827,24 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
+
+    # 
+    # Blob related
+    # 
+
+    def DownloadBlob(self, blobId, timeout=5):
+        """Downloads a blob with given id
+
+        :return: A streaming response
+        """
+        response = self._webclient.Request('GET', u'/api/v2/blob/%s' % blobId, stream=True, timeout=timeout)
+        if response.status_code == 404:
+            raise WebstackClientError(_('Blob "%s" does not exist, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code == 204:
+            raise WebstackClientError(_('Blob "%s" has no content, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code != 200:
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+        return response
 
     #
     # Log related
