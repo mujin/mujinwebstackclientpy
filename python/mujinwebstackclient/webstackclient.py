@@ -889,7 +889,7 @@ class WebstackClient(object):
         
         response = self._webclient.Request('GET', '/log/plcsignal/', params=params, timeout=timeout, stream=True)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response
     
     #
