@@ -869,7 +869,29 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response.json()
+    
+    def DownloadSignalLog(self, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
+        """Get the signal log from the controller.
 
+        Returns a stream response, so have to use 
+        
+        for chunk in GetSignalLog().iter_content(chunk_size=10000):
+            if chunk:
+                f.write(chunk)
+        
+        """
+        params = {
+            'cursor': (cursor or '').strip(),
+            'includecursor': 'true' if includecursor else 'false',
+            'forward': 'true' if forward else 'false',
+            'limit': str(limit or 0),
+        }
+        
+        response = self._webclient.Request('GET', '/log/plcsignal/', params=params, timeout=timeout, stream=True)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
+        return response
+    
     #
     # Query list of scenepks based on barcdoe field
     #
