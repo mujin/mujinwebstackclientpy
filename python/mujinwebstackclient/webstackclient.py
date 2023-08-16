@@ -998,7 +998,7 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, savedebug=False, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, savedebug=False, savelog=False, savestat=False, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
@@ -1008,6 +1008,8 @@ class WebstackClient(object):
         :param savedetection: Whether we want to include detection files in the backup, defaults to False
         :param savecalibration: Whether we want to include calibration files in the backup, defaults to False
         :param savedebug: Whether we want to include debug files in the backup, defaults to False
+        :param savelog: Whether we want to include log files in the backup, defaults to False
+        :param savestat: Whether we want to include stat files in the backup, defaults to False
         :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
@@ -1021,6 +1023,8 @@ class WebstackClient(object):
             'detection': 'true' if savedetection else 'false',
             'calibration': 'true' if savecalibration else 'false',
             'debug': 'true' if savedebug else 'false',
+            'log': 'true' if savelog else 'false',
+            'stat': 'true' if savestat else 'false',
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
