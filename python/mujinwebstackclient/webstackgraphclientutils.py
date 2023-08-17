@@ -4,6 +4,8 @@ from functools import wraps
 import logging
 log = logging.getLogger(__name__)
 
+maxQueryLimit = 100
+
 def _IsScalarType(typeName):
     return typeName in (
         # the followings are part of graphql spec
@@ -96,10 +98,6 @@ def BreakLargeGraphQuery(queryFunction):
     """
     @wraps(queryFunction)
     def inner(self, *args, **kwargs):
-        options = kwargs.get('options', {'offset': 0, 'first': 0})
-        if options.get('first', 0) != 0:
-            return queryFunction(self, *args, **kwargs)
-
         iterator = GraphQueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
         response = {iterator.keyName: data}
@@ -146,9 +144,9 @@ class GraphQueryIterator:
         self._totalLimit = self._kwargs['options']['first']
         self._count = 0
         if self._kwargs['options']['first'] > 0:
-            self._kwargs['options']['first'] = min(self._kwargs['options']['first'], 100)
+            self._kwargs['options']['first'] = min(self._kwargs['options']['first'], maxQueryLimit)
         else:
-            self._kwargs['options']['first'] = 100
+            self._kwargs['options']['first'] = maxQueryLimit
         self._kwargs.setdefault('fields', {})
 
     def __iter__(self):

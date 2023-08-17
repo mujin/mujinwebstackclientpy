@@ -19,6 +19,7 @@ from . import json
 from . import urlparse
 from . import uriutils
 from . import webstackgraphclient
+from . import webstackgraphclientutils
 
 # Logging
 import logging
@@ -84,13 +85,11 @@ def BreakLargeQuery(queryFunction):
     """
     @wraps(queryFunction)
     def inner(self, *args, **kwargs):
-        if kwargs.get('limit', 0) != 0:
-            return queryFunction(self, *args, **kwargs)
-        
-        initialOffset = kwargs.get('offset', 0)
+        limit = kwargs.get('limit', 0)
+        offset = kwargs.get('offset', 0)
         iterator = QueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
-        return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': iterator.totalCount, 'limit':0, 'offset': initialOffset}})
+        return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': iterator.totalCount, 'limit': limit, 'offset': offset}})
 
     return inner    
 
@@ -126,9 +125,9 @@ class QueryIterator:
         self._totalLimit = self._kwargs['limit']
         self._count = 0
         if self._kwargs['limit'] > 0:
-            self._kwargs['limit'] = min(self._kwargs['limit'], 100)
+            self._kwargs['limit'] = min(self._kwargs['limit'], webstackgraphclientutils.maxQueryLimit)
         else:
-            self._kwargs['limit'] = 100
+            self._kwargs['limit'] = webstackgraphclientutils.maxQueryLimit
 
     def __iter__(self):
         return self
