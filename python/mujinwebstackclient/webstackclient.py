@@ -687,10 +687,10 @@ class WebstackClient(object):
         for encodedGeometry in response['geometries']:
             geometry = {}
             positions = numpy.fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
-            positions.resize(len(positions) / 3, 3)
+            positions = positions.reshape(len(positions) // 3, 3)
             geometry['positions'] = positions
             indices = numpy.fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=numpy.uint32)
-            indices.resize(len(indices) / 3, 3)
+            indices = indices.reshape(len(indices) // 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)
         return geometries
