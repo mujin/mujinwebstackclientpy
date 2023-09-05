@@ -100,7 +100,9 @@ def BreakLargeGraphQuery(queryFunction):
     def inner(self, *args, **kwargs):
         iterator = GraphQueryIterator(queryFunction, *((self,) + args), **kwargs)
         data = [item for item in iterator]
-        response = {iterator.keyName: data}
+        response = {}
+        if iterator.keyName is not None:
+            response[iterator.keyName] = data
         if iterator.totalCount is not None:
             response['meta'] = {'totalCount': iterator.totalCount}
         return response
@@ -182,6 +184,9 @@ class GraphQueryIterator:
         if '__typename' in rawResponse:
             self._keyName = '__typename'
             self._items = [rawResponse['__typename']]
+        elif not rawResponse:
+            # only meta data is queried
+            raise StopIteration
         else:
             self._keyName, self._items = list(rawResponse.items())[0]
         self._kwargs['options']['offset'] += len(self._items)
