@@ -1,17 +1,24 @@
-# 0.7.2 (2023-07-13)
+# 0.7.4 (2023-09-05)
 
 - Add a decorator to break large query into a few small queries.
 - Update graph client generation algorithm and regenerate the graph client.
 - Introduce iterator for large queries.
 
 
-# 0.7.1 (2023-07-27)
+# 0.7.3 (2023-09-02)
 
-# 0.7.1 (2023-08-13)
+- Support updating the author header after the client is initialized.
+
+
+# 0.7.2 (2023-08-13)
 
 - add DownloadSignalLog
 
+
+# 0.7.1 (2023-07-27)
+
 - Handle new webstack semantic version format.
+
 
 # 0.7.0 (2023-06-28)
 

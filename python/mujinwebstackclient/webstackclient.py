@@ -272,6 +272,11 @@ class WebstackClient(object):
         """
         self._webclient.SetUserAgent(userAgent)
 
+    def SetAuthor(self, author):
+        """Override author header sent on each HTTP request
+        """
+        self._webclient.SetAuthor(author)
+
     @property
     def graphApi(self):
         return webstackgraphclient.GraphClient(self._webclient)
