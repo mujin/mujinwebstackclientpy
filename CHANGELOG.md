@@ -1,17 +1,12 @@
-# 0.8.0 (2023-08-22)
-
 - Handle PrimaryKey as str on Python3
-
-
-# 0.7.2 (2023-08-13)
-
-- add DownloadSignalLog
-
 
 # 0.7.1 (2023-07-27)
 
-- Handle new webstack semantic version format.
+# 0.7.1 (2023-08-13)
 
+- add DownloadSignalLog
+
+- Handle new webstack semantic version format.
 
 # 0.7.0 (2023-06-28)
 
