@@ -21,6 +21,7 @@ from requests import adapters as requests_adapters
 from . import _
 from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
+from .unixsocketadapter import UnixSocketAdapter
 
 import logging
 log = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class ControllerWebClientRaw(object):
     _isok = False  # Flag to stop
     _session = None  # Requests session object
 
-    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None):
+    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -59,9 +60,13 @@ class ControllerWebClientRaw(object):
         self._headers['X-CSRFToken'] = 'csrftoken'
         self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'], path='/')
 
-        # Add retry to deal with closed keep alive connections
-        self._session.mount('https://', requests_adapters.HTTPAdapter(max_retries=3))
-        self._session.mount('http://', requests_adapters.HTTPAdapter(max_retries=3))
+        if unixEndpoint is None:
+            # Add retry to deal with closed keep alive connections
+            self._session.mount('https://', requests_adapters.HTTPAdapter(max_retries=3))
+            self._session.mount('http://', requests_adapters.HTTPAdapter(max_retries=3))
+        else:
+            self._session.adapters.pop('https://', None)  # we don't use https with unix sockets
+            self._session.mount('http://', UnixSocketAdapter(unixEndpoint, max_retries=3))
 
         # Set locale headers
         self.SetLocale(locale)
@@ -226,7 +231,10 @@ class ControllerWebClientRaw(object):
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
             message = content['errors'][0].get('message', raw)
-            raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response)
+            errorCode = None
+            if 'extensions' in content['errors'][0]:
+                errorCode = content['errors'][0]['extensions'].get('errorCode', None)
+            raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response, errorCode=errorCode)
 
         if content is None or 'data' not in content:
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)

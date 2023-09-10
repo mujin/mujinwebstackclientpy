@@ -114,7 +114,7 @@ class WebstackClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         """Logs into the Mujin controller.
 
         Args:
@@ -122,7 +122,8 @@ class WebstackClient(object):
             controllerusername (str): Username of the mujin controller, e.g. testuser
             controllerpassword (str): Password of the mujin controller
             userAgent (str): User agent to be sent on each request
-            additionalHeaders: Additional HTTP headers to be included in requests
+            additionalHeaders (dict): Additional HTTP headers to be included in requests
+            unixEndpoint (str): Unix socket endpoint for communicating with HTTP server over unix socket
         """
 
         # Parse controllerurl
@@ -149,7 +150,7 @@ class WebstackClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders)
+        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint)
 
     def __del__(self):
         self.Destroy()
@@ -211,7 +212,14 @@ class WebstackClient(object):
         if not serverString.startswith('mujinwebstack/'):
             return (0, 0, 0, 'unknown')
         serverVersion = serverString[len('mujinwebstack/'):]
-        serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersion.split('.', 4)
+        serverVersionParts = serverVersion.split('+', 1)
+        if len(serverVersionParts) == 1:
+            # handle old format 1.2.3.commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersionParts[0].split('.', 3)
+        else:
+            # handle new format 1.2.3+commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch = serverVersionParts[0].split('.', 2)
+            serverVersionCommit = serverVersionParts[1]
         return (int(serverVersionMajor), int(serverVersionMinor), int(serverVersionPatch), serverVersionCommit)
 
     def SetLogLevel(self, componentLevels, timeout=5):
@@ -823,6 +831,24 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
+    # 
+    # Blob related
+    # 
+
+    def DownloadBlob(self, blobId, timeout=5):
+        """Downloads a blob with given id
+
+        :return: A streaming response
+        """
+        response = self._webclient.Request('GET', u'/api/v2/blob/%s' % blobId, stream=True, timeout=timeout)
+        if response.status_code == 404:
+            raise WebstackClientError(_('Blob "%s" does not exist, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code == 204:
+            raise WebstackClientError(_('Blob "%s" has no content, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code != 200:
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+        return response
+
     #
     # Log related
     #
@@ -843,7 +869,29 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response.json()
+    
+    def DownloadSignalLog(self, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
+        """Get the signal log from the controller.
 
+        Returns a stream response, so have to use 
+        
+        for chunk in GetSignalLog().iter_content(chunk_size=10000):
+            if chunk:
+                f.write(chunk)
+        
+        """
+        params = {
+            'cursor': (cursor or '').strip(),
+            'includecursor': 'true' if includecursor else 'false',
+            'forward': 'true' if forward else 'false',
+            'limit': str(limit or 0),
+        }
+        
+        response = self._webclient.Request('GET', '/log/plcsignal/', params=params, timeout=timeout, stream=True)
+        if response.status_code != 200:
+            raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
+        return response
+    
     #
     # Query list of scenepks based on barcdoe field
     #
@@ -972,7 +1020,7 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, savedebug=False, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
@@ -981,6 +1029,7 @@ class WebstackClient(object):
         :param saveitl: Whether we want to include itl programs in the backup, defaults to True
         :param savedetection: Whether we want to include detection files in the backup, defaults to False
         :param savecalibration: Whether we want to include calibration files in the backup, defaults to False
+        :param savedebug: Whether we want to include debug files in the backup, defaults to False
         :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
@@ -993,6 +1042,7 @@ class WebstackClient(object):
             'itl': 'true' if saveitl else 'false',
             'detection': 'true' if savedetection else 'false',
             'calibration': 'true' if savecalibration else 'false',
+            'debug': 'true' if savedebug else 'false',
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
