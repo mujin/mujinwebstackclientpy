@@ -1,3 +1,8 @@
+# 0.7.4 (2023-09-11)
+
+- Regenerate graph client.
+
+
 # 0.7.3 (2023-09-02)
 
 - Support updating the author header after the client is initialized.
