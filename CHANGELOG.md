@@ -1,12 +1,23 @@
-# 0.7.2 (2023-05-24)
+# 0.7.4 (2023-05-24)
 
 - Add `CreateLogEntries` API and update GraphQL client.
 - Fix readme file references to the old repository.
 
 
+# 0.7.3 (2023-09-02)
+
+- Support updating the author header after the client is initialized.
+
+
+# 0.7.2 (2023-08-13)
+
+- add DownloadSignalLog
+
+
 # 0.7.1 (2023-07-27)
 
 - Handle new webstack semantic version format.
+
 
 # 0.7.0 (2023-06-28)
 
