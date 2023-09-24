@@ -10,7 +10,7 @@ import datetime
 import base64
 from email.utils import parsedate
 
-from typing import List, Tuple, Any, Dict
+from typing import List, Tuple, Any, Dict # noqa: F401
 
 # Mujin imports
 from . import WebstackClientError
