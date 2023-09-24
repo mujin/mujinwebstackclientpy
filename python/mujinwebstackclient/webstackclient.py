@@ -10,6 +10,8 @@ import datetime
 import base64
 from email.utils import parsedate
 
+from typing import List, Tuple, Any, Dict # noqa: F401
+
 # Mujin imports
 from . import WebstackClientError
 from . import controllerwebclientraw
@@ -669,6 +671,16 @@ class WebstackClient(object):
             'reporterControllerId': reporterControllerId,
             'reporterDateCreated': reporterDateCreated,
         }, fields=fields, timeout=timeout)
+
+    def CreateLogEntries(self, logEntries, timeout=5):
+        # type: (List[Tuple[str, Any, Dict[str, bytes]]], int) -> Any
+        files = []
+        for logType, logEntry, attachments in logEntries:
+            files.append((u'logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
+            if attachments is not None:
+                for attachmentName, attachmentData in attachments.iteritems():
+                    files.append((u'attachment', (attachmentName, attachmentData)))
+        return self._webclient.APICall('POST', u'logEntry', files=files, timeout=timeout, apiVersion='v2')
 
     #
     # Controller State
