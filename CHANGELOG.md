@@ -1,3 +1,5 @@
+- Handle PrimaryKey as str on Python3
+
 # 0.7.4 (2023-05-24)
 
 - Add `CreateLogEntries` API and update GraphQL client.
@@ -83,4 +85,3 @@
 # 0.1.0 (2022-11-17)
 
 - Port from mujincontrollerclientpy.
-

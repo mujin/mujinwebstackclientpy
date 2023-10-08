@@ -34,20 +34,18 @@ log = logging.getLogger(__name__)
 
 
 def _EnsureUnicode(data):
-    if not isinstance(data, (six.text_type, six.binary_type)):
+    if not isinstance(data, six.string_types):
         raise URIError(_('data %r is not a text or binary')%data)
     
-    if not isinstance(data, six.text_type):
-        return data.decode('utf-8')
+    return six.ensure_text(data, 'utf-8')
     
     return data
 
 def _EnsureUTF8(data):
-    if not isinstance(data, (six.text_type, six.binary_type)):
+    if not isinstance(data, six.string_types):
         raise URIError(_('data %r is not a text or binary')%data)
     
-    if isinstance(data, six.text_type):
-        return data.encode('utf-8')
+    return six.ensure_str(data, 'utf-8')
     
     return data
 
@@ -55,7 +53,7 @@ def _EnsureUTF8(data):
 EMPTY_STRING_UNICODE = u''
 
 
-EMPTY_STRING_UTF8 = b''
+EMPTY_STRING_UTF8 = ''
 
 
 FRAGMENT_SEPARATOR_AT = u'@'
@@ -67,13 +65,13 @@ FRAGMENT_SEPARATOR_SHARP = u'#'
 FRAGMENT_SEPARATOR_EMPTY = u''
 
 
-PRIMARY_KEY_SEPARATOR_AT = b'@'
+PRIMARY_KEY_SEPARATOR_AT = '@'
 
 
-PRIMARY_KEY_SEPARATOR_SHARP = b'#'
+PRIMARY_KEY_SEPARATOR_SHARP = '#'
 
 
-PRIMARY_KEY_SEPARATOR_EMPTY = b''
+PRIMARY_KEY_SEPARATOR_EMPTY = ''
 
 
 SCHEME_MUJIN = u'mujin'
@@ -83,21 +81,12 @@ SCHEME_FILE = u'file'
 
 
 def _Unquote(primaryKey):
-    assert (isinstance(primaryKey, six.binary_type))
-    if six.PY3:
-        # python3 unquote seems to be expecting unicode input
-        return _EnsureUnicode(unquote(primaryKey.decode('ascii')))
-    else:
-        return _EnsureUnicode(unquote(primaryKey))
+    return _EnsureUnicode(unquote(primaryKey))
 
 
 def _Quote(primaryKey):
-    assert (isinstance(primaryKey, six.text_type))
-    if six.PY3:
-        # python3 quote seems to deal with unicode input
-        return _EnsureUTF8(quote(primaryKey, safe=''))
-    else:
-        return _EnsureUTF8(quote(_EnsureUTF8(primaryKey), safe=''))
+    assert isinstance(primaryKey, six.text_type)
+    return _EnsureUTF8(quote(_EnsureUTF8(primaryKey), safe=''))
 
 
 def _ParseURIFast(uri, fragmentSeparator):
