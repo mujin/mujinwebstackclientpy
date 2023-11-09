@@ -1,8 +1,16 @@
-# 0.7.4 (2023-09-05)
+# 0.7.5 (2023-11-05)
 
 - Add a decorator to break large query into a few small queries.
 - Update graph client generation algorithm and regenerate the graph client.
 - Introduce iterator for large queries.
+
+
+- Handle PrimaryKey as str on Python3
+
+# 0.7.4 (2023-05-24)
+
+- Add `CreateLogEntries` API and update GraphQL client.
+- Fix readme file references to the old repository.
 
 
 # 0.7.3 (2023-09-02)
@@ -84,4 +92,3 @@
 # 0.1.0 (2022-11-17)
 
 - Port from mujincontrollerclientpy.
-

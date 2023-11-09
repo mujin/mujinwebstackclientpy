@@ -11,6 +11,9 @@ import base64
 from email.utils import parsedate
 from functools import wraps
 
+import six
+from typing import List, Tuple, Any, Dict # noqa: F401
+
 # Mujin imports
 from . import WebstackClientError
 from . import controllerwebclientraw
@@ -68,7 +71,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT).decode('utf-8')
+    return six.ensure_text(uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT), 'utf-8')
 
 
 def _FormatHTTPDate(dt):
@@ -770,6 +773,16 @@ class WebstackClient(object):
             'reporterDateCreated': reporterDateCreated,
         }, fields=fields, timeout=timeout)
 
+    def CreateLogEntries(self, logEntries, timeout=5):
+        # type: (List[Tuple[str, Any, Dict[str, bytes]]], int) -> Any
+        files = []
+        for logType, logEntry, attachments in logEntries:
+            files.append((u'logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
+            if attachments is not None:
+                for attachmentName, attachmentData in attachments.iteritems():
+                    files.append((u'attachment', (attachmentName, attachmentData)))
+        return self._webclient.APICall('POST', u'logEntry', files=files, timeout=timeout, apiVersion='v2')
+
     #
     # Controller State
     #
@@ -790,10 +803,10 @@ class WebstackClient(object):
         for encodedGeometry in response['geometries']:
             geometry = {}
             positions = numpy.fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
-            positions.resize(len(positions) / 3, 3)
+            positions = positions.reshape(len(positions) // 3, 3)
             geometry['positions'] = positions
             indices = numpy.fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=numpy.uint32)
-            indices.resize(len(indices) / 3, 3)
+            indices = indices.reshape(len(indices) // 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)
         return geometries
