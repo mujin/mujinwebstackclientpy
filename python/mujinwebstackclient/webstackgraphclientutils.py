@@ -172,13 +172,6 @@ class GraphQueryResult(webstackclientutil.QueryResult):
         list.__init__(self, items)
         self._hasCompleteQueryResult = True
 
-    def __len__(self):
-        if self._hasCompleteQueryResult:
-            return list.__len__(self)
-        if self._limit == 0 or self._offset + self._limit >= self.totalCount:
-            return max(0, self.totalCount - self._offset)
-        return self._limit
-
     def __repr__(self):
         if self._hasCompleteQueryResult:
             return list.__repr__(self)
