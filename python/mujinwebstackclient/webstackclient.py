@@ -9,7 +9,6 @@ import os
 import datetime
 import base64
 from email.utils import parsedate
-from functools import wraps
 
 import six
 from typing import List, Tuple, Any, Dict # noqa: F401
@@ -22,7 +21,7 @@ from . import json
 from . import urlparse
 from . import uriutils
 from . import webstackgraphclient
-from . import webstackgraphclientutils
+from .webstackclientutil import UseQueryResult
 
 # Logging
 import logging
@@ -82,101 +81,6 @@ def _FormatHTTPDate(dt):
     weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
     month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1]
     return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
-
-def BreakLargeQuery(queryFunction):
-    """This decorator break a large query into a few small queries to prevent webstack from consuming too much memory.
-    """
-    @wraps(queryFunction)
-    def inner(self, *args, **kwargs):
-        limit = kwargs.get('limit', 0)
-        offset = kwargs.get('offset', 0)
-        iterator = QueryIterator(queryFunction, *((self,) + args), **kwargs)
-        data = [item for item in iterator]
-        return WebstackClient.ObjectsWrapper({'objects': data, 'meta':{'total_count': iterator.totalCount, 'limit': limit, 'offset': offset}})
-
-    return inner    
-
-class QueryIterator:
-    """Converts a large query to a iterator. The iterator will internally query webstack with a few small queries
-    example:
-
-      iterator = QueryIterator(client.GetScenes)
-      iterator = QueryIterator(client.GetScenes, offset=10, limit=10)
-      for scene in QueryIterator(client.GetScenes, offset=10, limit=10):
-          do_something(scene)
-    """
-
-    _queryFunction = None # the actual webstack client query function (e.g. client.GetScenes)
-    _args = None # positional arguments supplied to the query function (e.g. scenepk)
-    _kwargs = None # keyword arguments supplied to the query function (e.g. offset=10, limit=20)
-    _items = None # internal buffer for items retrieved from webstack
-    _shouldStop = None # boolean flag indicates whether need to query webstack again
-    _totalLimit = None # the number of items user requests (0 means no limit)
-    _count = None # the number of items already returned to user
-    _totalCount = None # the number of items available on webstack
-
-    def __init__(self, queryFunction, *args, **kwargs):
-        """Initialize all internal variables
-        """
-        self._queryFunction = queryFunction
-        self._args = args
-        self._kwargs = kwargs
-        self._items = []
-        self._shouldStop = False
-        self._kwargs.setdefault('offset', 0)
-        self._kwargs.setdefault('limit', 0)
-        self._totalLimit = self._kwargs['limit']
-        self._count = 0
-        if self._kwargs['limit'] > 0:
-            self._kwargs['limit'] = min(self._kwargs['limit'], webstackgraphclientutils.maxQueryLimit)
-        else:
-            self._kwargs['limit'] = webstackgraphclientutils.maxQueryLimit
-
-    def __iter__(self):
-        return self
-    
-    def __next__(self):
-        """Retrieve the next item from iterator
-           Required by Python3
-        """
-        return self.next()
-
-    def next(self):
-        """Retrieve the next item from iterator
-           Required by Python2
-        """
-
-        # return an item from internal buffer if buffer is not empty
-        if len(self._items) != 0:
-            item = self._items[0]
-            self._items = self._items[1:]
-            self._count += 1
-            return item
-
-        # stop iteration if internal buffer is empty and no need to query webstack again
-        if self._shouldStop:
-            raise StopIteration
-
-        # query webstack if buffer is empty
-        self._items = self._queryFunction(*self._args, **self._kwargs)
-        self._totalCount = self._items.totalCount
-        self._kwargs['offset'] += len(self._items)
-
-        if len(self._items) < self._kwargs['limit']:
-            # webstack does not have more items
-            self._shouldStop = True
-        if self._totalLimit != 0 and self._count + len(self._items) >= self._totalLimit:
-            # all remaining items user requests are in internal buffer, no need to query webstack again
-            self._shouldStop = True
-            self._items = self._items[:self._totalLimit - self._count]
-
-        return self.next()
-
-    @property
-    def totalCount(self):
-        """the number of available items in webstack
-        """
-        return self._totalCount
 
 class WebstackClient(object):
     """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).
@@ -346,7 +250,7 @@ class WebstackClient(object):
         """
         return self.UploadFile(f, timeout=timeout)['filename']
 
-    @BreakLargeQuery
+    @UseQueryResult
     def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         """List all available scene on controller
         """
@@ -672,7 +576,7 @@ class WebstackClient(object):
     # Task related
     #
 
-    @BreakLargeQuery
+    @UseQueryResult
     def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, timeout=5):
         params = {
             'offset': offset,
@@ -735,7 +639,7 @@ class WebstackClient(object):
     # Job related
     #
 
-    @BreakLargeQuery
+    @UseQueryResult
     def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
@@ -757,7 +661,7 @@ class WebstackClient(object):
     # Cycle Log
     #
 
-    @BreakLargeQuery
+    @UseQueryResult
     def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
@@ -1110,7 +1014,7 @@ class WebstackClient(object):
     # ITL program related
     #
 
-    @BreakLargeQuery
+    @UseQueryResult
     def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
