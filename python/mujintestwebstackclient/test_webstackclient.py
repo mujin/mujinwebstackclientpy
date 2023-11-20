@@ -30,7 +30,7 @@ def test_RestartController():
 def test_GetScenes():
     with requests_mock.Mocker() as mock:
         mock.get('http://controller/api/v1/scene/?format=json&limit=100&offset=0', json={
-            'objects': [],
+            'objects': [{} for i in range(101)],
             'meta': {
                 'total_count': 101,
                 'limit': 100,
@@ -38,7 +38,7 @@ def test_GetScenes():
             },
         })
         scenes = WebstackClient('http://controller', 'mujin', 'mujin').GetScenes(limit=100)
-        assert len(scenes) == 0
+        assert len(scenes) == 100
         assert scenes.offset == 0
         assert scenes.limit == 100
         assert scenes.totalCount == 101

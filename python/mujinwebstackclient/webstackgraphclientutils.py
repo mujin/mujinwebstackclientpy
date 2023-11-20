@@ -179,25 +179,6 @@ class GraphQueryResult(webstackclientutil.QueryResult):
             return max(0, self.totalCount - self._offset)
         return self._limit
 
-    def __getitem__(self, index):
-        if self._hasCompleteQueryResult:
-            return list.__getitem__(self, index)
-        
-        if index < 0:
-            index = self.__len__() + index
-
-        if index >= len(self):
-            raise IndexError('query result index out of range')
-
-        offset = self._offset + index
-        if offset >= self._currentOffset and offset < self._currentOffset + webstackclientutil.maxQueryLimit:
-            # buffer hit
-            return self._items[offset - self._currentOffset]
-        
-        # drop buffer and query webstack again
-        self._APICall(offset=offset)
-        return self.__getitem__(index)
-
     def __repr__(self):
         if self._hasCompleteQueryResult:
             return list.__repr__(self)
