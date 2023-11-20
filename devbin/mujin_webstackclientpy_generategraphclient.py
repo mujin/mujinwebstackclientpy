@@ -88,7 +88,7 @@ def _DiscoverMethods(queryOrMutationType):
 
 def _PrintMethod(queryOrMutation, operationName, parameters, description, returnType):
     if queryOrMutation == 'query' and operationName.startswith("List"):
-        print('    @BreakLargeGraphQuery')
+        print('    @UseGraphQueryResult')
     builtinParameterNames = ('fields', 'timeout')
     print('    def %s(self, %s):' % (operationName, ', '.join([
         '%s=None' % parameter['parameterName'] if parameter['parameterNullable'] else parameter['parameterName']
@@ -127,7 +127,7 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods):
     print('#')
     print('')
     print('from .webstackgraphclientutils import GraphClientBase')
-    print('from .webstackgraphclientutils import BreakLargeGraphQuery')
+    print('from .webstackgraphclientutils import UseGraphQueryResult')
     print('')
     print('class GraphQueries:')
     print('')

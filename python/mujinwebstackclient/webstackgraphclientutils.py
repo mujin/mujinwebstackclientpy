@@ -93,7 +93,7 @@ class GraphClientBase(object):
             log.verbose('got response from graph query: %r', data)
         return data.get(operationName)
 
-def BreakLargeGraphQuery(queryFunction):
+def UseGraphQueryResult(queryFunction):
     """This decorator break a large graph query into a few small queries to prevent webstack from consuming too much memory.
     """
     @wraps(queryFunction)

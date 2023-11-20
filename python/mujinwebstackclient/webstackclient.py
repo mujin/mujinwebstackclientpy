@@ -82,6 +82,7 @@ def _FormatHTTPDate(dt):
     month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1]
     return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
 
+
 class WebstackClient(object):
     """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).
     """
