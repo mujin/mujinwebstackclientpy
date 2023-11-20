@@ -86,7 +86,6 @@ class QueryResult(list):
     _queryFunction = None # the actual webstack client query function (e.g. client.GetScenes)
     _args = None # positional arguments supplied to the query function (e.g. scenepk)
     _kwargs = None # keyword arguments supplied to the query function (e.g. offset=10, limit=20)
-
     _meta = None  # meta dict returned from server
     _items = None # internal buffer for items retrieved from webstack
     _limit = None # query limit specified by the user
@@ -182,10 +181,6 @@ class QueryResult(list):
     def append(self, item):
         self._ensureCompleteQueryResult()
         return super(QueryResult, self).append(item)
-
-    def extend(self, items):
-        self._ensureCompleteQueryResult()
-        return super(QueryResult, self).extend(items)
 
     def extend(self, items):
         self._ensureCompleteQueryResult()

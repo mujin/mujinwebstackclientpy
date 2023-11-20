@@ -94,7 +94,7 @@ class GraphClientBase(object):
         return data.get(operationName)
 
 def UseGraphQueryResult(queryFunction):
-    """This decorator break a large graph query into a few small queries to prevent webstack from consuming too much memory.
+    """This decorator break a large graph query into a few small queries with the help of QueryResult class to prevent webstack from consuming too much memory.
     """
     @wraps(queryFunction)
     def inner(self, *args, **kwargs):
