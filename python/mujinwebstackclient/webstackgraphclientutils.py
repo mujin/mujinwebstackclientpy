@@ -100,7 +100,9 @@ def UseGraphQueryResult(queryFunction):
     def inner(self, *args, **kwargs):
         queryResult = GraphQueryResult(queryFunction, *((self,) + args), **kwargs)
         response = {}
-        if queryResult.keyName is not None:
+        if queryResult.keyName == '__typename':
+            response['__typename'] = queryResult[0]
+        elif queryResult.keyName is not None:
             response[queryResult.keyName] = queryResult
         if queryResult.totalCount is not None:
             response['meta'] = {'totalCount': queryResult.totalCount}
@@ -117,18 +119,19 @@ class GraphQueryResult(webstackclientutil.QueryResult):
     def __init__(self, queryFunction, *args, **kwargs):
         self._queryFunction = queryFunction
         self._args = args
-        self._kwargs = kwargs
+        self._kwargs = copy.deepcopy(kwargs)
         if self._kwargs.get('options', None) is None:
             self._kwargs['options'] = {'offset': 0, 'first': 0}
         self._kwargs['options'].setdefault('offset', 0)
         self._kwargs['options'].setdefault('first', 0)
         self._limit = self._kwargs['options']['first']
         self._offset = self._kwargs['options']['offset']
-        self._kwargs.setdefault('fields', {})
-        self._kwargs['fields'].setdefault('meta', {})
-        self._kwargs['fields']['meta'].setdefault('totalCount', None)
-        self._APICall(offset=self._offset)
+        if 'fields' in self._kwargs:
+            self._kwargs.setdefault('fields', {})
+            self._kwargs['fields'].setdefault('meta', {})
+            self._kwargs['fields']['meta'].setdefault('totalCount', None)
         self._hasCompleteQueryResult = False
+        self._APICall(offset=self._offset)
 
     def __iter__(self):
         if self._hasCompleteQueryResult:
@@ -143,11 +146,13 @@ class GraphQueryResult(webstackclientutil.QueryResult):
         else:
             _kwargs['options']['first'] = webstackclientutil.maxQueryLimit
         data = self._queryFunction(*self._args, **_kwargs)
-        self._totalCount = data['meta']['totalCount']
-        del data['meta']
+        if 'meta' in data:
+            self._totalCount = data['meta']['totalCount']
+            del data['meta']
         if '__typename' in data:
             self._keyName = '__typename'
-            self._items = [data['__typename']]
+            list.__init__(self, [data['__typename']])
+            self._hasCompleteQueryResult = True
         elif data:
             self._keyName, self._items = list(data.items())[0]
         self._currentOffset = offset
