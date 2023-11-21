@@ -28,7 +28,7 @@ class QueryIterator:
         """
         self._queryFunction = queryFunction
         self._args = args
-        self._kwargs = kwargs
+        self._kwargs = copy.deepcopy(kwargs)
         self._items = []
         self._shouldStop = False
         self._kwargs.setdefault('offset', 0)

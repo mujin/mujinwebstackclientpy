@@ -204,7 +204,7 @@ class GraphQueryIterator:
         """
         self._queryFunction = queryFunction
         self._args = args
-        self._kwargs = kwargs
+        self._kwargs = copy.deepcopy(kwargs)
         self._items = []
         self._shouldStop = False
         if self._kwargs.get('options', None) is None:
