@@ -53,7 +53,6 @@ class QueryIterator:
         """Retrieve the next item from iterator
            Required by Python2
         """
-
         # return an item from internal buffer if buffer is not empty
         if len(self._items) != 0:
             item = self._items[0]
@@ -91,7 +90,7 @@ class QueryResult(list):
     _limit = None # query limit specified by the user
     _offset = None # query offset specified by the user
     _currentOffset = None # the offset for the first value inside buffer
-    _hasCompleteQueryResult = None # whether already has a complete list of query result
+    _fetchedAll = None # whether already has a complete list of query result
 
     def __init__(self, queryFunction, *args, **kwargs):
         self._queryFunction = queryFunction
@@ -102,21 +101,21 @@ class QueryResult(list):
         self._limit = self._kwargs['limit']
         self._offset = self._kwargs['offset']
         self._APICall(offset=self._offset)
-        self._hasCompleteQueryResult = False
+        self._fetchedAll = False
 
     def __iter__(self):
-        if self._hasCompleteQueryResult:
+        if self._fetchedAll:
             return super(QueryResult, self).__iter__()
         return QueryIterator(self._queryFunction, *self._args, **self._kwargs)
     
     def _APICall(self, offset):
-        _kwargs = copy.deepcopy(self._kwargs)
-        _kwargs['offset'] = offset
-        if _kwargs['limit'] > 0:
-            _kwargs['limit'] = min(_kwargs['limit'], maxQueryLimit)
+        kwargs = copy.deepcopy(self._kwargs)
+        kwargs['offset'] = offset
+        if kwargs['limit'] > 0:
+            kwargs['limit'] = min(kwargs['limit'], maxQueryLimit)
         else:
-            _kwargs['limit'] = maxQueryLimit
-        self._items = self._queryFunction(*self._args, **_kwargs)
+            kwargs['limit'] = maxQueryLimit
+        self._items = self._queryFunction(*self._args, **kwargs)
         self._meta = self._items._meta
         self._currentOffset = offset
 
@@ -132,22 +131,22 @@ class QueryResult(list):
     def offset(self):
         return self._meta['offset']
     
-    def _ensureCompleteQueryResult(self):
-        if self._hasCompleteQueryResult:
+    def FetchAll(self):
+        if self._fetchedAll:
             return
         items = [item for item in QueryIterator(self._queryFunction, *self._args, **self._kwargs)]
         super(QueryResult, self).__init__(items)
-        self._hasCompleteQueryResult = True
+        self._fetchedAll = True
 
     def __len__(self):
-        if self._hasCompleteQueryResult:
+        if self._fetchedAll:
             return super(QueryResult, self).__len__()
         if self._limit == 0 or self._offset + self._limit >= self.totalCount:
             return max(0, self.totalCount - self._offset)
         return self._limit
 
     def __getitem__(self, index):
-        if self._hasCompleteQueryResult:
+        if self._fetchedAll:
             return super(QueryResult, self).__getitem__(index)
         
         if index < 0:
@@ -166,7 +165,7 @@ class QueryResult(list):
         return self.__getitem__(index)
 
     def __repr__(self):
-        if self._hasCompleteQueryResult:
+        if self._fetchedAll:
             return super(QueryResult, self).__repr__()
         return "<Query result object>"
 
@@ -175,113 +174,113 @@ class QueryResult(list):
     # and it behaves identical to a standard list from this point forward.
 
     def __setitem__(self, index, item):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__setitem__(index, item)
 
     def append(self, item):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).append(item)
 
     def extend(self, items):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).extend(items)
 
     def insert(self, index, item):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).insert(index, item)
 
     def index(self, item, start=0, end=None):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         if end is None:
             end = len(self)
         return super(QueryResult, self).index(item, start, end)
 
     def pop(self):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).pop()
 
     def count(self, item):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).count(item)
 
     def remove(self, item):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).remove(item)
 
     def reverse(self):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).reverse()
 
     def sort(self, reverse=False, key=None):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).sort(reverse=reverse, key=key)
 
     def __iadd__(self, items):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__iadd__(items)
 
     def __add__(self, items):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__add__(items)
 
     def __rmul__(self, value):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__rmul__(value)
 
     def __mul__(self, value):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__mul__(value)
 
     def __imul__(self, value):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__imul__(value)
 
     def __reversed__(self):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__reversed__()
 
     def __contains__(self, item):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__contains__(item)
 
     def __delitem__(self, index):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         return super(QueryResult, self).__delitem__(index)
     
     def __eq__(self, other):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         if isinstance(other, QueryResult):
-            other._ensureCompleteQueryResult()
+            other.FetchAll()
         return super(QueryResult, self).__eq__(other)
     
     def __ne__(self, other):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         if isinstance(other, QueryResult):
-            other._ensureCompleteQueryResult()
+            other.FetchAll()
         return super(QueryResult, self).__ne__(other)
     
     def __lt__(self, other):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         if isinstance(other, QueryResult):
-            other._ensureCompleteQueryResult()
+            other.FetchAll()
         return super(QueryResult, self).__lt__(other)
     
     def __gt__(self, other):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         if isinstance(other, QueryResult):
-            other._ensureCompleteQueryResult()
+            other.FetchAll()
         return super(QueryResult, self).__gt__(other)
     
     def __le__(self, other):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         if isinstance(other, QueryResult):
-            other._ensureCompleteQueryResult()
+            other.FetchAll()
         return super(QueryResult, self).__le__(other)
     
     def __ge__(self, other):
-        self._ensureCompleteQueryResult()
+        self.FetchAll()
         if isinstance(other, QueryResult):
-            other._ensureCompleteQueryResult()
+            other.FetchAll()
         return super(QueryResult, self).__ge__(other)
 
 def UseQueryResult(queryFunction):

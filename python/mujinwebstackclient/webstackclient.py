@@ -21,7 +21,7 @@ from . import json
 from . import urlparse
 from . import uriutils
 from . import webstackgraphclient
-from .webstackclientutil import UseQueryResult
+from .webstackclientutils import UseQueryResult
 
 # Logging
 import logging
