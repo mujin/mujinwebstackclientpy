@@ -168,7 +168,7 @@ class GraphQueryResult(webstackclientutil.QueryResult):
     def _ensureCompleteQueryResult(self):
         if self._hasCompleteQueryResult:
             return
-        items = [item for item in GraphQueryResult(self._queryFunction, *self._args, **self._kwargs)]
+        items = [item for item in GraphQueryIterator(self._queryFunction, *self._args, **self._kwargs)]
         list.__init__(self, items)
         self._hasCompleteQueryResult = True
 
