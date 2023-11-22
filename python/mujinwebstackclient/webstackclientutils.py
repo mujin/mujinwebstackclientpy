@@ -26,6 +26,9 @@ class QueryIterator:
     def __init__(self, queryFunction, *args, **kwargs):
         """Initialize all internal variables
         """
+        if hasattr(queryFunction, "inner"):
+            args = (queryFunction.__self__,) + args
+            queryFunction = queryFunction.inner
         self._queryFunction = queryFunction
         self._args = args
         self._kwargs = copy.deepcopy(kwargs)
@@ -287,8 +290,9 @@ def UseQueryResult(queryFunction):
     """This decorator break a large query into a few small queries with the help of QueryResult class to prevent webstack from consuming too much memory.
     """
     @wraps(queryFunction)
-    def inner(self, *args, **kwargs):
+    def wrapper(self, *args, **kwargs):
         queryResult = QueryResult(queryFunction, *((self,) + args), **kwargs)
         return queryResult
-
-    return inner    
+    
+    wrapper.inner = queryFunction
+    return wrapper    
