@@ -203,8 +203,8 @@ class GraphQueryIterator:
 class GraphQueryResult(webstackclientutils.QueryResult):
     """Wraps graph query response. Break large query into small queries automatically to save memory.
     """
-    _totalCount = None
-    _keyName = None
+    _totalCount = None # the number of available items in webstack
+    _keyName = None # the name of actual data in the dictionary retrieved from webstack (e.g. 'bodies', 'environments', 'geometries')
 
     def __init__(self, queryFunction, *args, **kwargs):
         self._queryFunction = queryFunction
@@ -226,16 +226,16 @@ class GraphQueryResult(webstackclientutils.QueryResult):
     def __iter__(self):
         if self._fetchedAll:
             return list.__iter__(self)
+        self._kwargs['options']['offset'] = self._offset
+        self._kwargs['options']['first'] = self._limit
         return GraphQueryIterator(self._queryFunction, *self._args, **self._kwargs)
     
     def _APICall(self, offset):
-        kwargs = copy.deepcopy(self._kwargs)
-        kwargs['options']['offset'] = offset
-        if kwargs['options']['first'] > 0:
-            kwargs['options']['first'] = min(kwargs['options']['first'], webstackclientutils.maxQueryLimit)
-        else:
-            kwargs['options']['first'] = webstackclientutils.maxQueryLimit
-        data = self._queryFunction(*self._args, **kwargs)
+        """make one webstack query
+        """
+        self._kwargs['options']['offset'] = offset
+        self._kwargs['options']['first'] = webstackclientutils.maxQueryLimit
+        data = self._queryFunction(*self._args, **self._kwargs)
         if 'meta' in data:
             self._totalCount = data['meta']['totalCount']
             del data['meta']
@@ -261,8 +261,12 @@ class GraphQueryResult(webstackclientutils.QueryResult):
         return self._totalCount
 
     def FetchAll(self):
+        """fetch the complete query result from webstack
+        """
         if self._fetchedAll:
             return
+        self._kwargs['options']['offset'] = self._offset
+        self._kwargs['options']['first'] = self._limit
         items = [item for item in GraphQueryIterator(self._queryFunction, *self._args, **self._kwargs)]
         list.__init__(self, items)
         self._fetchedAll = True
@@ -273,7 +277,7 @@ class GraphQueryResult(webstackclientutils.QueryResult):
         return "<Graph query result object>"
 
 def UseGraphQueryResult(queryFunction):
-    """This decorator break a large graph query into a few small queries with the help of QueryResult class to prevent webstack from consuming too much memory.
+    """This decorator break a large graph query into a few small queries with the help of GraphQueryResult class to prevent webstack from consuming too much memory.
     """
     @wraps(queryFunction)
     def wrapper(self, *args, **kwargs):

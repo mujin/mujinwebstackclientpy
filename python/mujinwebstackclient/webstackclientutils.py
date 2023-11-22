@@ -3,7 +3,6 @@ import copy
 
 maxQueryLimit = 100
 
-
 class QueryIterator:
     """Converts a large query to a iterator. The iterator will internally query webstack with a few small queries
     example:
@@ -98,7 +97,7 @@ class QueryResult(list):
     def __init__(self, queryFunction, *args, **kwargs):
         self._queryFunction = queryFunction
         self._args = args
-        self._kwargs = kwargs
+        self._kwargs = copy.deepcopy(kwargs)
         self._kwargs.setdefault('offset', 0)
         self._kwargs.setdefault('limit', 0)
         self._limit = self._kwargs['limit']
@@ -109,16 +108,16 @@ class QueryResult(list):
     def __iter__(self):
         if self._fetchedAll:
             return super(QueryResult, self).__iter__()
+        self._kwargs['offset'] = self._offset
+        self._kwargs['limit'] = self._limit
         return QueryIterator(self._queryFunction, *self._args, **self._kwargs)
     
     def _APICall(self, offset):
-        kwargs = copy.deepcopy(self._kwargs)
-        kwargs['offset'] = offset
-        if kwargs['limit'] > 0:
-            kwargs['limit'] = min(kwargs['limit'], maxQueryLimit)
-        else:
-            kwargs['limit'] = maxQueryLimit
-        self._items = self._queryFunction(*self._args, **kwargs)
+        """make one webstack query
+        """
+        self._kwargs['offset'] = offset
+        self._kwargs['limit'] = maxQueryLimit
+        self._items = self._queryFunction(*self._args, **self._kwargs)
         self._meta = self._items._meta
         self._currentOffset = offset
 
@@ -135,8 +134,12 @@ class QueryResult(list):
         return self._meta['offset']
     
     def FetchAll(self):
+        """fetch the complete query result from webstack
+        """
         if self._fetchedAll:
             return
+        self._kwargs['offset'] = self._offset
+        self._kwargs['limit'] = self._limit
         items = [item for item in QueryIterator(self._queryFunction, *self._args, **self._kwargs)]
         super(QueryResult, self).__init__(items)
         self._fetchedAll = True
@@ -153,7 +156,7 @@ class QueryResult(list):
             return super(QueryResult, self).__getitem__(index)
         
         if index < 0:
-            index = self.__len__() + index
+            index = len(self) + index
 
         if index >= len(self):
             raise IndexError('query result index out of range')
