@@ -1,7 +1,7 @@
 from functools import wraps
 import copy
 
-maxQueryLimit = 100
+MAXIMUM_QUERY_LIMIT = 100 # The maximum number of items retrieved by a single webstack api calls
 
 class QueryIterator:
     """Converts a large query to a iterator. The iterator will internally query webstack with a few small queries
@@ -38,9 +38,9 @@ class QueryIterator:
         self._totalLimit = self._kwargs['limit']
         self._count = 0
         if self._kwargs['limit'] > 0:
-            self._kwargs['limit'] = min(self._kwargs['limit'], maxQueryLimit)
+            self._kwargs['limit'] = min(self._kwargs['limit'], MAXIMUM_QUERY_LIMIT)
         else:
-            self._kwargs['limit'] = maxQueryLimit
+            self._kwargs['limit'] = MAXIMUM_QUERY_LIMIT
 
     def __iter__(self):
         return self
@@ -116,7 +116,7 @@ class LazyQuery(list):
         """make one webstack query
         """
         self._kwargs['offset'] = offset
-        self._kwargs['limit'] = maxQueryLimit
+        self._kwargs['limit'] = MAXIMUM_QUERY_LIMIT
         self._items = self._queryFunction(*self._args, **self._kwargs)
         self._meta = self._items._meta
         self._currentOffset = offset
@@ -162,7 +162,7 @@ class LazyQuery(list):
             raise IndexError('query result index out of range')
 
         offset = self._offset + index
-        if offset >= self._currentOffset and offset < self._currentOffset + maxQueryLimit:
+        if offset >= self._currentOffset and offset < self._currentOffset + MAXIMUM_QUERY_LIMIT:
             # buffer hit
             return self._items[offset - self._currentOffset]
         

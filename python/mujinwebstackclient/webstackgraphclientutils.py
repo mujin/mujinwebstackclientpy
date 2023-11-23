@@ -133,9 +133,9 @@ class GraphQueryIterator:
         self._totalLimit = self._kwargs['options']['first']
         self._count = 0
         if self._kwargs['options']['first'] > 0:
-            self._kwargs['options']['first'] = min(self._kwargs['options']['first'], webstackclientutils.maxQueryLimit)
+            self._kwargs['options']['first'] = min(self._kwargs['options']['first'], webstackclientutils.MAXIMUM_QUERY_LIMIT)
         else:
-            self._kwargs['options']['first'] =webstackclientutils.maxQueryLimit
+            self._kwargs['options']['first'] = webstackclientutils.MAXIMUM_QUERY_LIMIT
         self._kwargs.setdefault('fields', {})
 
     def __iter__(self):
@@ -234,7 +234,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         """make one webstack query
         """
         self._kwargs['options']['offset'] = offset
-        self._kwargs['options']['first'] = webstackclientutils.maxQueryLimit
+        self._kwargs['options']['first'] = webstackclientutils.MAXIMUM_QUERY_LIMIT
         data = self._queryFunction(*self._args, **self._kwargs)
         if 'meta' in data:
             self._totalCount = data['meta']['totalCount']

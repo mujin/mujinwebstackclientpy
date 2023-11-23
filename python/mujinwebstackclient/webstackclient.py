@@ -252,7 +252,7 @@ class WebstackClient(object):
         return self.UploadFile(f, timeout=timeout)['filename']
 
     @UseLazyQuery
-    def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100, **kwargs):
+    def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         """List all available scene on controller
         """
         params = {
@@ -578,7 +578,7 @@ class WebstackClient(object):
     #
 
     @UseLazyQuery
-    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, maxQueryLimit=100, timeout=5):
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, timeout=5):
         params = {
             'offset': offset,
             'limit': limit,
@@ -641,7 +641,7 @@ class WebstackClient(object):
     #
 
     @UseLazyQuery
-    def GetJobs(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100):
+    def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
             'limit': limit,
@@ -663,7 +663,7 @@ class WebstackClient(object):
     #
 
     @UseLazyQuery
-    def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100, **kwargs):
+    def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
             'limit': limit,
@@ -1016,7 +1016,7 @@ class WebstackClient(object):
     #
 
     @UseLazyQuery
-    def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100, **kwargs):
+    def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
             'limit': limit,
