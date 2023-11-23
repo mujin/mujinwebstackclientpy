@@ -37,11 +37,11 @@ class QueryIterator:
         # initialize limit and offset
         self._queryKwargs.setdefault('offset', 0)
         self._queryKwargs.setdefault('limit', 0)
+        self._totalLimit = self._queryKwargs['limit']
         if self._queryKwargs['limit'] > 0:
             self._queryKwargs['limit'] = min(self._queryKwargs['limit'], MAXIMUM_QUERY_LIMIT)
         else:
             self._queryKwargs['limit'] = MAXIMUM_QUERY_LIMIT
-        self._totalLimit = self._queryKwargs['limit']
 
         self._items = []
         self._shouldStop = False
