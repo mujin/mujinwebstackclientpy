@@ -6,7 +6,7 @@
 #
 
 from .webstackgraphclientutils import GraphClientBase
-from .webstackgraphclientutils import UseGraphQueryResult
+from .webstackgraphclientutils import UseLazyGraphQuery
 
 class GraphQueries:
 
@@ -1131,7 +1131,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='IsSensorLinkMoveable', parameterNameTypeValues=parameterNameTypeValues, returnType='Boolean', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListApplications(self, options=None, fields=None, timeout=None):
         """List all applications.
 
@@ -1148,7 +1148,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListApplications', parameterNameTypeValues=parameterNameTypeValues, returnType='ListApplicationsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListAttachedSensors(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List attached sensors defined on a robot.
 
@@ -1173,7 +1173,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListAttachedSensors', parameterNameTypeValues=parameterNameTypeValues, returnType='ListAttachedSensorsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListBodies(self, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List bodies in an environment.
 
@@ -1196,7 +1196,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListBodies', parameterNameTypeValues=parameterNameTypeValues, returnType='ListBodiesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListConfigurations(self, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List available configurations.
 
@@ -1217,7 +1217,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListConfigurations', parameterNameTypeValues=parameterNameTypeValues, returnType='ListConfigurationsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListConnectedBodies(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List connected bodies defined on a robot.
 
@@ -1242,7 +1242,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListConnectedBodies', parameterNameTypeValues=parameterNameTypeValues, returnType='ListConnectedBodiesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListDetectorModules(self, options=None, fields=None, timeout=None):
         """List detector modules.
 
@@ -1259,7 +1259,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListDetectorModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListDetectorModulesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListDeviceBridgeModules(self, options=None, fields=None, timeout=None):
         """List device bridge modules.
 
@@ -1276,7 +1276,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListDeviceBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListDeviceBridgeModulesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListEnvironments(self, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List all environments.
 
@@ -1297,7 +1297,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListEnvironments', parameterNameTypeValues=parameterNameTypeValues, returnType='ListEnvironmentsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListGeometries(self, bodyId, environmentId, linkId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List geometries in a link.
 
@@ -1324,7 +1324,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGeometries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGeometriesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListGrabbeds(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List grabbed objects in a body.
 
@@ -1349,7 +1349,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGrabbeds', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGrabbedsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListGraspSets(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List grasp sets in a body.
 
@@ -1374,7 +1374,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGraspSets', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGraspSetsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListGripperBridgeModules(self, options=None, fields=None, timeout=None):
         """List gripper bridge modules.
 
@@ -1391,7 +1391,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGripperBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGripperBridgeModulesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListGripperInfos(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List gripper infos defined on a robot.
 
@@ -1416,7 +1416,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListGripperInfos', parameterNameTypeValues=parameterNameTypeValues, returnType='ListGripperInfosReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListIKParameterizations(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List ikparams in a body.
 
@@ -1441,7 +1441,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListIKParameterizations', parameterNameTypeValues=parameterNameTypeValues, returnType='ListIKParameterizationsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListJoints(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List joints in a body.
 
@@ -1466,7 +1466,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListJoints', parameterNameTypeValues=parameterNameTypeValues, returnType='ListJointsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListLinks(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List links in a body.
 
@@ -1491,7 +1491,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListLinks', parameterNameTypeValues=parameterNameTypeValues, returnType='ListLinksReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListLogEntries(self, logTypes=None, options=None, fields=None, timeout=None):
         """List available log entries.
 
@@ -1510,7 +1510,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListLogEntries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListLogEntriesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListModules(self, moduleTypes=None, options=None, fields=None, timeout=None):
         """List available modules.
 
@@ -1529,7 +1529,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListModulesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListPositionConfigurations(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List position configurations in a body.
 
@@ -1554,7 +1554,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListPositionConfigurations', parameterNameTypeValues=parameterNameTypeValues, returnType='ListPositionConfigurationsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListPrograms(self, options=None, fields=None, timeout=None):
         """List all programs.
 
@@ -1571,7 +1571,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListPrograms', parameterNameTypeValues=parameterNameTypeValues, returnType='ListProgramsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListReferencedLogEntries(self, logEntryId, logTypes=None, options=None, fields=None, timeout=None):
         """List particular log entries and their parents.
 
@@ -1592,7 +1592,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListReferencedLogEntries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListReferencedLogEntriesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListReferencingLogEntries(self, logEntryId, logTypes=None, options=None, fields=None, timeout=None):
         """List particular log entries and their children.
 
@@ -1613,7 +1613,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListReferencingLogEntries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListReferencingLogEntriesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListRevisions(self, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List revisions of an environment.
 
@@ -1636,7 +1636,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListRevisions', parameterNameTypeValues=parameterNameTypeValues, returnType='ListRevisionsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListRobotBridgeModules(self, options=None, fields=None, timeout=None):
         """List robot bridge modules.
 
@@ -1653,7 +1653,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListRobotBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListRobotBridgeModulesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListSensorBridgeModules(self, options=None, fields=None, timeout=None):
         """List sensor bridge modules.
 
@@ -1670,7 +1670,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListSensorBridgeModules', parameterNameTypeValues=parameterNameTypeValues, returnType='ListSensorBridgeModulesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListStatEntries(self, endedAt=None, intervalType=None, options=None, startedAt=None, statTypes=None, fields=None, timeout=None):
         """Lists all or specific types of statistics entries for a given time interval.
 
@@ -1721,7 +1721,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListStatEntries', parameterNameTypeValues=parameterNameTypeValues, returnType='ListStatEntriesReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListTools(self, bodyId, environmentId, options=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """List tools defined on a robot.
 
@@ -1746,7 +1746,7 @@ class GraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListTools', parameterNameTypeValues=parameterNameTypeValues, returnType='ListToolsReturnValue', fields=fields, timeout=timeout)
 
-    @UseGraphQueryResult
+    @UseLazyGraphQuery
     def ListVisionTaskModules(self, options=None, fields=None, timeout=None):
         """List vision task modules.
 

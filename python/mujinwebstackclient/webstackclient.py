@@ -21,7 +21,7 @@ from . import json
 from . import urlparse
 from . import uriutils
 from . import webstackgraphclient
-from .webstackclientutils import UseQueryResult
+from .webstackclientutils import UseLazyQuery
 
 # Logging
 import logging
@@ -251,8 +251,8 @@ class WebstackClient(object):
         """
         return self.UploadFile(f, timeout=timeout)['filename']
 
-    @UseQueryResult
-    def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
+    @UseLazyQuery
+    def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100, **kwargs):
         """List all available scene on controller
         """
         params = {
@@ -577,8 +577,8 @@ class WebstackClient(object):
     # Task related
     #
 
-    @UseQueryResult
-    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, timeout=5):
+    @UseLazyQuery
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, maxQueryLimit=100, timeout=5):
         params = {
             'offset': offset,
             'limit': limit,
@@ -640,8 +640,8 @@ class WebstackClient(object):
     # Job related
     #
 
-    @UseQueryResult
-    def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
+    @UseLazyQuery
+    def GetJobs(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100):
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
             'limit': limit,
@@ -662,8 +662,8 @@ class WebstackClient(object):
     # Cycle Log
     #
 
-    @UseQueryResult
-    def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
+    @UseLazyQuery
+    def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100, **kwargs):
         params = {
             'offset': offset,
             'limit': limit,
@@ -1015,8 +1015,8 @@ class WebstackClient(object):
     # ITL program related
     #
 
-    @UseQueryResult
-    def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
+    @UseLazyQuery
+    def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, maxQueryLimit=100, **kwargs):
         params = {
             'offset': offset,
             'limit': limit,

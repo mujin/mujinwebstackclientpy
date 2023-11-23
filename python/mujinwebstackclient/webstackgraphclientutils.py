@@ -200,7 +200,7 @@ class GraphQueryIterator:
         """
         return self._totalCount
 
-class GraphQueryResult(webstackclientutils.QueryResult):
+class LazyGraphQuery(webstackclientutils.LazyQuery):
     """Wraps graph query response. Break large query into small queries automatically to save memory.
     """
     _totalCount = None # the number of available items in webstack
@@ -276,12 +276,12 @@ class GraphQueryResult(webstackclientutils.QueryResult):
             return list.__repr__(self)
         return "<Graph query result object>"
 
-def UseGraphQueryResult(queryFunction):
-    """This decorator break a large graph query into a few small queries with the help of GraphQueryResult class to prevent webstack from consuming too much memory.
+def UseLazyGraphQuery(queryFunction):
+    """This decorator break a large graph query into a few small queries with the help of LazyGraphQuery class to prevent webstack from consuming too much memory.
     """
     @wraps(queryFunction)
     def wrapper(self, *args, **kwargs):
-        queryResult = GraphQueryResult(queryFunction, *((self,) + args), **kwargs)
+        queryResult = LazyGraphQuery(queryFunction, *((self,) + args), **kwargs)
         response = {}
         if queryResult.keyName == '__typename':
             response['__typename'] = queryResult[0]

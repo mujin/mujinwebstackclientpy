@@ -81,7 +81,7 @@ class QueryIterator:
 
         return self.next()
 
-class QueryResult(list):
+class LazyQuery(list):
     """Wraps query response. Break large query into small queries automatically to save memory.
     """
     _queryFunction = None # the actual webstack client query function (e.g. client.GetScenes)
@@ -107,7 +107,7 @@ class QueryResult(list):
 
     def __iter__(self):
         if self._fetchedAll:
-            return super(QueryResult, self).__iter__()
+            return super(LazyQuery, self).__iter__()
         self._kwargs['offset'] = self._offset
         self._kwargs['limit'] = self._limit
         return QueryIterator(self._queryFunction, *self._args, **self._kwargs)
@@ -141,19 +141,19 @@ class QueryResult(list):
         self._kwargs['offset'] = self._offset
         self._kwargs['limit'] = self._limit
         items = [item for item in QueryIterator(self._queryFunction, *self._args, **self._kwargs)]
-        super(QueryResult, self).__init__(items)
+        super(LazyQuery, self).__init__(items)
         self._fetchedAll = True
 
     def __len__(self):
         if self._fetchedAll:
-            return super(QueryResult, self).__len__()
+            return super(LazyQuery, self).__len__()
         if self._limit == 0 or self._offset + self._limit >= self.totalCount:
             return max(0, self.totalCount - self._offset)
         return self._limit
 
     def __getitem__(self, index):
         if self._fetchedAll:
-            return super(QueryResult, self).__getitem__(index)
+            return super(LazyQuery, self).__getitem__(index)
         
         if index < 0:
             index = len(self) + index
@@ -172,129 +172,129 @@ class QueryResult(list):
 
     def __repr__(self):
         if self._fetchedAll:
-            return super(QueryResult, self).__repr__()
+            return super(LazyQuery, self).__repr__()
         return "<Query result object>"
 
     # When invoke the following functions, 
-    # QueryResult object will fetch the complete list of query result from webstack,
+    # LazyQuery object will fetch the complete list of query result from webstack,
     # and it behaves identical to a standard list from this point forward.
 
     def __setitem__(self, index, item):
         self.FetchAll()
-        return super(QueryResult, self).__setitem__(index, item)
+        return super(LazyQuery, self).__setitem__(index, item)
 
     def append(self, item):
         self.FetchAll()
-        return super(QueryResult, self).append(item)
+        return super(LazyQuery, self).append(item)
 
     def extend(self, items):
         self.FetchAll()
-        return super(QueryResult, self).extend(items)
+        return super(LazyQuery, self).extend(items)
 
     def insert(self, index, item):
         self.FetchAll()
-        return super(QueryResult, self).insert(index, item)
+        return super(LazyQuery, self).insert(index, item)
 
     def index(self, item, start=0, end=None):
         self.FetchAll()
         if end is None:
             end = len(self)
-        return super(QueryResult, self).index(item, start, end)
+        return super(LazyQuery, self).index(item, start, end)
 
     def pop(self):
         self.FetchAll()
-        return super(QueryResult, self).pop()
+        return super(LazyQuery, self).pop()
 
     def count(self, item):
         self.FetchAll()
-        return super(QueryResult, self).count(item)
+        return super(LazyQuery, self).count(item)
 
     def remove(self, item):
         self.FetchAll()
-        return super(QueryResult, self).remove(item)
+        return super(LazyQuery, self).remove(item)
 
     def reverse(self):
         self.FetchAll()
-        return super(QueryResult, self).reverse()
+        return super(LazyQuery, self).reverse()
 
     def sort(self, reverse=False, key=None):
         self.FetchAll()
-        return super(QueryResult, self).sort(reverse=reverse, key=key)
+        return super(LazyQuery, self).sort(reverse=reverse, key=key)
 
     def __iadd__(self, items):
         self.FetchAll()
-        return super(QueryResult, self).__iadd__(items)
+        return super(LazyQuery, self).__iadd__(items)
 
     def __add__(self, items):
         self.FetchAll()
-        return super(QueryResult, self).__add__(items)
+        return super(LazyQuery, self).__add__(items)
 
     def __rmul__(self, value):
         self.FetchAll()
-        return super(QueryResult, self).__rmul__(value)
+        return super(LazyQuery, self).__rmul__(value)
 
     def __mul__(self, value):
         self.FetchAll()
-        return super(QueryResult, self).__mul__(value)
+        return super(LazyQuery, self).__mul__(value)
 
     def __imul__(self, value):
         self.FetchAll()
-        return super(QueryResult, self).__imul__(value)
+        return super(LazyQuery, self).__imul__(value)
 
     def __reversed__(self):
         self.FetchAll()
-        return super(QueryResult, self).__reversed__()
+        return super(LazyQuery, self).__reversed__()
 
     def __contains__(self, item):
         self.FetchAll()
-        return super(QueryResult, self).__contains__(item)
+        return super(LazyQuery, self).__contains__(item)
 
     def __delitem__(self, index):
         self.FetchAll()
-        return super(QueryResult, self).__delitem__(index)
+        return super(LazyQuery, self).__delitem__(index)
     
     def __eq__(self, other):
         self.FetchAll()
-        if isinstance(other, QueryResult):
+        if isinstance(other, LazyQuery):
             other.FetchAll()
-        return super(QueryResult, self).__eq__(other)
+        return super(LazyQuery, self).__eq__(other)
     
     def __ne__(self, other):
         self.FetchAll()
-        if isinstance(other, QueryResult):
+        if isinstance(other, LazyQuery):
             other.FetchAll()
-        return super(QueryResult, self).__ne__(other)
+        return super(LazyQuery, self).__ne__(other)
     
     def __lt__(self, other):
         self.FetchAll()
-        if isinstance(other, QueryResult):
+        if isinstance(other, LazyQuery):
             other.FetchAll()
-        return super(QueryResult, self).__lt__(other)
+        return super(LazyQuery, self).__lt__(other)
     
     def __gt__(self, other):
         self.FetchAll()
-        if isinstance(other, QueryResult):
+        if isinstance(other, LazyQuery):
             other.FetchAll()
-        return super(QueryResult, self).__gt__(other)
+        return super(LazyQuery, self).__gt__(other)
     
     def __le__(self, other):
         self.FetchAll()
-        if isinstance(other, QueryResult):
+        if isinstance(other, LazyQuery):
             other.FetchAll()
-        return super(QueryResult, self).__le__(other)
+        return super(LazyQuery, self).__le__(other)
     
     def __ge__(self, other):
         self.FetchAll()
-        if isinstance(other, QueryResult):
+        if isinstance(other, LazyQuery):
             other.FetchAll()
-        return super(QueryResult, self).__ge__(other)
+        return super(LazyQuery, self).__ge__(other)
 
-def UseQueryResult(queryFunction):
-    """This decorator break a large query into a few small queries with the help of QueryResult class to prevent webstack from consuming too much memory.
+def UseLazyQuery(queryFunction):
+    """This decorator break a large query into a few small queries with the help of LazyQuery class to prevent webstack from consuming too much memory.
     """
     @wraps(queryFunction)
     def wrapper(self, *args, **kwargs):
-        queryResult = QueryResult(queryFunction, *((self,) + args), **kwargs)
+        queryResult = LazyQuery(queryFunction, *((self,) + args), **kwargs)
         return queryResult
     
     wrapper.inner = queryFunction
