@@ -225,7 +225,7 @@ def test_GraphQueryIterator():
     initialOffset = 5
     initialLimit = 500
     adapter = requests_mock.Adapter()
-    
+
     def matcher(request):
         if request.path != "/api/v2/graphql":
             return None
@@ -423,7 +423,7 @@ def test_GraphLazyQuery():
         options = variables.get('options')
         offset = options.get('offset')
         first = options.get('first')
-        
+
         if not query.startswith('query ListEnvironments'):
             return None
         if first != limit:
@@ -435,6 +435,7 @@ def test_GraphLazyQuery():
         expectedQueries = [
             'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) { __typename }',
             'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}, __typename}',
+            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {__typename, meta {totalCount}}',
         ]
         if all([expectedQuery not in query for expectedQuery in expectedQueries]):
             return None
