@@ -159,14 +159,14 @@ class LazyQuery(list):
             return super(LazyQuery, self).__len__()
         # if there is no limit or the limit is larger than the number of items webstack actual has,
         # the length is the total number of items minus the offset.
-        # e.g. totalCount = 100, offset = 5, limit = 0 or 99999, length = 100 - 5 = 95 
+        # e.g. totalCount = 100, offset = 5, limit = 0 or 99999 => length = 100 - 5 = 95 
         if self._limit == 0 or self._offset + self._limit >= self.totalCount:
             # if offset is larger than the number of items webstack actual has, 
             # length is 0 and the query result is an empty list.
-            # e.g. totalCount = 100, offset = 9999999, length = 0
+            # e.g. totalCount = 100, offset = 9999999 => length = 0
             return max(0, self.totalCount - self._offset)
         # otherwise, the length of the items is the limit,
-        # e.g. totalCount = 100, offset = 5, limit = 10, length = 10
+        # e.g. totalCount = 100, offset = 5, limit = 10 => length = 10
         return self._limit
 
     def __getitem__(self, index):
@@ -192,7 +192,7 @@ class LazyQuery(list):
     def __repr__(self):
         if self._fetchedAll:
             return super(LazyQuery, self).__repr__()
-        return "<Query result object>"
+        return "<LazyQuery object>"
 
     # When invoke the following functions, 
     # LazyQuery object will fetch the complete list of query result from webstack,
