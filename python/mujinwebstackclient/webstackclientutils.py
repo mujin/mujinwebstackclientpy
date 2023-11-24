@@ -173,6 +173,13 @@ class LazyQuery(list):
         if self._fetchedAll:
             return super(LazyQuery, self).__getitem__(index)
         
+        # index could be a slice object
+        # python2 e.g. scenes.__getitem__(slice(1, None))
+        # python3 e.g. scenes[1:]
+        if type(index) == slice:
+            self.FetchAll()
+            return super(LazyQuery, self).__getitem__(index)
+        
         # convert negative index to positive index
         if index < 0:
             index = len(self) + index
@@ -214,11 +221,9 @@ class LazyQuery(list):
         self.FetchAll()
         return super(LazyQuery, self).insert(index, item)
 
-    def index(self, item, start=0, end=None):
+    def index(self, *arg):
         self.FetchAll()
-        if end is None:
-            end = len(self)
-        return super(LazyQuery, self).index(item, start, end)
+        return super(LazyQuery, self).index(*arg)
 
     def pop(self):
         self.FetchAll()
@@ -271,6 +276,18 @@ class LazyQuery(list):
     def __delitem__(self, index):
         self.FetchAll()
         return super(LazyQuery, self).__delitem__(index)
+    
+    def __getslice__(self, start, end):
+        self.FetchAll()
+        return super(LazyQuery, self).__getslice__(start, end)
+    
+    def __setslice__(self, start, end, value):
+        self.FetchAll()
+        return super(LazyQuery, self).__setslice__(start, end, value)
+    
+    def __delslice__(self, start, end):
+        self.FetchAll()
+        return super(LazyQuery, self).__delslice__(start, end)
     
     def __eq__(self, other):
         self.FetchAll()
