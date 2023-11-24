@@ -290,11 +290,6 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         list.__init__(self, items)
         self._fetchedAll = True
 
-    def __repr__(self):
-        if self._fetchedAll:
-            return list.__repr__(self)
-        return '<LazyGraphQuery object> = [..., ' + self._items.__repr__()[1:-1] + ', ...]'
-
 def UseLazyGraphQuery(queryFunction):
     """This decorator break a large graph query into a few small queries with the help of LazyGraphQuery class to prevent webstack from consuming too much memory.
     """

@@ -201,7 +201,9 @@ class LazyQuery(list):
     def __repr__(self):
         if self._fetchedAll:
             return super(LazyQuery, self).__repr__()
-        return '<LazyQuery object> = [..., ' + self._items.__repr__()[1:-1] + ', ...]'
+        if len(self._items) < MAXIMUM_QUERY_LIMIT:
+            return self._items.__repr__()
+        return '[..., ' + self._items.__repr__()[1:-1] + ', ...]'
 
     # When invoke the following functions, 
     # LazyQuery object will fetch the complete list of query result from webstack,
