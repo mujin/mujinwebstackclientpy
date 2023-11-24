@@ -217,9 +217,14 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         self._offset = self._queryKwargs['options']['offset']
 
         # initialize fields
-        if self._queryKwargs.get('fields'):
-            self._queryKwargs.setdefault('fields', {})
-            self._queryKwargs['fields'].setdefault('meta', {})
+        self._queryKwargs.setdefault('fields', {})
+        if not self._queryKwargs.get('fields'):
+            # query the __typename field if caller didn't want anything back
+            self._queryKwargs['fields']['__typename'] = None
+        self._queryKwargs['fields'].setdefault('meta', {})
+        if type(self._queryKwargs['fields']['meta']) is dict:
+            # do not modify fields if caller provided incorrect meta fields
+            # e.g. client.graphApi.ListEnvironments(fields={'meta': None})
             self._queryKwargs['fields']['meta'].setdefault('totalCount', None)
 
         self._fetchedAll = False

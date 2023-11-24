@@ -147,8 +147,6 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
             return None
         if first != limit:
             return None
-        if offset % limit != 0:
-            return None
         if offset > totalCount:
             return None
         
@@ -158,21 +156,20 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
             environments = []
 
         response = requests.Response()
-        response._content = json.dumps(
-            {
-                'data': {
-                    'ListEnvironments': {
-                        'meta': {
-                            'totalCount': totalCount
-                        },
-                        'environments': environments,
-                    }
+        response._content = json.dumps({
+            'data': {
+                'ListEnvironments': {
+                    'meta': {
+                        'totalCount': totalCount
+                    },
+                    'environments': environments,
                 }
             }
-        ).encode()
+        }).encode()
 
         response.status_code = 200
         return response
+
     adapter.add_matcher(matcher)
 
     # iterate through all environments
@@ -208,51 +205,11 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
             assert environments[index]['id'] == str(index)
         assert environments[-1] == 1
 
-    initialOffset = 5
-    initialLimit = 500
-    adapter = requests_mock.Adapter()
-
-    def matcher(request):
-        if request.path != "/api/v2/graphql":
-            return None
-
-        data = request.json()
-        query = data.get('query')
-        variables = data.get('variables')
-        options = variables.get('options')
-        offset = options.get('offset')
-        first = options.get('first')
-
-        if not query.startswith('query ListEnvironments'):
-            return None
-        if first != limit:
-            return None
-        if (offset - 5) % limit != 0:
-            return None
-        if offset >= initialOffset + initialLimit:
-            return None
-        
-        environments = [{'id': str(i)} for i in range(offset, offset + limit)]
-        response = requests.Response()
-        response._content = json.dumps(
-            {
-                'data': {
-                    'ListEnvironments': {
-                        'meta': {
-                            'totalCount': totalCount
-                        },
-                        'environments': environments,
-                    }
-                }
-            }
-        ).encode()
-
-        response.status_code = 200
-        return response
-    adapter.add_matcher(matcher)
-
     # iterate through all environments with offset and limit
     with requests_mock.Mocker(adapter=adapter):
+        initialOffset = 5
+        initialLimit = 500
+
         # test iterator
         count = 0
         for index, environment in enumerate(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields={'environments': {'id': None}}, options={'offset': initialOffset, 'first': initialLimit})):
@@ -296,91 +253,49 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
             return None
         expectedQueries = [
             'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) { __typename }',
-            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}, __typename}',
             'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {__typename, meta {totalCount}}',
+            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}, __typename}',
+            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}}',
         ]
         if all([expectedQuery not in query for expectedQuery in expectedQueries]):
             return None
-        
-        response = requests.Response()
-        response._content = json.dumps(
-            {
-                'data': {
-                    'ListEnvironments': {
-                        '__typename': 'ListEnvironmentsReturnValue',
-                    }
-                }
-            }
-        ).encode()
 
+        data = {}
+        if 'meta' in query:
+            data['meta'] = {'totalCount': totalCount}
+        if '__typename' in query:
+            data['__typename'] = 'ListEnvironmentsReturnValue'
+
+        response = requests.Response()
+        response._content = json.dumps({'data': {'ListEnvironments': data}}).encode()
         response.status_code = 200
         return response
+
     adapter.add_matcher(matcher)
 
-    # query with no fields or query __typename
     with requests_mock.Mocker(adapter=adapter):
+        # query with no fields
         data = webstackclient.graphApi.ListEnvironments()
         assert 'meta' not in data
         assert '__typename' in data
         assert 'environments' not in data
         assert data['__typename'] == 'ListEnvironmentsReturnValue'
 
+        # query with empty fields
         data = webstackclient.graphApi.ListEnvironments(fields={})
         assert 'meta' not in data
         assert '__typename' in data
         assert 'environments' not in data
         assert data['__typename'] == 'ListEnvironmentsReturnValue'
 
+        # query __typename
         data = webstackclient.graphApi.ListEnvironments(fields={'__typename': None})
         assert 'meta' not in data
         assert '__typename' in data
         assert 'environments' not in data
         assert data['__typename'] == 'ListEnvironmentsReturnValue'
 
-    adapter = requests_mock.Adapter()
-
-    def matcher(request):
-        if request.path != "/api/v2/graphql":
-            return None
-
-        data = request.json()
-
-        query = data.get('query')
-        variables = data.get('variables')
-        options = variables.get('options')
-        offset = options.get('offset')
-        first = options.get('first')
-        
-        if not query.startswith('query ListEnvironments'):
-            return None
-        if first != limit:
-            return None
-        if offset % limit != 0:
-            return None
-        if offset > totalCount:
-            return None
-        if 'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}}' not in query:
-            return None
-        
-        response = requests.Response()
-        response._content = json.dumps(
-            {
-                'data': {
-                    'ListEnvironments': {
-                        'meta': {
-                            'totalCount': totalCount
-                        },
-                    }
-                }
-            }
-        ).encode()
-
-        response.status_code = 200
-        return response
-    adapter.add_matcher(matcher)
-
-    # query meta data
-    with requests_mock.Mocker(adapter=adapter):
+        # query meta data
         data = webstackclient.graphApi.ListEnvironments(fields={'meta': {'totalCount': None}})
         assert 'meta' in data
         assert '__typename' not in data
