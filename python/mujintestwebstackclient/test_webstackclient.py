@@ -267,11 +267,22 @@ def test_LazyQueryStandardListOperations():
             })
 
         testItem = {'id': 'testItem'}
+        index = random.randint(0, totalCount - 1)
+
+        # test negative index
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        assert scenes[-100] == expectedScenes[-100]
+        hasIndexError = False
+        try:
+            scenes[-totalCount-1]
+        except IndexError:
+            hasIndexError = True
+        assert hasIndexError
 
         # test setter
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        index = random.randint(0, len(expectedScenes) - 1)
         scenes[index] = testItem
         expectedScenes[index] = testItem
         assert scenes == expectedScenes
@@ -279,7 +290,6 @@ def test_LazyQueryStandardListOperations():
         # test deletion
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        index = random.randint(0, len(expectedScenes) - 1)
         del scenes[index]
         del expectedScenes[index]
         assert scenes == expectedScenes
@@ -301,7 +311,6 @@ def test_LazyQueryStandardListOperations():
         # test insert
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        index = random.randint(0, len(expectedScenes) - 1)
         scenes.insert(index, testItem)
         expectedScenes.insert(index, testItem)
         assert scenes == expectedScenes
@@ -309,7 +318,6 @@ def test_LazyQueryStandardListOperations():
         # test index
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        index = random.randint(0, len(expectedScenes) - 1)
         assert scenes.index(expectedScenes[index]) == expectedScenes.index(expectedScenes[index])
 
         # test pop
@@ -322,19 +330,16 @@ def test_LazyQueryStandardListOperations():
         # test count
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        index = random.randint(0, len(expectedScenes) - 1)
         assert scenes.count(expectedScenes[index]) == expectedScenes.count(expectedScenes[index])
 
-        # test count
+        # test contain
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        index = random.randint(0, len(expectedScenes) - 1)
         assert (expectedScenes[index] in scenes) == (expectedScenes[index] in expectedScenes)
 
         # test remove
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        index = random.randint(0, len(expectedScenes) - 1)
         scenes.remove(expectedScenes[index])
         expectedScenes.remove(expectedScenes[index])
         assert scenes == expectedScenes
@@ -353,8 +358,7 @@ def test_LazyQueryStandardListOperations():
         # test sort
         scenes = webstackclient.GetScenes()
         expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        if sys.version_info.major == 2:
-            # python 2
+        if sys.version_info.major == 2: # python 2
             scenes.sort(reverse=True)
             expectedScenes.sort(reverse=True)
             assert scenes == expectedScenes

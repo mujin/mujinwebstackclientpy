@@ -242,6 +242,8 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         """
         self._queryKwargs['options']['offset'] = offset
         self._queryKwargs['options']['first'] = webstackclientutils.MAXIMUM_QUERY_LIMIT
+        if self._limit != 0:
+            self._queryKwargs['options']['first'] = min(self._queryKwargs['options']['first'], self._limit)
         data = self._queryFunction(*self._queryArgs, **self._queryKwargs)
 
         # process meta and __typename in the top level
@@ -291,7 +293,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
     def __repr__(self):
         if self._fetchedAll:
             return list.__repr__(self)
-        return "<LazyGraphQuery object>"
+        return '<LazyGraphQuery object> = [..., ' + self._items.__repr__()[1:-1] + ', ...]'
 
 def UseLazyGraphQuery(queryFunction):
     """This decorator break a large graph query into a few small queries with the help of LazyGraphQuery class to prevent webstack from consuming too much memory.

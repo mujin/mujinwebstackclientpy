@@ -127,6 +127,8 @@ class LazyQuery(list):
         """
         self._queryKwargs['offset'] = offset
         self._queryKwargs['limit'] = MAXIMUM_QUERY_LIMIT
+        if self._limit != 0:
+            self._queryKwargs['limit'] = min(self._queryKwargs['limit'], self._limit)
         self._items = self._queryFunction(*self._queryArgs, **self._queryKwargs)
         self._meta = self._items._meta
         self._currentOffset = offset
@@ -199,7 +201,7 @@ class LazyQuery(list):
     def __repr__(self):
         if self._fetchedAll:
             return super(LazyQuery, self).__repr__()
-        return "<LazyQuery object>"
+        return '<LazyQuery object> = [..., ' + self._items.__repr__()[1:-1] + ', ...]'
 
     # When invoke the following functions, 
     # LazyQuery object will fetch the complete list of query result from webstack,
