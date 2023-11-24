@@ -217,7 +217,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         self._offset = self._queryKwargs['options']['offset']
 
         # initialize fields
-        if 'fields' in self._queryKwargs:
+        if self._queryKwargs.get('fields'):
             self._queryKwargs.setdefault('fields', {})
             self._queryKwargs['fields'].setdefault('meta', {})
             self._queryKwargs['fields']['meta'].setdefault('totalCount', None)
@@ -299,7 +299,7 @@ def UseLazyGraphQuery(queryFunction):
             response['__typename'] = queryResult.typeName
         if queryResult.keyName is not None:
             response[queryResult.keyName] = queryResult
-        if queryResult.totalCount is not None:
+        if 'totalCount' in kwargs.get('fields', {}).get('meta', {}):
             response['meta'] = {'totalCount': queryResult.totalCount}
         return response
 

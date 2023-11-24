@@ -2,10 +2,13 @@
 
 import pytest
 import requests_mock
+import json
+import requests
 
-from mujinwebstackclient.webstackclient import WebstackClient
 import mujinwebstackclient.webstackclientutils
+from mujinwebstackclient.webstackclient import WebstackClient
 from mujinwebstackclient.webstackclientutils import QueryIterator
+from mujinwebstackclient.webstackgraphclientutils import GraphQueryIterator
 
 @pytest.mark.parametrize('url, username, password', [
     ('http://controller', 'mujin', 'mujin'),
@@ -96,7 +99,6 @@ def test_QueryIterator():
             assert scene['id'] == str(index + initialOffset)
         assert count == initialLimit
 
-
 def test_LazyQuery():
     limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
     totalCount = 1000
@@ -132,6 +134,14 @@ def test_LazyQuery():
             assert scenes[index]['id'] == str(index)
         assert count == totalCount
 
+        # modify the data, trigger FetchAll function
+        scenes = webstackclient.GetScenes()
+        scenes.append(1)
+        assert len(scenes) == totalCount + 1
+        for index in range(totalCount):
+            assert scenes[index]['id'] == str(index)
+        assert scenes[-1] == 1
+
     # iterate through all scenes with offset and limit
     with requests_mock.Mocker() as mock:
         initialOffset = 5
@@ -154,32 +164,356 @@ def test_LazyQuery():
             assert scenes[index]['id'] == str(index + initialOffset)
         assert count == initialLimit
 
-    # modify the data, trigger FetchAll function
-    with requests_mock.Mocker() as mock:
-        for offset in range(0, totalCount, limit):
-            queryUrl = 'http://controller/api/v1/scene/?format=json&limit={limit:d}&offset={offset:d}'.format(limit=limit, offset=offset)
-            mock.get(queryUrl, json={
-                'objects': [{'id': str(i)} for i in range(offset, offset + limit)],
-                'meta': {
-                    'total_count': totalCount,
-                    'limit': limit,
-                    'offset': offset,
-                },
-            })
-    
-        queryUrl = 'http://controller/api/v1/scene/?format=json&limit={limit:d}&offset={offset:d}'.format(limit=limit, offset=totalCount)
-        mock.get(queryUrl, json={
-            'objects': [],
-            'meta': {
-                'total_count': totalCount,
-                'limit': limit,
-                'offset': totalCount,
-            },
-        })
+def test_GraphQueryIterator():
+    limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
+    totalCount = 1000
+    webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
-        scenes = webstackclient.GetScenes()
-        scenes.append(1)
-        assert len(scenes) == totalCount + 1
+    adapter = requests_mock.Adapter()
+    def matcher(request):
+        if request.path != "/api/v2/graphql":
+            return None
+
+        data = request.json()
+        query = data.get('query')
+        variables = data.get('variables')
+        options = variables.get('options')
+        offset = options.get('offset')
+        first = options.get('first')
+        
+        if not query.startswith('query ListEnvironments'):
+            return None
+        if first != limit:
+            return None
+        if offset % limit != 0:
+            return None
+        if offset > totalCount:
+            return None
+        
+        if offset < totalCount:
+            environments = [{'id': str(i)} for i in range(offset, offset + limit)]
+        else:
+            environments = []
+
+        resp = requests.Response()
+        resp._content = json.dumps(
+            {
+                'data': {
+                    'ListEnvironments': {
+                        'meta': {
+                            'totalCount': totalCount
+                        },
+                        'environments': environments,
+                    }
+                }
+            }
+        ).encode()
+
+        resp.status_code = 200
+        return resp
+    adapter.add_matcher(matcher)
+
+    # iterate through all environments
+    with requests_mock.Mocker(adapter=adapter):
+        count = 0
+        for index, environment in enumerate(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields={'environments': {'id': None}})):
+            count += 1
+            assert environment['id'] == str(index)
+        assert count == totalCount
+
+    initialOffset = 5
+    initialLimit = 500
+    adapter = requests_mock.Adapter()
+    def matcher(request):
+        if request.path != "/api/v2/graphql":
+            return None
+
+        data = request.json()
+        query = data.get('query')
+        variables = data.get('variables')
+        options = variables.get('options')
+        offset = options.get('offset')
+        first = options.get('first')
+
+        if not query.startswith('query ListEnvironments'):
+            return None
+        if first != limit:
+            return None
+        if (offset - 5) % limit != 0:
+            return None
+        if offset >= initialOffset + initialLimit:
+            return None
+        
+        environments = [{'id': str(i)} for i in range(offset, offset + limit)]
+        resp = requests.Response()
+        resp._content = json.dumps(
+            {
+                'data': {
+                    'ListEnvironments': {
+                        'meta': {
+                            'totalCount': totalCount
+                        },
+                        'environments': environments,
+                    }
+                }
+            }
+        ).encode()
+
+        resp.status_code = 200
+        return resp
+    adapter.add_matcher(matcher)
+
+    # iterate through all environments with offset and limit
+    with requests_mock.Mocker(adapter=adapter):
+        count = 0
+        for index, environment in enumerate(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields={'environments': {'id': None}}, options={'offset': initialOffset, 'first': initialLimit})):
+            count += 1
+            assert environment['id'] == str(index + initialOffset)
+        assert count == initialLimit
+
+def test_GraphLazyQuery():
+    limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
+    totalCount = 1000
+    webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
+
+    adapter = requests_mock.Adapter()
+    def matcher(request):
+        if request.path != "/api/v2/graphql":
+            return None
+
+        data = request.json()
+        query = data.get('query')
+        variables = data.get('variables')
+        options = variables.get('options')
+        offset = options.get('offset')
+        first = options.get('first')
+        
+        if not query.startswith('query ListEnvironments'):
+            return None
+        if first != limit:
+            return None
+        if offset % limit != 0:
+            return None
+        if offset > totalCount:
+            return None
+        
+        if offset < totalCount:
+            environments = [{'id': str(i)} for i in range(offset, offset + limit)]
+        else:
+            environments = []
+
+        resp = requests.Response()
+        resp._content = json.dumps(
+            {
+                'data': {
+                    'ListEnvironments': {
+                        'meta': {
+                            'totalCount': totalCount
+                        },
+                        'environments': environments,
+                    }
+                }
+            }
+        ).encode()
+
+        resp.status_code = 200
+        return resp
+    adapter.add_matcher(matcher)
+
+    # iterate through all environments
+    with requests_mock.Mocker(adapter=adapter):
+        data = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}})
+        assert 'meta' not in data
+        assert '__typename' not in data
+        assert 'environments' in data
+        environments = data['environments']
+        count = 0
         for index in range(totalCount):
-            assert scenes[index]['id'] == str(index)
-        assert scenes[-1] == 1
+            count += 1
+            assert environments[index]['id'] == str(index)
+        assert count == totalCount
+
+        # modify the data, trigger FetchAll function
+        data = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}})
+        assert 'meta' not in data
+        assert '__typename' not in data
+        assert 'environments' in data
+        environments = data['environments']
+        environments.append(1)
+        assert len(environments) == totalCount + 1
+        for index in range(totalCount):
+            assert environments[index]['id'] == str(index)
+        assert environments[-1] == 1
+
+    initialOffset = 5
+    initialLimit = 500
+    adapter = requests_mock.Adapter()
+    def matcher(request):
+        if request.path != "/api/v2/graphql":
+            return None
+
+        data = request.json()
+        query = data.get('query')
+        variables = data.get('variables')
+        options = variables.get('options')
+        offset = options.get('offset')
+        first = options.get('first')
+
+        if not query.startswith('query ListEnvironments'):
+            return None
+        if first != limit:
+            return None
+        if (offset - 5) % limit != 0:
+            return None
+        if offset >= initialOffset + initialLimit:
+            return None
+        
+        environments = [{'id': str(i)} for i in range(offset, offset + limit)]
+        resp = requests.Response()
+        resp._content = json.dumps(
+            {
+                'data': {
+                    'ListEnvironments': {
+                        'meta': {
+                            'totalCount': totalCount
+                        },
+                        'environments': environments,
+                    }
+                }
+            }
+        ).encode()
+
+        resp.status_code = 200
+        return resp
+    adapter.add_matcher(matcher)
+
+    # iterate through all environments with offset and limit
+    with requests_mock.Mocker(adapter=adapter):
+        count = 0
+        for index, environment in enumerate(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields={'environments': {'id': None}}, options={'offset': initialOffset, 'first': initialLimit})):
+            count += 1
+            assert environment['id'] == str(index + initialOffset)
+        assert count == initialLimit
+
+        data = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}}, options={'offset': initialOffset, 'first': initialLimit})
+        assert 'meta' not in data
+        assert '__typename' not in data
+        assert 'environments' in data
+        environments = data['environments']
+        count = 0
+        for index in range(initialLimit):
+            count += 1
+            assert environments[index]['id'] == str(index + initialOffset)
+        assert count == initialLimit
+
+    adapter = requests_mock.Adapter()
+    def matcher(request):
+        if request.path != "/api/v2/graphql":
+            return None
+
+        data = request.json()
+
+        query = data.get('query')
+        variables = data.get('variables')
+        options = variables.get('options')
+        offset = options.get('offset')
+        first = options.get('first')
+        
+        if not query.startswith('query ListEnvironments'):
+            return None
+        if first != limit:
+            return None
+        if offset % limit != 0:
+            return None
+        if offset > totalCount:
+            return None
+        expectedQueries = [
+            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) { __typename }',
+            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}, __typename}',
+        ]
+        if all([expectedQuery not in query for expectedQuery in expectedQueries]):
+            return None
+        
+        resp = requests.Response()
+        resp._content = json.dumps(
+            {
+                'data': {
+                    'ListEnvironments': {
+                        '__typename': 'ListEnvironmentsReturnValue',
+                    }
+                }
+            }
+        ).encode()
+
+        resp.status_code = 200
+        return resp
+    adapter.add_matcher(matcher)
+
+    # query with no fields or query __typename
+    with requests_mock.Mocker(adapter=adapter):
+        data = webstackclient.graphApi.ListEnvironments()
+        assert 'meta' not in data
+        assert '__typename' in data
+        assert 'environments' not in data
+        assert data['__typename'] == 'ListEnvironmentsReturnValue'
+
+        data = webstackclient.graphApi.ListEnvironments(fields={})
+        assert 'meta' not in data
+        assert '__typename' in data
+        assert 'environments' not in data
+        assert data['__typename'] == 'ListEnvironmentsReturnValue'
+
+        data = webstackclient.graphApi.ListEnvironments(fields={'__typename': None})
+        assert 'meta' not in data
+        assert '__typename' in data
+        assert 'environments' not in data
+        assert data['__typename'] == 'ListEnvironmentsReturnValue'
+
+    adapter = requests_mock.Adapter()
+    def matcher(request):
+        if request.path != "/api/v2/graphql":
+            return None
+
+        data = request.json()
+
+        query = data.get('query')
+        variables = data.get('variables')
+        options = variables.get('options')
+        offset = options.get('offset')
+        first = options.get('first')
+        
+        if not query.startswith('query ListEnvironments'):
+            return None
+        if first != limit:
+            return None
+        if offset % limit != 0:
+            return None
+        if offset > totalCount:
+            return None
+        if 'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}}' not in query:
+            return None
+        
+        resp = requests.Response()
+        resp._content = json.dumps(
+            {
+                'data': {
+                    'ListEnvironments': {
+                        'meta': {
+                            'totalCount': totalCount
+                        },
+                    }
+                }
+            }
+        ).encode()
+
+        resp.status_code = 200
+        return resp
+    adapter.add_matcher(matcher)
+
+    # query meta data
+    with requests_mock.Mocker(adapter=adapter):
+        data = webstackclient.graphApi.ListEnvironments(fields={'meta': {'totalCount': None}})
+        assert 'meta' in data
+        assert '__typename' not in data
+        assert 'environments' not in data
+        assert data['meta'].get('totalCount') == totalCount
