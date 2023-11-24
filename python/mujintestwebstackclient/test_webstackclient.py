@@ -4,6 +4,8 @@ import pytest
 import requests_mock
 import json
 import requests
+import random
+import sys
 
 import mujinwebstackclient.webstackclientutils
 from mujinwebstackclient.webstackclient import WebstackClient
@@ -75,14 +77,6 @@ def test_QueryIteratorAndLazyQuery():
         assert len(scenes) == totalCount
         for index in range(totalCount):
             assert scenes[index]['id'] == str(index)
-
-        # modify the data, trigger FetchAll function
-        scenes = webstackclient.GetScenes()
-        scenes.append(1)
-        assert len(scenes) == totalCount + 1
-        for index in range(totalCount):
-            assert scenes[index]['id'] == str(index)
-        assert scenes[-1] == 1
 
     # iterate through all scenes with offset and limit
     with requests_mock.Mocker() as mock:
@@ -172,18 +166,6 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
         for index in range(totalCount):
             assert environments[index]['id'] == str(index)
 
-        # modify the data, trigger FetchAll function
-        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}})
-        assert 'meta' not in queryResult
-        assert '__typename' not in queryResult
-        assert 'environments' in queryResult
-        environments = queryResult['environments']
-        environments.append(1)
-        assert len(environments) == totalCount + 1
-        for index in range(totalCount):
-            assert environments[index]['id'] == str(index)
-        assert environments[-1] == 1
-
     # iterate through all environments with offset and limit
     with requests_mock.Mocker(adapter=adapter):
         initialOffset = 5
@@ -263,3 +245,158 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
         assert '__typename' not in queryResult
         assert 'environments' not in queryResult
         assert queryResult['meta'].get('totalCount') == totalCount
+
+def test_LazyQueryAndLazyGraphQuery():
+    limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
+    totalCount = 1000
+    webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
+
+    # iterate through all scenes
+    with requests_mock.Mocker() as mock:
+        for offset in range(0, totalCount + 1, limit):
+            queryUrl = 'http://controller/api/v1/scene/?format=json&limit={limit:d}&offset={offset:d}'.format(limit=limit, offset=offset)
+            mock.get(queryUrl, json={
+                'objects': [{'id': str(i)} for i in range(offset, min(offset + limit, totalCount))],
+                'meta': {
+                    'total_count': totalCount,
+                    'limit': limit,
+                    'offset': offset,
+                },
+            })
+
+        testItem = {'id': 'testItem'}
+
+        # test setter
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        index = random.randint(0, len(expectedScenes) - 1)
+        scenes[index] = testItem
+        expectedScenes[index] = testItem
+        assert scenes == expectedScenes
+
+        # test deletion
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        index = random.randint(0, len(expectedScenes) - 1)
+        del scenes[index]
+        del expectedScenes[index]
+        assert scenes == expectedScenes
+
+        # test append
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        scenes.append(testItem)
+        expectedScenes.append(testItem)
+        assert scenes == expectedScenes
+
+        # test extend
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        scenes.extend([testItem])
+        expectedScenes.extend([testItem])
+        assert scenes == expectedScenes
+
+        # test insert
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        index = random.randint(0, len(expectedScenes) - 1)
+        scenes.insert(index, testItem)
+        expectedScenes.insert(index, testItem)
+        assert scenes == expectedScenes
+
+        # test index
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        index = random.randint(0, len(expectedScenes) - 1)
+        assert scenes.index(expectedScenes[index]) == expectedScenes.index(expectedScenes[index])
+
+        # test pop
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        scenes.pop()
+        expectedScenes.pop()
+        assert scenes == expectedScenes
+
+        # test count
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        index = random.randint(0, len(expectedScenes) - 1)
+        assert scenes.count(expectedScenes[index]) == expectedScenes.count(expectedScenes[index])
+
+        # test count
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        index = random.randint(0, len(expectedScenes) - 1)
+        assert (expectedScenes[index] in scenes) == (expectedScenes[index] in expectedScenes)
+
+        # test remove
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        index = random.randint(0, len(expectedScenes) - 1)
+        scenes.remove(expectedScenes[index])
+        expectedScenes.remove(expectedScenes[index])
+        assert scenes == expectedScenes
+
+        # test reverse
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        scenes.reverse()
+        expectedScenes.reverse()
+        assert scenes == expectedScenes
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        for scene, expectedScene in zip(reversed(scenes), reversed(expectedScenes)):
+            assert scene == expectedScene
+
+        # test sort
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        if sys.version_info.major == 2:
+            # python 2
+            scenes.sort(reverse=True)
+            expectedScenes.sort(reverse=True)
+            assert scenes == expectedScenes
+
+        # test addition
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        assert scenes + [testItem] == expectedScenes + [testItem]
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        scenes += [testItem]
+        expectedScenes += [testItem]
+        assert scenes == expectedScenes
+
+        # test multiplication
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        assert scenes * 2 == expectedScenes * 2
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        assert 2 * scenes == 2 * expectedScenes
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        scenes *= 2
+        expectedScenes *= 2
+        assert scenes == expectedScenes
+
+        # test slice getter
+        start = 100
+        end = 105
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        assert scenes[start:end] == expectedScenes[start:end]
+
+        # test slice setter
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        scenes[start:end] = [testItem]
+        expectedScenes[start:end] = [testItem]
+        assert scenes == expectedScenes
+
+        # test slice deletion
+        scenes = webstackclient.GetScenes()
+        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        del scenes[start:end]
+        del expectedScenes[start:end]
+        assert scenes == expectedScenes
