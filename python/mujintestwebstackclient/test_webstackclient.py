@@ -246,7 +246,9 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
         assert 'environments' not in queryResult
         assert queryResult['meta'].get('totalCount') == totalCount
 
-def test_LazyQueryAndLazyGraphQuery():
+def test_LazyQueryStandardListOperations():
+    """test standard list operations
+    """
     limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
     totalCount = 1000
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')

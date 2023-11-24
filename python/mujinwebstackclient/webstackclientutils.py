@@ -176,7 +176,7 @@ class LazyQuery(list):
         # index could be a slice object
         # python2 e.g. scenes.__getitem__(slice(1, None))
         # python3 e.g. scenes[1:]
-        if type(index) == slice:
+        if type(index) is slice:
             self.FetchAll()
             return super(LazyQuery, self).__getitem__(index)
         
