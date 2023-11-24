@@ -170,6 +170,7 @@ def test_GraphQueryIterator():
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
     adapter = requests_mock.Adapter()
+
     def matcher(request):
         if request.path != "/api/v2/graphql":
             return None
@@ -224,6 +225,7 @@ def test_GraphQueryIterator():
     initialOffset = 5
     initialLimit = 500
     adapter = requests_mock.Adapter()
+    
     def matcher(request):
         if request.path != "/api/v2/graphql":
             return None
@@ -277,6 +279,7 @@ def test_GraphLazyQuery():
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
     adapter = requests_mock.Adapter()
+
     def matcher(request):
         if request.path != "/api/v2/graphql":
             return None
@@ -348,6 +351,7 @@ def test_GraphLazyQuery():
     initialOffset = 5
     initialLimit = 500
     adapter = requests_mock.Adapter()
+
     def matcher(request):
         if request.path != "/api/v2/graphql":
             return None
@@ -407,6 +411,7 @@ def test_GraphLazyQuery():
         assert count == initialLimit
 
     adapter = requests_mock.Adapter()
+
     def matcher(request):
         if request.path != "/api/v2/graphql":
             return None
@@ -470,6 +475,7 @@ def test_GraphLazyQuery():
         assert data['__typename'] == 'ListEnvironmentsReturnValue'
 
     adapter = requests_mock.Adapter()
+
     def matcher(request):
         if request.path != "/api/v2/graphql":
             return None
