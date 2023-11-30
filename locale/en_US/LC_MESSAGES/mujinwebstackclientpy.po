@@ -1,0 +1,146 @@
+# English translations for PACKAGE package.
+# Copyright (C) 2023 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-09 10:38+0900\n"
+"PO-Revision-Date: 2023-11-09 10:38+0900\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: python/mujinwebstackclient/__init__.py:83
+#, python-format
+msgid "API Server Error: %s"
+msgstr "API Server Error: %s"
+
+#: python/mujinwebstackclient/__init__.py:85
+msgid "API Server Error: Unknown"
+msgstr "API Server Error: Unknown"
+
+#: python/mujinwebstackclient/webstackclient.py:863
+#, python-format
+msgid "Blob \"%s\" does not exist, status code is %d"
+msgstr "Blob \"%s\" does not exist, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:865
+#, python-format
+msgid "Blob \"%s\" has no content, status code is %d"
+msgstr "Blob \"%s\" has no content, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:993
+#, python-format
+msgid "Failed to add referenceobjectpks %r to scene %r, status code is %d"
+msgstr "Failed to add referenceobjectpks %r to scene %r, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:789 python/mujinwebstackclient/webstackclient.py:824 python/mujinwebstackclient/webstackclient.py:838
+#, python-format
+msgid "Failed to check file existence, status code is %d"
+msgstr "Failed to check file existence, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:970
+#, python-format
+msgid "Failed to delete configuration on controller, status code is %d"
+msgstr "Failed to delete configuration on controller, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:210
+#, python-format
+msgid "Failed to ping controller, status code is %d"
+msgstr "Failed to ping controller, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:920
+#, python-format
+msgid "Failed to query scenes based on barcode, status code is %d"
+msgstr "Failed to query scenes based on barcode, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:1007
+#, python-format
+msgid "Failed to remove referenceobjectpks %r from scene %r, status code is %d"
+msgstr "Failed to remove referenceobjectpks %r from scene %r, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:947
+#, python-format
+msgid "Failed to retrieve configuration from controller, status code is %d"
+msgstr "Failed to retrieve configuration from controller, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:975
+#, python-format
+msgid "Failed to retrieve system info from controller, status code is %d"
+msgstr "Failed to retrieve system info from controller, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:888 python/mujinwebstackclient/webstackclient.py:910
+#, python-format
+msgid "Failed to retrieve user log, status code is %d"
+msgstr "Failed to retrieve user log, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:961
+#, python-format
+msgid "Failed to set configuration to controller, status code is %d"
+msgstr "Failed to set configuration to controller, status code is %d"
+
+#: python/mujinwebstackclient/webstackclient.py:930
+#, python-format
+msgid "Failed to upload stats, status code is %d"
+msgstr "Failed to upload stats, status code is %d"
+
+#: python/mujinwebstackclient/uriutils.py:442
+msgid "Lack of parameters. initialization must include one of uri, primaryKey, partType or filename"
+msgstr "Lack of parameters. initialization must include one of uri, primaryKey, partType or filename"
+
+#: python/mujinwebstackclient/controllerwebclientraw.py:115
+#, python-format
+msgid "Timeout value (%s sec) is too small"
+msgstr "Timeout value (%s sec) is too small"
+
+#: python/mujinwebstackclient/controllerwebclientraw.py:180
+#, python-format
+msgid "Unable to parse server response %d: %s"
+msgstr "Unable to parse server response %d: %s"
+
+#: python/mujinwebstackclient/controllerwebclientraw.py:190 python/mujinwebstackclient/controllerwebclientraw.py:205 python/mujinwebstackclient/controllerwebclientraw.py:224 python/mujinwebstackclient/controllerwebclientraw.py:243
+#, python-format
+msgid "Unexpected server response %d: %s"
+msgstr "Unexpected server response %d: %s"
+
+#: python/mujinwebstackclient/uriutils.py:38 python/mujinwebstackclient/uriutils.py:46
+#, python-format
+msgid "data %r is not a text or binary"
+msgstr "data %r is not a text or binary"
+
+#: python/mujinwebstackclient/webstackclient.py:242
+#, python-format
+msgid "failed to set webstack log level, status code is: %d"
+msgstr "failed to set webstack log level, status code is: %d"
+
+#: python/mujinwebstackclient/uriutils.py:179
+#, python-format
+msgid "fragment separator %r not supported for current scheme: %r"
+msgstr "fragment separator %r not supported for current scheme: %r"
+
+#: python/mujinwebstackclient/uriutils.py:140
+#, python-format
+msgid "mujin scheme has no hostname defined %s"
+msgstr "mujin scheme has no hostname defined %s"
+
+#: python/mujinwebstackclient/uriutils.py:470
+#, python-format
+msgid "scheme %s isn't supported from uri %r"
+msgstr "scheme %s isn't supported from uri %r"
+
+#: python/mujinwebstackclient/uriutils.py:175
+#, python-format
+msgid "scheme not supported %r: %r"
+msgstr "scheme not supported %r: %r"
+
+#: python/mujinwebstackclient/uriutils.py:131
+#, python-format
+msgid "scheme not supported %r: %s"
+msgstr "scheme not supported %r: %s"
