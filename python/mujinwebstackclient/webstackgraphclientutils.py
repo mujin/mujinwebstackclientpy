@@ -95,7 +95,7 @@ class GraphClientBase(object):
 
 class GraphQueryIterator:
     """Converts a large graph query to a iterator. The iterator will internally query webstack with a few small queries
-    example:
+    Examples:
 
       iterator = GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}})
       iterator = GraphQueryIterator(client.graphApi.ListEnvironments, fields={'environments': {'id': None}}, options={'first': 10, 'offset': 5})
@@ -108,10 +108,10 @@ class GraphQueryIterator:
     _queryFunction = None # the actual webstack client query function (e.g. client.graphApi.ListEnvironments) 
     _queryArgs = None # positional arguments supplied to the query function (e.g. environmentId)
     _queryKwargs = None # keyword arguments supplied to the query function (e.g. options={'first': 10, 'offset': 5}, fields={'environments': {'id': None}})
-    _items = None # internal buffer for items retrieved from webstack
-    _shouldStop = None # boolean flag indicates whether need to query webstack again
-    _totalLimit = None # the number of items user requests (0 means no limit)
-    _count = None # the number of items already returned to user
+    _items = [] # internal buffer for items retrieved from webstack
+    _shouldStop = False # boolean flag indicates whether need to query webstack again
+    _initialLimit = None # the number of items user requests (0 means no limit)
+    _count = 0 # the number of items already returned to user
 
     def __init__(self, queryFunction, *args, **kwargs):
         """Initialize all internal variables
@@ -127,20 +127,14 @@ class GraphQueryIterator:
         self._queryKwargs = copy.deepcopy(kwargs)
 
         # initialize limit and offset
-        if self._queryKwargs.get('options', None) is None:
+        if self._queryKwargs.get('options') is None:
             self._queryKwargs['options'] = {'offset': 0, 'first': 0}
         self._queryKwargs['options'].setdefault('offset', 0)
         self._queryKwargs['options'].setdefault('first', 0)
-        self._totalLimit = self._queryKwargs['options']['first']
-        if self._queryKwargs['options']['first'] > 0:
-            self._queryKwargs['options']['first'] = min(self._queryKwargs['options']['first'], webstackclientutils.MAXIMUM_QUERY_LIMIT)
-        else:
-            self._queryKwargs['options']['first'] = webstackclientutils.MAXIMUM_QUERY_LIMIT
+        self._initialLimit = self._queryKwargs['options']['first']
 
-        self._items = []
-        self._shouldStop = False
-        self._count = 0
-        self._queryKwargs.setdefault('fields', {})
+        # update the current limit
+        self._queryKwargs['options']['first'] = webstackclientutils.GetMaximumQueryLimit(self._initialLimit)
 
     def __iter__(self):
         return self
@@ -179,26 +173,25 @@ class GraphQueryIterator:
         if not rawResponse:
             # no actual items
             raise StopIteration
-        else:
-            self._items = list(rawResponse.values())[0]
+        self._items = list(rawResponse.values())[0]
         self._queryKwargs['options']['offset'] += len(self._items)
 
         if len(self._items) < self._queryKwargs['options']['first']:
             # webstack does not have more items
             self._shouldStop = True
-        if self._totalLimit != 0 and self._count + len(self._items) >= self._totalLimit:
+        if self._initialLimit != 0 and self._count + len(self._items) >= self._initialLimit:
             # all remaining items user requests are in internal buffer, no need to query webstack again
             self._shouldStop = True
-            self._items = self._items[:self._totalLimit - self._count]
+            self._items = self._items[:self._initialLimit - self._count]
         
         return self.next()
 
 class LazyGraphQuery(webstackclientutils.LazyQuery):
     """Wraps graph query response. Break large query into small queries automatically to save memory.
     """
-    _totalCount = None # the number of available items in webstack
     _keyName = None # the name of actual data in the dictionary retrieved from webstack (e.g. 'bodies', 'environments', 'geometries')
     _typeName = None # the top level typename in the dictionary retrieved from webstack (e.g. 'ListEnvironmentsReturnValue', 'ListBodiesReturnValue', 'ListGeometryReturnValue')
+    _currentFields = None # the current fields used for querying webstack
 
     def __init__(self, queryFunction, *args, **kwargs):
         """Initialize all internal variables
@@ -209,41 +202,53 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         self._queryKwargs = copy.deepcopy(kwargs)
 
         # initialize limit and offset
-        if self._queryKwargs.get('options', None) is None:
+        if self._queryKwargs.get('options') is None:
             self._queryKwargs['options'] = {'offset': 0, 'first': 0}
         self._queryKwargs['options'].setdefault('offset', 0)
         self._queryKwargs['options'].setdefault('first', 0)
-        self._limit = self._queryKwargs['options']['first']
-        self._offset = self._queryKwargs['options']['offset']
+        self._initialOffset = self._queryKwargs['options']['offset']
+        self._initialLimit = self._queryKwargs['options']['first']
 
-        # initialize fields
-        self._queryKwargs.setdefault('fields', {})
+        # initialize the selected fields
         if not self._queryKwargs.get('fields'):
-            # query the __typename field if caller didn't want anything back
-            self._queryKwargs['fields']['__typename'] = None
-        self._queryKwargs['fields'].setdefault('meta', {})
-        if type(self._queryKwargs['fields']['meta']) is dict:
+            # if the user didn't select any field
+            self._currentFields = {'__typename': None}
+        else:
+            self._currentFields = self._queryKwargs['fields']
+
+        # initialize meta and total count
+        self._currentFields.setdefault('meta', {})
+        if type(self._currentFields['meta']) is dict:
             # do not modify fields if caller provided incorrect meta fields
             # e.g. client.graphApi.ListEnvironments(fields={'meta': None})
-            self._queryKwargs['fields']['meta'].setdefault('totalCount', None)
+            self._currentFields['meta'].setdefault('totalCount', None)
 
-        self._fetchedAll = False
-        self._APICall(offset=self._offset)
+        # get the meta only with a minimal webstack call
+        self._currentOffset = self._initialOffset
+        self._currentLimit = 1
+        self._APICall()
+
+        # update the current limit
+        self._currentLimit = webstackclientutils.GetMaximumQueryLimit(self._initialLimit)
 
     def __iter__(self):
         if self._fetchedAll:
             return list.__iter__(self)
-        self._queryKwargs['options']['offset'] = self._offset
-        self._queryKwargs['options']['first'] = self._limit
+        # return an iterator with the original offset and limit values
+        self._queryKwargs['fields'] = self._currentFields
+        self._queryKwargs['options']['offset'] = self._initialOffset
+        self._queryKwargs['options']['first'] = self._initialLimit
         return GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)
     
-    def _APICall(self, offset):
-        """make one webstack query
+    def _APICall(self):
+        """Make one webstack query
         """
-        self._queryKwargs['options']['offset'] = offset
-        self._queryKwargs['options']['first'] = webstackclientutils.MAXIMUM_QUERY_LIMIT
-        if self._limit != 0:
-            self._queryKwargs['options']['first'] = min(self._queryKwargs['options']['first'], self._limit)
+        # fetch data starting from the requested offset and limit
+        self._queryKwargs['fields'] = self._currentFields
+        self._queryKwargs['options']['offset'] = self._currentOffset
+        self._queryKwargs['options']['first'] = self._currentLimit
+
+        # get the latest results
         data = self._queryFunction(*self._queryArgs, **self._queryKwargs)
 
         # process meta and __typename in the top level
@@ -253,11 +258,11 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         if '__typename' in data:
             self._typeName = data['__typename']
             del data['__typename']
-        
+
         # process actual data
         if data:
+            # for example `'environments': [...]`
             self._keyName, self._items = list(data.items())[0]
-        self._currentOffset = offset
 
     @property
     def keyName(self):
@@ -273,23 +278,18 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         """
         return self._typeName
 
-    @property
-    def totalCount(self):
-        """the number of available items in webstack
-        """
-        return self._totalCount
-
     def FetchAll(self):
         """fetch the complete query result from webstack
         """
         if self._fetchedAll:
             return
-        self._queryKwargs['options']['offset'] = self._offset
-        self._queryKwargs['options']['first'] = self._limit
-        items = [item for item in GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)]
+        self._queryKwargs['fields'] = self._currentFields
+        self._queryKwargs['options']['offset'] = self._initialOffset
+        self._queryKwargs['options']['first'] = self._initialLimit
+        items = list(GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs))
         list.__init__(self, items)
         self._fetchedAll = True
-
+    
 def UseLazyGraphQuery(queryFunction):
     """This decorator break a large graph query into a few small queries with the help of LazyGraphQuery class to prevent webstack from consuming too much memory.
     """

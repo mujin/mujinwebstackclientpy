@@ -1,11 +1,23 @@
 from functools import wraps
 import copy
 
-MAXIMUM_QUERY_LIMIT = 100 # The maximum number of items retrieved by a single webstack api calls
+def GetMaximumQueryLimit(limit, maximumAllowedLimit=100):
+    """Makes sure the limit value used for querying is under maximumAllowedLimit
+
+    Args:
+        limit (int): The limit supplied by the user.
+        maximumAllowedLimit (int, optional): The maximum allowed limit value in a single webstack call. Defaults to 100.
+
+    Returns:
+        maximumAllowedLimit (int): The maximum allowed limit value in a single webstack call.
+    """
+    if limit > 0:
+        return min(limit, maximumAllowedLimit)
+    return maximumAllowedLimit
 
 class QueryIterator:
     """Converts a large query to a iterator. The iterator will internally query webstack with a few small queries
-    example:
+    Examples:
 
       iterator = QueryIterator(client.GetScenes)
       iterator = QueryIterator(client.GetScenes, offset=10, limit=10)
@@ -16,10 +28,10 @@ class QueryIterator:
     _queryFunction = None # the actual webstack client query function (e.g. client.GetScenes)
     _queryArgs = None # positional arguments supplied to the query function (e.g. scenepk)
     _queryKwargs = None # keyword arguments supplied to the query function (e.g. offset=10, limit=20)
-    _items = None # internal buffer for items retrieved from webstack
-    _shouldStop = None # boolean flag indicates whether need to query webstack again
-    _totalLimit = None # the number of items user requests (0 means no limit)
-    _count = None # the number of items already returned to user
+    _items = [] # internal buffer for items retrieved from webstack
+    _shouldStop = False # boolean flag indicates whether need to query webstack again
+    _initialLimit = None # the number of items user requests (0 means no limit)
+    _count = 0 # the number of items already returned to user
 
     def __init__(self, queryFunction, *args, **kwargs):
         """Initialize all internal variables
@@ -37,15 +49,10 @@ class QueryIterator:
         # initialize limit and offset
         self._queryKwargs.setdefault('offset', 0)
         self._queryKwargs.setdefault('limit', 0)
-        self._totalLimit = self._queryKwargs['limit']
-        if self._queryKwargs['limit'] > 0:
-            self._queryKwargs['limit'] = min(self._queryKwargs['limit'], MAXIMUM_QUERY_LIMIT)
-        else:
-            self._queryKwargs['limit'] = MAXIMUM_QUERY_LIMIT
+        self._initialLimit = self._queryKwargs['limit']
 
-        self._items = []
-        self._shouldStop = False
-        self._count = 0
+        # update the current limit
+        self._queryKwargs['limit'] = GetMaximumQueryLimit(self._initialLimit)
 
     def __iter__(self):
         return self
@@ -78,25 +85,27 @@ class QueryIterator:
         if len(self._items) < self._queryKwargs['limit']:
             # webstack does not have more items
             self._shouldStop = True
-        if self._totalLimit != 0 and self._count + len(self._items) >= self._totalLimit:
+        if self._initialLimit != 0 and self._count + len(self._items) >= self._initialLimit:
             # all remaining items user requests are in internal buffer, no need to query webstack again
             self._shouldStop = True
-            self._items = self._items[:self._totalLimit - self._count]
+            self._items = self._items[:self._initialLimit - self._count]
 
         return self.next()
 
 class LazyQuery(list):
-    """Wraps query response. Break large query into small queries automatically to save memory.
+    """Wraps query response. Break a large query into smaller queries automatically to save memory.
     """
     _queryFunction = None # the actual webstack client query function (e.g. client.GetScenes)
     _queryArgs = None # positional arguments supplied to the query function (e.g. scenepk)
     _queryKwargs = None # keyword arguments supplied to the query function (e.g. offset=10, limit=20)
-    _meta = None  # meta dict returned from server
+    _meta = None  # meta dict returned from webstack
     _items = None # internal buffer for items retrieved from webstack
-    _limit = None # query limit specified by the user
-    _offset = None # query offset specified by the user
+    _totalCount = None # the number of available items in webstack
+    _initialLimit = None # the original query limit specified by the user
+    _currentLimit = None # the maximum limit determined to be used in the queries
+    _initialOffset = None # the original query offset specified by the user
     _currentOffset = None # the offset for the first value inside buffer
-    _fetchedAll = None # whether already has a complete list of query result
+    _fetchedAll = False # whether already has a complete list of query result
 
     def __init__(self, queryFunction, *args, **kwargs):
         """Initialize all internal variables
@@ -109,50 +118,59 @@ class LazyQuery(list):
         # initialize limit and offset
         self._queryKwargs.setdefault('offset', 0)
         self._queryKwargs.setdefault('limit', 0)
-        self._limit = self._queryKwargs['limit']
-        self._offset = self._queryKwargs['offset']
+        self._initialOffset = self._queryKwargs['offset']
+        self._initialLimit = self._queryKwargs['limit']
 
-        self._APICall(offset=self._offset)
-        self._fetchedAll = False
+        # get the meta only with a minimal webstack call
+        self._currentOffset = self._initialOffset
+        self._currentLimit = 1
+        self._APICall()
+
+        # update the current limit
+        self._currentLimit = GetMaximumQueryLimit(self._initialLimit)
 
     def __iter__(self):
         if self._fetchedAll:
             return super(LazyQuery, self).__iter__()
-        self._queryKwargs['offset'] = self._offset
-        self._queryKwargs['limit'] = self._limit
+        # return an iterator with the original offset and limit values
+        self._queryKwargs['offset'] = self._initialOffset
+        self._queryKwargs['limit'] = self._initialLimit
         return QueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)
     
-    def _APICall(self, offset):
-        """make one webstack query
+    def _APICall(self):
+        """Make one webstack query
         """
-        self._queryKwargs['offset'] = offset
-        self._queryKwargs['limit'] = MAXIMUM_QUERY_LIMIT
-        if self._limit != 0:
-            self._queryKwargs['limit'] = min(self._queryKwargs['limit'], self._limit)
+        # fetch data starting from the requested offset and limit
+        self._queryKwargs['offset'] = self._currentOffset
+        self._queryKwargs['limit'] = self._currentLimit
+        # get the latest results
         self._items = self._queryFunction(*self._queryArgs, **self._queryKwargs)
         self._meta = self._items._meta
-        self._currentOffset = offset
+        self._totalCount = self._meta['total_count']
 
     @property
     def totalCount(self):
-        return self._meta['total_count']
+        # return the latest total count
+        return self._totalCount
 
     @property
     def limit(self):
-        return self._meta['limit']
+        # return the initial limit since the limit from meta keeps changing
+        return self._initialLimit
 
     @property
     def offset(self):
-        return self._meta['offset']
+        # return the initial limit since the offset from meta keeps changing
+        return self._initialOffset
     
     def FetchAll(self):
-        """fetch the complete query result from webstack
+        """Fetch the complete query result from webstack
         """
         if self._fetchedAll:
             return
-        self._queryKwargs['offset'] = self._offset
-        self._queryKwargs['limit'] = self._limit
-        items = [item for item in QueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)]
+        self._queryKwargs['offset'] = self._initialOffset
+        self._queryKwargs['limit'] = self._initialLimit
+        items = list(QueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs))
         super(LazyQuery, self).__init__(items)
         self._fetchedAll = True
 
@@ -162,14 +180,14 @@ class LazyQuery(list):
         # if there is no limit or the limit is larger than the number of items webstack actual has,
         # the length is the total number of items minus the offset.
         # e.g. totalCount = 100, offset = 5, limit = 0 or 99999 => length = 100 - 5 = 95 
-        if self._limit == 0 or self._offset + self._limit >= self.totalCount:
+        if self._initialLimit == 0 or self._initialOffset + self._initialLimit >= self.totalCount:
             # if offset is larger than the number of items webstack actual has, 
             # length is 0 and the query result is an empty list.
             # e.g. totalCount = 100, offset = 9999999 => length = 0
-            return max(0, self.totalCount - self._offset)
+            return max(0, self.totalCount - self._initialOffset)
         # otherwise, the length of the items is the limit,
         # e.g. totalCount = 100, offset = 5, limit = 10 => length = 10
-        return self._limit
+        return self._initialLimit
 
     def __getitem__(self, index):
         if self._fetchedAll:
@@ -189,20 +207,25 @@ class LazyQuery(list):
         if index < 0 or index >= len(self):
             raise IndexError('query result index out of range')
 
-        offset = self._offset + index
-        if offset >= self._currentOffset and offset < self._currentOffset + MAXIMUM_QUERY_LIMIT:
+        offset = self._initialOffset + index
+        if offset >= self._currentOffset and offset < self._currentOffset + len(self._items):
             # buffer hit
             return self._items[offset - self._currentOffset]
         
         # drop buffer and query webstack again
-        self._APICall(offset=offset)
+        self._currentOffset = offset
+        # don't update the limit
+        self._APICall()
         return self.__getitem__(index)
 
     def __repr__(self):
+        # if we already fetched all
         if self._fetchedAll:
             return super(LazyQuery, self).__repr__()
-        if len(self._items) < MAXIMUM_QUERY_LIMIT:
+        # if we fetched every item we could fetch
+        if len(self._items) == self._totalCount - self._initialOffset:
             return self._items.__repr__()
+        # if we are holding partial data
         return '[..., ' + self._items.__repr__()[1:-1] + ', ...]'
 
     # When invoke the following functions, 

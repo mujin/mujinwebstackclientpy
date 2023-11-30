@@ -2,15 +2,118 @@
 
 import pytest
 import requests_mock
-import json
-import requests
 import random
 import sys
+import copy
+import graphql
 
-import mujinwebstackclient.webstackclientutils
 from mujinwebstackclient.webstackclient import WebstackClient
-from mujinwebstackclient.webstackclientutils import QueryIterator
+from mujinwebstackclient.webstackclientutils import QueryIterator, GetMaximumQueryLimit
 from mujinwebstackclient.webstackgraphclientutils import GraphQueryIterator
+
+def _RegisterMockGetScenesAPI(mocker, totalCount):
+    """Dynamically mocks the webstack GetScenes API
+
+    mocker (requests_mock.Mocker): Mocker object
+    totalCount (int): The total number of scenes to be supported
+    """
+    def _GetResponse(request, context):
+        offset = int(request.qs['offset'][0])
+        limit = int(request.qs['limit'][0])
+
+        # validate the limit
+        if limit > GetMaximumQueryLimit(0):
+            context.status_code = 400
+            return
+
+        context.status_code = 200
+        return {
+            'objects': [{'id': str(index)} for index in range(offset, min(offset + limit, totalCount))],
+            'meta': {
+                'total_count': totalCount,
+                'limit': limit,
+                'offset': offset,
+            },
+        }
+    
+    mocker.register_uri('GET', requests_mock.ANY, additional_matcher=lambda request: request.url.startswith('http://controller/api/v1/scene/'), json=_GetResponse)
+
+def _RegisterMockListEnvironmentsAPI(mocker, totalCount):
+    """Dynamically mocks the webstack ListEnvironments GraphQL API
+
+    mocker (requests_mock.Mocker): Mocker object
+    totalCount (int): The total number of environments to be supported
+    """
+    def _GetResponse(request, context):
+        jsonRequest = request.json()
+        rawQuery = jsonRequest.get('query')
+        variables = jsonRequest.get('variables')
+
+        # parse the query
+        query = graphql.parse(rawQuery).definitions[0]
+        assert query.operation.value == 'query'
+        listEnvironmentsSelection = query.selection_set.selections[0]
+        assert listEnvironmentsSelection.name.value == 'ListEnvironments'
+
+        # loop over the selected options arguments
+        offset, first = None, None
+        for argument in listEnvironmentsSelection.arguments:
+            if argument.name.value != 'options':
+                continue
+            # handle variables
+            if isinstance(argument.value, graphql.VariableNode):
+                variableName = argument.value.name.value
+                assert variableName in variables, 'missing variable %s in query' % variableName
+                options = variables.get(variableName)
+                for name in options:
+                    if name == 'first':
+                        first = options[name]
+                    if name == 'offset':
+                        offset = options[name]
+            # handle directly embedded values
+            else:
+                for field in argument.value.fields:
+                    if field.name.value == 'first':
+                        first = int(field.value.value)
+                    if field.name.value == 'offset':
+                        offset = int(field.value.value)
+
+        # validate the limit
+        if first > GetMaximumQueryLimit(0):
+            context.status_code = 400
+            return
+        
+        # construct the return value
+        result = {}
+        for selection in listEnvironmentsSelection.selection_set.selections:
+            if selection.name.value == 'environments':
+                result.setdefault('data', {})
+                result['data'].setdefault('ListEnvironments', {})
+                result['data']['ListEnvironments']['environments'] = []
+                # populate the environments
+                for index in range(offset, min(offset + first, totalCount)):
+                    environment = {}
+                    for subSelection in selection.selection_set.selections:
+                        if subSelection.name.value == '__typename':
+                            environment['__typename'] = 'Environment'
+                        if subSelection.name.value == 'id':
+                            environment['id'] = str(index)
+                    result['data']['ListEnvironments']['environments'].append(environment)
+                continue
+            if selection.name.value == 'meta':
+                result.setdefault('data', {})
+                result['data'].setdefault('ListEnvironments', {})
+                result['data']['ListEnvironments']['meta'] = {'totalCount': totalCount}
+                continue
+            if selection.name.value == '__typename':
+                result.setdefault('data', {})
+                result['data'].setdefault('ListEnvironments', {})
+                result['data']['ListEnvironments']['__typename'] = 'ListEnvironmentsReturnValue'
+
+        context.status_code = 200
+        return result
+
+    mocker.register_uri('POST', requests_mock.ANY, additional_matcher=lambda request: request.url.startswith('http://controller/api/v2/graphql'), json=_GetResponse)
 
 @pytest.mark.parametrize('url, username, password', [
     ('http://controller', 'mujin', 'mujin'),
@@ -33,14 +136,7 @@ def test_RestartController():
 
 def test_GetScenes():
     with requests_mock.Mocker() as mock:
-        mock.get('http://controller/api/v1/scene/?format=json&limit=100&offset=0', json={
-            'objects': [{} for i in range(101)],
-            'meta': {
-                'total_count': 101,
-                'limit': 100,
-                'offset': 0,
-            },
-        })
+        _RegisterMockGetScenesAPI(mock, 101)
         scenes = WebstackClient('http://controller', 'mujin', 'mujin').GetScenes(limit=100)
         assert len(scenes) == 100
         assert scenes.offset == 0
@@ -48,22 +144,12 @@ def test_GetScenes():
         assert scenes.totalCount == 101
 
 def test_QueryIteratorAndLazyQuery():
-    limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
     totalCount = 1000
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
     # iterate through all scenes
     with requests_mock.Mocker() as mock:
-        for offset in range(0, totalCount + 1, limit):
-            queryUrl = 'http://controller/api/v1/scene/?format=json&limit={limit:d}&offset={offset:d}'.format(limit=limit, offset=offset)
-            mock.get(queryUrl, json={
-                'objects': [{'id': str(i)} for i in range(offset, min(offset + limit, totalCount))],
-                'meta': {
-                    'total_count': totalCount,
-                    'limit': limit,
-                    'offset': offset,
-                },
-            })
+        _RegisterMockGetScenesAPI(mock, totalCount)
 
         # test iterator
         count = 0
@@ -80,18 +166,10 @@ def test_QueryIteratorAndLazyQuery():
 
     # iterate through all scenes with offset and limit
     with requests_mock.Mocker() as mock:
+        _RegisterMockGetScenesAPI(mock, totalCount)
+
         initialOffset = 5
         initialLimit = 555
-        for offset in range(initialOffset, initialOffset + initialLimit, limit):
-            queryUrl = 'http://controller/api/v1/scene/?format=json&limit={limit:d}&offset={offset:d}'.format(limit=limit, offset=offset)
-            mock.get(queryUrl, json={
-                'objects': [{'id': str(i)} for i in range(offset, offset + limit)],
-                'meta': {
-                    'total_count': totalCount,
-                    'limit': limit,
-                    'offset': offset,
-                },
-            })
 
         # test iterator
         count = 0
@@ -107,54 +185,23 @@ def test_QueryIteratorAndLazyQuery():
             assert scenes[index]['id'] == str(index + initialOffset)
 
 def test_GraphQueryIteratorAndLazyGraphQuery():
-    limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
     totalCount = 1000
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
-    adapter = requests_mock.Adapter()
-
-    def matcher(request):
-        if request.path != "/api/v2/graphql":
-            return None
-
-        data = request.json()
-        query = data.get('query')
-        variables = data.get('variables')
-        options = variables.get('options')
-        offset = options.get('offset')
-        first = options.get('first')
-        
-        if not query.startswith('query ListEnvironments'):
-            return None
-        if first != limit:
-            return None
-        if offset > totalCount:
-            return None
-        
-        environments = [{'id': str(i)} for i in range(offset, min(offset + limit, totalCount))]
-        response = requests.Response()
-        response._content = json.dumps({
-            'data': {
-                'ListEnvironments': {
-                    'meta': {'totalCount': totalCount},
-                    'environments': environments,
-                }
-            }
-        }).encode()
-
-        response.status_code = 200
-        return response
-
-    adapter.add_matcher(matcher)
-
     # iterate through all environments
-    with requests_mock.Mocker(adapter=adapter):
+    with requests_mock.Mocker() as mock:
+        _RegisterMockListEnvironmentsAPI(mock, totalCount)
+
         # test iterator
         count = 0
         for index, environment in enumerate(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields={'environments': {'id': None}})):
             count += 1
             assert environment['id'] == str(index)
         assert count == totalCount
+
+        # test iterator without field selection
+        assert len(list(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields={}))) == 0
+        assert len(list(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields=None))) == 0
 
         # test lazy query
         queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}})
@@ -167,7 +214,9 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
             assert environments[index]['id'] == str(index)
 
     # iterate through all environments with offset and limit
-    with requests_mock.Mocker(adapter=adapter):
+    with requests_mock.Mocker() as mock:
+        _RegisterMockListEnvironmentsAPI(mock, totalCount)
+
         initialOffset = 5
         initialLimit = 555
 
@@ -177,6 +226,10 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
             count += 1
             assert environment['id'] == str(index + initialOffset)
         assert count == initialLimit
+
+        # test iterator without field selection
+        assert len(list(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields={}, options={'offset': initialOffset, 'first': initialLimit}))) == 0
+        assert len(list(GraphQueryIterator(webstackclient.graphApi.ListEnvironments, fields=None, options={'offset': initialOffset, 'first': initialLimit}))) == 0
 
         # test lazy query
         queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}}, options={'offset': initialOffset, 'first': initialLimit})
@@ -188,91 +241,95 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
         for index in range(initialLimit):
             assert environments[index]['id'] == str(index + initialOffset)
 
-    adapter = requests_mock.Adapter()
+    with requests_mock.Mocker() as mock:
+        _RegisterMockListEnvironmentsAPI(mock, totalCount)
 
-    def matcher(request):
-        if request.path != "/api/v2/graphql":
-            return None
-
-        query = request.json().get('query')
-        expectedQueries = [
-            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) { __typename }',
-            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {__typename, meta {totalCount}}',
-            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}, __typename}',
-            'ListEnvironments(options: $options, resolveReferences: $resolveReferences, units: $units) {meta {totalCount}}',
-        ]
-        if all([expectedQuery not in query for expectedQuery in expectedQueries]):
-            return None
-
-        queryResult = {}
-        if 'meta' in query:
-            queryResult['meta'] = {'totalCount': totalCount}
-        if '__typename' in query:
-            queryResult['__typename'] = 'ListEnvironmentsReturnValue'
-
-        response = requests.Response()
-        response._content = json.dumps({'data': {'ListEnvironments': queryResult}}).encode()
-        response.status_code = 200
-        return response
-
-    adapter.add_matcher(matcher)
-
-    with requests_mock.Mocker(adapter=adapter):
         # query with no fields
         queryResult = webstackclient.graphApi.ListEnvironments()
-        assert 'meta' not in queryResult
-        assert '__typename' in queryResult
-        assert 'environments' not in queryResult
-        assert queryResult['__typename'] == 'ListEnvironmentsReturnValue'
-
+        assert queryResult == {
+            '__typename': 'ListEnvironmentsReturnValue'
+        }
+ 
         # query with empty fields
         queryResult = webstackclient.graphApi.ListEnvironments(fields={})
-        assert 'meta' not in queryResult
-        assert '__typename' in queryResult
-        assert 'environments' not in queryResult
-        assert queryResult['__typename'] == 'ListEnvironmentsReturnValue'
+        assert queryResult == {
+            '__typename': 'ListEnvironmentsReturnValue'
+        }
 
         # query __typename
         queryResult = webstackclient.graphApi.ListEnvironments(fields={'__typename': None})
-        assert 'meta' not in queryResult
-        assert '__typename' in queryResult
-        assert 'environments' not in queryResult
-        assert queryResult['__typename'] == 'ListEnvironmentsReturnValue'
+        assert queryResult == {
+            '__typename': 'ListEnvironmentsReturnValue'
+        }
+
+        # query __typename in subselection
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'__typename': None}}, options={'first': 1})
+        assert queryResult == {
+            'environments': [
+                {'__typename': 'Environment'},
+            ]
+        }
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'__typename': None}}, options={'first': 2})
+        assert queryResult == {
+            'environments': [
+                {'__typename': 'Environment'},
+                {'__typename': 'Environment'},
+            ]
+        }
+
+        # with offset
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None, '__typename': None}}, options={'first': 1, 'offset': totalCount*2})
+        assert queryResult == {
+            'environments': []
+        }
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None, '__typename': None}}, options={'first': 2, 'offset': 2})
+        assert queryResult == {
+            'environments': [
+                {'id': '2', '__typename': 'Environment'},
+                {'id': '3','__typename': 'Environment'},
+            ]
+        }
+
+        # without __typename
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None}}, options={'first': 1, 'offset': 0})
+        assert queryResult == {
+            'environments': [
+                {'id': '0'}
+            ]
+        }
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None}}, options={'first': 2, 'offset': 2})
+        assert queryResult == {
+            'environments': [
+                {'id': '2'},
+                {'id': '3'},
+            ]
+        }
 
         # query meta
         queryResult = webstackclient.graphApi.ListEnvironments(fields={'meta': {'totalCount': None}})
-        assert 'meta' in queryResult
-        assert '__typename' not in queryResult
-        assert 'environments' not in queryResult
-        assert queryResult['meta'].get('totalCount') == totalCount
+        assert queryResult == {
+            'meta': {
+                'totalCount': totalCount
+            }
+        }
 
 def test_LazyQueryStandardListOperations():
     """test standard list operations
     """
-    limit = mujinwebstackclient.webstackclientutils.MAXIMUM_QUERY_LIMIT
     totalCount = 1000
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
     # iterate through all scenes
     with requests_mock.Mocker() as mock:
-        for offset in range(0, totalCount + 1, limit):
-            queryUrl = 'http://controller/api/v1/scene/?format=json&limit={limit:d}&offset={offset:d}'.format(limit=limit, offset=offset)
-            mock.get(queryUrl, json={
-                'objects': [{'id': str(i)} for i in range(offset, min(offset + limit, totalCount))],
-                'meta': {
-                    'total_count': totalCount,
-                    'limit': limit,
-                    'offset': offset,
-                },
-            })
+        _RegisterMockGetScenesAPI(mock, totalCount)
 
         testItem = {'id': 'testItem'}
         index = random.randint(0, totalCount - 1)
+        allScenes = [{'id': str(item)} for item in range(0, totalCount)]
 
         # test negative index
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
-        assert scenes[-100] == expectedScenes[-100]
+        assert scenes[-100] == allScenes[-100]
         hasIndexError = False
         try:
             scenes[-totalCount-1]
@@ -282,82 +339,82 @@ def test_LazyQueryStandardListOperations():
 
         # test setter
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes[index] = testItem
         expectedScenes[index] = testItem
         assert scenes == expectedScenes
 
         # test deletion
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         del scenes[index]
         del expectedScenes[index]
         assert scenes == expectedScenes
 
         # test append
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes.append(testItem)
         expectedScenes.append(testItem)
         assert scenes == expectedScenes
 
         # test extend
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes.extend([testItem])
         expectedScenes.extend([testItem])
         assert scenes == expectedScenes
 
         # test insert
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes.insert(index, testItem)
         expectedScenes.insert(index, testItem)
         assert scenes == expectedScenes
 
         # test index
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         assert scenes.index(expectedScenes[index]) == expectedScenes.index(expectedScenes[index])
 
         # test pop
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes.pop()
         expectedScenes.pop()
         assert scenes == expectedScenes
 
         # test count
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         assert scenes.count(expectedScenes[index]) == expectedScenes.count(expectedScenes[index])
 
         # test contain
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         assert (expectedScenes[index] in scenes) == (expectedScenes[index] in expectedScenes)
 
         # test remove
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes.remove(expectedScenes[index])
         expectedScenes.remove(expectedScenes[index])
         assert scenes == expectedScenes
 
         # test reverse
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes.reverse()
         expectedScenes.reverse()
         assert scenes == expectedScenes
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         for scene, expectedScene in zip(reversed(scenes), reversed(expectedScenes)):
             assert scene == expectedScene
 
         # test sort
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         if sys.version_info.major == 2: # python 2
             scenes.sort(reverse=True)
             expectedScenes.sort(reverse=True)
@@ -365,23 +422,23 @@ def test_LazyQueryStandardListOperations():
 
         # test addition
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         assert scenes + [testItem] == expectedScenes + [testItem]
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes += [testItem]
         expectedScenes += [testItem]
         assert scenes == expectedScenes
 
         # test multiplication
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         assert scenes * 2 == expectedScenes * 2
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         assert 2 * scenes == 2 * expectedScenes
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes *= 2
         expectedScenes *= 2
         assert scenes == expectedScenes
@@ -390,19 +447,19 @@ def test_LazyQueryStandardListOperations():
         start = 100
         end = 105
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         assert scenes[start:end] == expectedScenes[start:end]
 
         # test slice setter
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         scenes[start:end] = [testItem]
         expectedScenes[start:end] = [testItem]
         assert scenes == expectedScenes
 
         # test slice deletion
         scenes = webstackclient.GetScenes()
-        expectedScenes = [{'id': str(i)} for i in range(0, totalCount)]
+        expectedScenes = copy.copy(allScenes)
         del scenes[start:end]
         del expectedScenes[start:end]
         assert scenes == expectedScenes
