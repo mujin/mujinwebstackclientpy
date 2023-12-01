@@ -51,7 +51,13 @@ def _RegisterMockListEnvironmentsAPI(mocker, totalCount):
 
         # parse the query
         query = graphql.parse(rawQuery).definitions[0]
-        assert query.operation.value == 'query'
+
+        # handle different versions of the library
+        if sys.version_info.major > 2:
+            assert query.operation.value == 'query'
+        else:
+            assert query.operation == 'query'
+
         listEnvironmentsSelection = query.selection_set.selections[0]
         assert listEnvironmentsSelection.name.value == 'ListEnvironments'
 
@@ -60,8 +66,16 @@ def _RegisterMockListEnvironmentsAPI(mocker, totalCount):
         for argument in listEnvironmentsSelection.arguments:
             if argument.name.value != 'options':
                 continue
+
+            # handle different versions of the library
+            variableNodeType = None
+            if sys.version_info.major > 2:
+                variableNodeType = graphql.VariableNode
+            else:
+                variableNodeType = graphql.language.ast.Variable
+
             # handle variables
-            if isinstance(argument.value, graphql.VariableNode):
+            if isinstance(argument.value, variableNodeType):
                 variableName = argument.value.name.value
                 assert variableName in variables, 'missing variable %s in query' % variableName
                 options = variables.get(variableName)
