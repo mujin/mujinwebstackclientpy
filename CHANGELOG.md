@@ -1,4 +1,14 @@
+# 0.7.6 (2023-11-05)
+
+- Add a decorator to break large query into a few small queries.
+- Update graph client generation algorithm and regenerate the graph client.
+- Introduce iterator for large queries.
+
+
+# 0.7.5 (2023-10-09)
+
 - Handle PrimaryKey as str on Python3
+
 
 # 0.7.4 (2023-05-24)
 
