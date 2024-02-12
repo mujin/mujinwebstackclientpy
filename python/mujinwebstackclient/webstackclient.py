@@ -114,6 +114,7 @@ class WebstackClient(object):
     controllerurl = ''  # URl to controller
     controllerusername = ''  # Username to login with
     controllerpassword = ''  # Password to login with
+    jsonWebToken = '' # json web token
 
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
@@ -154,7 +155,9 @@ class WebstackClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint)
+        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint, loginFunction=self.Login)
+        
+        self.Login()
 
     def __del__(self):
         self.Destroy()
@@ -201,7 +204,12 @@ class WebstackClient(object):
     def Login(self, timeout=5):
         """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
         """
-        self.Ping(timeout=timeout)
+        try:
+            self.jsonWebToken = self.graphApi.Login(username=self.controllerusername, password=self.controllerpassword, fields={'jsonWebToken': None})['jsonWebToken']
+            self._webclient.UpdateJsonWebToken(self.jsonWebToken)
+        except Exception as e:
+            log.debug('failed to login through graphql api, use basic HTTP authorization: %s', e)
+            self.Ping(timeout=timeout)
 
     def Ping(self, timeout=5):
         """Sends a dummy HEAD request to api endpoint

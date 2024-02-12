@@ -35,13 +35,15 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
+    _loginFunction = None # Login function
 
-    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
+    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None, loginFunction=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
         self._headers = {}
         self._isok = True
+        self._loginFunction = loginFunction
 
         # Create session
         self._session = requests.Session()
@@ -125,6 +127,11 @@ class ControllerWebClientRaw(object):
             kwargs['allow_redirects'] = method in ('GET',)
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+
+        # unauthorized access, probably token expires
+        if response.status_code == 401:
+            self._loginFunction() # try login again
+            response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
         # in verbose logging, log the caller
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
@@ -243,3 +250,7 @@ class ControllerWebClientRaw(object):
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)
 
         return content['data']
+
+    def UpdateJsonWebToken(self, jsonWebToken):
+        self._session.auth = None
+        self._headers['Authorization'] = 'Bearer ' + jsonWebToken
