@@ -131,6 +131,7 @@ class ControllerWebClientRaw(object):
         # unauthorized access, probably token expires
         if response.status_code == 401:
             self._loginFunction() # try login again
+            headers.update(self._headers)
             response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
         # in verbose logging, log the caller
