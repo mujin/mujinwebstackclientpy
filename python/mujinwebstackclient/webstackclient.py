@@ -10,6 +10,7 @@ import datetime
 import base64
 from email.utils import parsedate
 
+import six
 from typing import List, Tuple, Any, Dict # noqa: F401
 
 # Mujin imports
@@ -20,6 +21,7 @@ from . import json
 from . import urlparse
 from . import uriutils
 from . import webstackgraphclient
+from .webstackclientutils import UseLazyQuery
 
 # Logging
 import logging
@@ -68,7 +70,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT).decode('utf-8')
+    return six.ensure_text(uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT), 'utf-8')
 
 
 def _FormatHTTPDate(dt):
@@ -249,6 +251,7 @@ class WebstackClient(object):
         """
         return self.UploadFile(f, timeout=timeout)['filename']
 
+    @UseLazyQuery
     def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         """List all available scene on controller
         """
@@ -574,6 +577,7 @@ class WebstackClient(object):
     # Task related
     #
 
+    @UseLazyQuery
     def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, timeout=5):
         params = {
             'offset': offset,
@@ -636,6 +640,7 @@ class WebstackClient(object):
     # Job related
     #
 
+    @UseLazyQuery
     def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
@@ -657,6 +662,7 @@ class WebstackClient(object):
     # Cycle Log
     #
 
+    @UseLazyQuery
     def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
@@ -702,10 +708,10 @@ class WebstackClient(object):
         for encodedGeometry in response['geometries']:
             geometry = {}
             positions = numpy.fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
-            positions.resize(len(positions) / 3, 3)
+            positions = positions.reshape(len(positions) // 3, 3)
             geometry['positions'] = positions
             indices = numpy.fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=numpy.uint32)
-            indices.resize(len(indices) / 3, 3)
+            indices = indices.reshape(len(indices) // 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)
         return geometries
@@ -1009,6 +1015,7 @@ class WebstackClient(object):
     # ITL program related
     #
 
+    @UseLazyQuery
     def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
