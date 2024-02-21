@@ -212,7 +212,7 @@ class WebstackClient(object):
             self.Ping(timeout=timeout)
 
     def Logout(self, timeout=5):
-        """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
+        """Force webclient to logout
         """
         if self.jsonWebToken:
             return self.graphApi.Logout(token=self.jsonWebToken)
