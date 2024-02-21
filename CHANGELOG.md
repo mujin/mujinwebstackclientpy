@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.7 (2024-02-21)
+
+### Changes
+
+- Login through json web token. Automatically login again if the token is expired.
+
 ## 0.7.6 (2023-11-05)
 
 ### Changes

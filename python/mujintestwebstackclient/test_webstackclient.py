@@ -145,12 +145,14 @@ def test_PingAndLogin(url, username, password):
 
 def test_RestartController():
     with requests_mock.Mocker() as mock:
+        mock.head('%s/u/%s/' % ('http://controller', 'mujin'))
         mock.post('http://controller/restartserver/')
         WebstackClient('http://controller', 'mujin', 'mujin').RestartController()
 
 def test_GetScenes():
     with requests_mock.Mocker() as mock:
         _RegisterMockGetScenesAPI(mock, 101)
+        mock.head('%s/u/%s/' % ('http://controller', 'mujin'))
         scenes = WebstackClient('http://controller', 'mujin', 'mujin').GetScenes(limit=100)
         assert len(scenes) == 100
         assert scenes.offset == 0
@@ -159,11 +161,12 @@ def test_GetScenes():
 
 def test_QueryIteratorAndLazyQuery():
     totalCount = 1000
-    webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
     # iterate through all scenes
     with requests_mock.Mocker() as mock:
         _RegisterMockGetScenesAPI(mock, totalCount)
+        mock.head('%s/u/%s/' % ('http://controller', 'mujin'))
+        webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
         # test iterator
         count = 0
@@ -181,6 +184,8 @@ def test_QueryIteratorAndLazyQuery():
     # iterate through all scenes with offset and limit
     with requests_mock.Mocker() as mock:
         _RegisterMockGetScenesAPI(mock, totalCount)
+        mock.head('%s/u/%s/' % ('http://controller', 'mujin'))
+        webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
         initialOffset = 5
         initialLimit = 555
@@ -200,11 +205,12 @@ def test_QueryIteratorAndLazyQuery():
 
 def test_GraphQueryIteratorAndLazyGraphQuery():
     totalCount = 1000
-    webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
     # iterate through all environments
     with requests_mock.Mocker() as mock:
         _RegisterMockListEnvironmentsAPI(mock, totalCount)
+        mock.head('%s/u/%s/' % ('http://controller', 'mujin'))
+        webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
         # test iterator
         count = 0
@@ -230,6 +236,8 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
     # iterate through all environments with offset and limit
     with requests_mock.Mocker() as mock:
         _RegisterMockListEnvironmentsAPI(mock, totalCount)
+        mock.head('%s/u/%s/' % ('http://controller', 'mujin'))
+        webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
         initialOffset = 5
         initialLimit = 555
@@ -331,11 +339,12 @@ def test_LazyQueryStandardListOperations():
     """test standard list operations
     """
     totalCount = 1000
-    webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
     # iterate through all scenes
     with requests_mock.Mocker() as mock:
         _RegisterMockGetScenesAPI(mock, totalCount)
+        mock.head('%s/u/%s/' % ('http://controller', 'mujin'))
+        webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
         testItem = {'id': 'testItem'}
         index = random.randint(0, totalCount - 1)
