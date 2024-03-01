@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.7 (2024-02-29)
+
+### Changes
+
+- Regenerate the graph client.
+
+
 ## 0.7.6 (2023-11-05)
 
 ### Changes
@@ -35,7 +42,7 @@
 
 ### Changes
 
-- add DownloadSignalLog
+- Add DownloadSignalLog
 
 
 ## 0.7.1 (2023-07-27)
