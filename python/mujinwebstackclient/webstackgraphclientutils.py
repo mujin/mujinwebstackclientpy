@@ -123,7 +123,7 @@ class GraphQueryIterator:
         
         # save the query function and all parameters
         self._queryFunction = queryFunction
-        self._queryArgs = args
+        self._queryArgs = copy.deepcopy(args)
         self._queryKwargs = copy.deepcopy(kwargs)
 
         # initialize limit and offset
