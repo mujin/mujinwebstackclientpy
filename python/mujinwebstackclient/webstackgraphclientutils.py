@@ -123,7 +123,7 @@ class GraphQueryIterator:
         
         # save the query function and all parameters
         self._queryFunction = queryFunction
-        self._queryArgs = copy.deepcopy(args)
+        self._queryArgs = args
         self._queryKwargs = copy.deepcopy(kwargs)
 
         # initialize limit and offset
@@ -198,7 +198,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         """
         # save the query function and all parameters
         self._queryFunction = queryFunction
-        self._queryArgs = copy.deepcopy(args)
+        self._queryArgs = args
         self._queryKwargs = copy.deepcopy(kwargs)
 
         # initialize limit and offset
