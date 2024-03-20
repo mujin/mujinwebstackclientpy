@@ -1,10 +1,16 @@
 # Changelog
 
-## 0.7.8 (2024-03-05)
+## 0.7.9 (2024-03-20)
 
 ### Changes
 
 - Remove `CreateCycleLogs`.
+
+## 0.7.8 (2024-03-19)
+
+### Changes
+
+- Regenerate the graph client.
 
 
 ## 0.7.7 (2024-02-29)
