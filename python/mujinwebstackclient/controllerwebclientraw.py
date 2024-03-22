@@ -197,6 +197,7 @@ class ControllerWebClientRaw(object):
                 'POST': 201,
                 'DELETE': 204,
                 'PUT': 202,
+                'PATCH': 201,
             }.get(method, 200)
 
         # Check expected status code

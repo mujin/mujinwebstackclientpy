@@ -671,13 +671,6 @@ class WebstackClient(object):
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
 
-    def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'cycleLog/', data={
-            'cycleLogs': cycleLogs,
-            'reporterControllerId': reporterControllerId,
-            'reporterDateCreated': reporterDateCreated,
-        }, fields=fields, timeout=timeout)
-
     def CreateLogEntries(self, logEntries, timeout=5):
         # type: (List[Tuple[str, Any, Dict[str, bytes]]], int) -> Any
         files = []

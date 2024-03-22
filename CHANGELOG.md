@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.9 (2024-03-20)
+
+### Changes
+
+- Remove `CreateCycleLogs`.
+
 ## 0.7.8 (2024-03-19)
 
 ### Changes
@@ -110,7 +116,7 @@
 
 - Remove automatic query field generation for graphql api. These fields can be
   changed frequently causing the webstack client to be unusuable. Users of
-  graph api now nees to explicitly specify fields and subfields they are
+  graph api now need to explicitly specify fields and subfields they are
   interested in.
 
 
@@ -118,7 +124,7 @@
 
 ### Changes
 
-- Regenerate graph client for sensorLInkName.
+- Regenerate graph client for sensorLinkName.
 
 
 ## 0.1.3 (2023-01-18)
