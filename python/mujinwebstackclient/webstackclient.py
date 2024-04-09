@@ -952,6 +952,21 @@ class WebstackClient(object):
             raise WebstackClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code, response=response)
         return response.json()
 
+    def HeadConfig(self, filename, timeout=5):
+        """Perform a HEAD operation on the given configuration filename to retrieve metadata.
+
+        :return: A dict containing "modified (datetime.datetime)" and "size (int)"
+        """
+        path = '/config/'
+        if filename:
+            path = '/config/%s/' % filename
+        response = self._webclient.Request('HEAD', path, timeout=timeout)
+        if response.status_code != 200:
+            raise WebstackClientError(_('Failed to check configuration existence, status code is %d') % response.status_code, response=response)
+        return {
+            'modified': datetime.datetime(*parsedate(response.headers['Last-Modified'])[:6]),
+        }
+
     def SetConfig(self, data, filename=None, timeout=5):
         """Set configuration file content to controller.
 
