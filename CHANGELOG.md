@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.9 (2024-04-10)
+
+### Changes
+
+- Add `HeadConfig` API.
+
+
 ## 0.7.8 (2024-03-19)
 
 ### Changes
