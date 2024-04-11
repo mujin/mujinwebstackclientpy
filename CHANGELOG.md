@@ -1,10 +1,17 @@
 # Changelog
 
-## 0.7.9 (2024-03-20)
+## 0.7.10 (2024-04-11)
 
 ### Changes
 
 - Remove `CreateCycleLogs`.
+
+## 0.7.9 (2024-04-10)
+
+### Changes
+
+- Add `HeadConfig` API.
+
 
 ## 0.7.8 (2024-03-19)
 
