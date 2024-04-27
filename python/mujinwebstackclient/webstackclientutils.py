@@ -1,12 +1,12 @@
 from functools import wraps
 import copy
 
-def GetMaximumQueryLimit(limit, maximumAllowedLimit=100):
+def GetMaximumQueryLimit(limit, maximumAllowedLimit=1000):
     """Makes sure the limit value used for querying is under maximumAllowedLimit
 
     Args:
         limit (int): The limit supplied by the user.
-        maximumAllowedLimit (int, optional): The maximum allowed limit value in a single webstack call. Defaults to 100.
+        maximumAllowedLimit (int, optional): The maximum allowed limit value in a single webstack call. Defaults to 1000.
 
     Returns:
         maximumAllowedLimit (int): The maximum allowed limit value in a single webstack call.
