@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.11 (2024-06-14)
+
+### Changes
+
+- Allow customizing headers in `CallGraphAPI` calls.
+
 ## 0.7.10 (2024-04-11)
 
 ### Changes
