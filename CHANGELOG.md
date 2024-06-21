@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 (2024-06-21)
+
+### Changes
+
+- Support `GetWebStackState`.
+
 ## 0.7.11 (2024-06-14)
 
 ### Changes
