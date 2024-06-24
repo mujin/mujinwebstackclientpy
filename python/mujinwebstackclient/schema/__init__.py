@@ -30,7 +30,7 @@ filterSchema = {
 }
 filterSchema['properties']['operands']['items'] = filterSchema
 
-webstackConfigSchema = {
+webStackConfigSchema = {
     'type': 'object',
     'typeName': 'WebStackConfiguration',
     'description': _('WebStack specific configuration.'),
