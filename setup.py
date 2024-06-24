@@ -2,7 +2,7 @@
 # Copyright (C) 2012-2014 MUJIN Inc
 from distutils.core import setup
 try:
-    from mujincommon.setuptools import Distribution
+    from mujinbuildcommon.distributions import Distribution
 except (ImportError, SyntaxError):
     from distutils.dist import Distribution
 
@@ -13,7 +13,7 @@ setup(
     distclass=Distribution,
     name='mujinwebstackclient',
     version=version['__version__'],
-    packages=['mujinwebstackclient'],
+    packages=['mujinwebstackclient', 'mujinwebstackclient.schema'],
     package_dir={'mujinwebstackclient': 'python/mujinwebstackclient'},
     data_files=[
         # using scripts= will cause the first line of the script being modified for python2 or python3
@@ -23,6 +23,9 @@ setup(
             'bin/mujin_webstackclientpy_runshell.py',
             'bin/mujin_webstackclientpy_downloaddata.py',
         ]),
+    ],
+    schema=[
+        # 'mujinwebstackclient.schema.webstackConfigSchema',  # NOTE: we don't support $refs and recursive python object
     ],
     locale_dir='locale',
     license='Apache License, Version 2.0',
