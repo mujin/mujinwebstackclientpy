@@ -13,7 +13,10 @@ setup(
     distclass=Distribution,
     name='mujinwebstackclient',
     version=version['__version__'],
-    packages=['mujinwebstackclient', 'mujinwebstackclient.schema'],
+    packages=[
+        'mujinwebstackclient',
+        'mujinwebstackclient.schema',
+    ],
     package_dir={'mujinwebstackclient': 'python/mujinwebstackclient'},
     data_files=[
         # using scripts= will cause the first line of the script being modified for python2 or python3
@@ -25,7 +28,8 @@ setup(
         ]),
     ],
     schema=[
-        # 'mujinwebstackclient.schema.webstackConfigSchema',  # NOTE: we don't support $refs and recursive python object
+        # NOTE: $refs and recursive python objects are not supported right now
+        # 'mujinwebstackclient.schema.webStackConfigurationSchema',
     ],
     locale_dir='locale',
     license='Apache License, Version 2.0',

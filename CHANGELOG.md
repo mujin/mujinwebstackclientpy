@@ -5,6 +5,7 @@
 ### Changes
 
 - Support `GetWebStackState`.
+- Add WebStack configuration schema.
 
 ## 0.7.11 (2024-06-14)
 

@@ -30,7 +30,7 @@ filterSchema = {
 }
 filterSchema['properties']['operands']['items'] = filterSchema
 
-webStackConfigSchema = {
+webStackConfigurationSchema = {
     'type': 'object',
     'typeName': 'WebStackConfiguration',
     'description': _('WebStack specific configuration.'),
@@ -45,7 +45,7 @@ webStackConfigSchema = {
                     'items': {
                         'type': 'object',
                         'typeName': 'RemoteWebStack',
-                        'description': _('Remote Webstack configuration.'),
+                        'description': _('Remote WebStack configuration.'),
                         'properties': {
                             'url': {
                                 'type': 'string',
@@ -77,7 +77,7 @@ webStackConfigSchema = {
                 },
                 'pullInterval': {
                     'type': 'string',
-                    'description': _('Pulling interval, disable pulling if it is not set.\nValid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h", "d", "w", "y".'),
+                    'description': _('Pulling interval. Pulling is disabled if this field is not set.\nValid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h", "d", "w", "y".'),
                 },
                 'configurationFilter': dict(
                     filterSchema,
