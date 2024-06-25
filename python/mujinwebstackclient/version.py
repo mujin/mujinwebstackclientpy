@@ -1,4 +1,4 @@
-__version__ = '0.7.11'
+__version__ = '0.8.0'
 
 # Do not forget to update CHANGELOG.md
 
