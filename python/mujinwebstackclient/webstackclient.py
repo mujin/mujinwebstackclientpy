@@ -1105,16 +1105,21 @@ class WebstackClient(object):
         """
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
 
-    def DownloadDebugResource(self, debugresourcepk, timeout=10):
+    def DownloadDebugResource(self, debugresourcepk, downloadSizeLimit=100*1024*1024, timeout=10):
         """downloads contents of the given debug resource
 
         :param debugresourcepk: Exact name of the debug resource to download
+        :param downloadSizeLimit: Limit of the size of the debug resource to download, defaults to 100*1024*1024 bytes
         :param timeout: Amount of time in seconds to wait before failing, defaults to 10
         :raises WebstackClientError: If request wasn't successful
         :return: Contents of the requested resource
         """
         # custom http call because APICall currently only supports json
-        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout)
+        # params is used to store query parameters and passed to the request
+        params = {
+            'sizeLimit' : downloadSizeLimit
+        }
+        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout, params=params)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
