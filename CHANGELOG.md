@@ -1,10 +1,16 @@
 # Changelog
 
-## 0.8.1 (2024-07-05)
+## 0.8.2 (2024-07-05)
 
 ### Changes
 
-- Added downloadSizeLimit parameter to the DownloadDwbugResource function.
+- Added downloadSizeLimit parameter to the DownloadDebugResource function.
+
+## 0.8.1 (2024-07-04)
+
+### Changes
+
+- Regenerate the graph client.
 
 ## 0.8.0 (2024-06-21)
 
