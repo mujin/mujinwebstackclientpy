@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1 (2024-07-05)
+
+### Changes
+
+- Added downloadSizeLimit parameter to the DownloadDwbugResource function.
+
 ## 0.8.0 (2024-06-21)
 
 ### Changes
