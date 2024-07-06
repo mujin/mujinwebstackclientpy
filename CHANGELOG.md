@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.2 (2024-07-05)
+
+### Changes
+
+- Added downloadSizeLimit parameter to the DownloadDebugResource function.
+
 ## 0.8.1 (2024-07-04)
 
 ### Changes
