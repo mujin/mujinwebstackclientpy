@@ -1072,12 +1072,14 @@ class WebstackClient(object):
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
-    def Restore(self, file, restoreconfig=True, restoremedia=True, timeout=600):
+    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, timeout=600):
         """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
         :param restoreconfig: Whether we want to restore the configs, defaults to True
         :param restoremedia: Whether we want to restore the media data, defaults to True
+        :param restoreapps: Whether we want to restore the web apps, defaults to True
+        :param restoreitl: Whether we want to restore the itl programs, defaults to True
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: JSON response
@@ -1085,6 +1087,8 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/backup/', files={'file': file}, params={
             'media': 'true' if restoremedia else 'false',
             'config': 'true' if restoreconfig else 'false',
+            'apps': 'true' if restoreapps else 'false',
+            'itl': 'true' if restoreitl else 'false',
         }, timeout=timeout)
         if response.status_code in (200,):
             try:
