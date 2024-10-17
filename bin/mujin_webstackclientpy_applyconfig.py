@@ -98,7 +98,7 @@ def _CopyValueOfPath(src, dest, path, parentPath=None):
     currentPathElement = path[0]
     if currentPathElement == '*':
         if isinstance(src, dict) and isinstance(dest, dict):
-            for srcKey, srcValue in src.iteritems():
+            for srcKey, srcValue in six.iteritems(src):
                 if srcKey in dest:
                     _CopyValueOfPath(srcValue, dest[srcKey], path[1:], (parentPath or [])+[path[0]])
                 else:

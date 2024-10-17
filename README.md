@@ -31,7 +31,7 @@ Mujin Controller Python Client is Licensed under the Apache License, Version 2.0
 
 ## For developers
 
-### How to re-generate `controllergraphclient.py`
+### How to re-generate `webstackgraphclient.py`
 
 First, set up a virtualenv to install required pip packages:
 
@@ -46,10 +46,10 @@ virtualenv .ve
 ./.ve/bin/pip install .
 ```
 
-Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `controllergraphclient.py` file.
+Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `webstackgraphclient.py` file.
 
 ```bash
-./.ve/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/controllergraphclient.py
+./.ve/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
 ```
 
 ## Troubleshooting

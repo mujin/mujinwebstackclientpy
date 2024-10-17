@@ -21,6 +21,7 @@ from requests import adapters as requests_adapters
 from . import _
 from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
+from .unixsocketadapter import UnixSocketAdapter
 
 import logging
 log = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class ControllerWebClientRaw(object):
     _isok = False  # Flag to stop
     _session = None  # Requests session object
 
-    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None):
+    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -59,9 +60,13 @@ class ControllerWebClientRaw(object):
         self._headers['X-CSRFToken'] = 'csrftoken'
         self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'], path='/')
 
-        # Add retry to deal with closed keep alive connections
-        self._session.mount('https://', requests_adapters.HTTPAdapter(max_retries=3))
-        self._session.mount('http://', requests_adapters.HTTPAdapter(max_retries=3))
+        if unixEndpoint is None:
+            # Add retry to deal with closed keep alive connections
+            self._session.mount('https://', requests_adapters.HTTPAdapter(max_retries=3))
+            self._session.mount('http://', requests_adapters.HTTPAdapter(max_retries=3))
+        else:
+            self._session.adapters.pop('https://', None)  # we don't use https with unix sockets
+            self._session.mount('http://', UnixSocketAdapter(unixEndpoint, max_retries=3))
 
         # Set locale headers
         self.SetLocale(locale)
@@ -127,10 +132,12 @@ class ControllerWebClientRaw(object):
         return response
 
     # Python port of the javascript API Call function
-    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, timeout=5):
-        path = '/api/v1/' + path.lstrip('/')
-        if not path.endswith('/'):
+    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, files=None, timeout=5, apiVersion='v1'):
+        path = '/api/%s/%s' % (apiVersion, path.lstrip('/'))
+        if apiVersion == 'v1' and not path.endswith('/'):
             path += '/'
+        elif apiVersion == 'v2' and path.endswith('/'):
+            path = path[:-1]
 
         if params is None:
             params = {}
@@ -144,14 +151,15 @@ class ControllerWebClientRaw(object):
         # if 'order_by' not in params:
         #     params['order_by'] = 'pk'
 
-        if data is None:
+        # set the default body data only if no files are given
+        if data is None and files is None:
             data = {}
 
         if headers is None:
             headers = {}
 
-        # Default to json content type
-        if 'Content-Type' not in headers:
+        # Default to json content type if not using multipart/form-data
+        if 'Content-Type' not in headers and files is None:
             headers['Content-Type'] = 'application/json'
             data = json.dumps(data)
 
@@ -159,7 +167,7 @@ class ControllerWebClientRaw(object):
             headers['Accept'] = 'application/json'
 
         method = method.upper()
-        response = self.Request(method, path, params=params, data=data, headers=headers, timeout=timeout)
+        response = self.Request(method, path, params=params, data=data, files=files, headers=headers, timeout=timeout)
 
         # Try to parse response
         raw = response.content.decode('utf-8', 'replace').strip()
@@ -189,6 +197,7 @@ class ControllerWebClientRaw(object):
                 'POST': 201,
                 'DELETE': 204,
                 'PUT': 202,
+                'PATCH': 201,
             }.get(method, 200)
 
         # Check expected status code
@@ -198,11 +207,15 @@ class ControllerWebClientRaw(object):
 
         return content
 
-    def CallGraphAPI(self, query, variables=None, timeout=5.0):
-        response = self.Request('POST', '/api/v2/graphql', headers={
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }, data=json.dumps({
+    def CallGraphAPI(self, query, variables=None, headers=None, timeout=5.0):
+        # prepare the headers
+        if headers is None:
+            headers = {}
+        headers['Content-Type'] = 'application/json'
+        headers['Accept'] = 'application/json'
+
+        # make the request
+        response = self.Request('POST', '/api/v2/graphql', headers=headers, data=json.dumps({
             'query': query,
             'variables': variables or {},
         }), timeout=timeout)
@@ -226,7 +239,10 @@ class ControllerWebClientRaw(object):
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
             message = content['errors'][0].get('message', raw)
-            raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response)
+            errorCode = None
+            if 'extensions' in content['errors'][0]:
+                errorCode = content['errors'][0]['extensions'].get('errorCode', None)
+            raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response, errorCode=errorCode)
 
         if content is None or 'data' not in content:
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)

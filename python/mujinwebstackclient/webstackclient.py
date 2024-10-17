@@ -10,6 +10,9 @@ import datetime
 import base64
 from email.utils import parsedate
 
+import six
+from typing import List, Tuple, Any, Dict # noqa: F401
+
 # Mujin imports
 from . import WebstackClientError
 from . import controllerwebclientraw
@@ -18,6 +21,7 @@ from . import json
 from . import urlparse
 from . import uriutils
 from . import webstackgraphclient
+from .webstackclientutils import UseLazyQuery
 
 # Logging
 import logging
@@ -66,7 +70,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT).decode('utf-8')
+    return six.ensure_text(uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT), 'utf-8')
 
 
 def _FormatHTTPDate(dt):
@@ -114,7 +118,7 @@ class WebstackClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         """Logs into the Mujin controller.
 
         Args:
@@ -122,7 +126,8 @@ class WebstackClient(object):
             controllerusername (str): Username of the mujin controller, e.g. testuser
             controllerpassword (str): Password of the mujin controller
             userAgent (str): User agent to be sent on each request
-            additionalHeaders: Additional HTTP headers to be included in requests
+            additionalHeaders (dict): Additional HTTP headers to be included in requests
+            unixEndpoint (str): Unix socket endpoint for communicating with HTTP server over unix socket
         """
 
         # Parse controllerurl
@@ -149,7 +154,7 @@ class WebstackClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders)
+        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint)
 
     def __del__(self):
         self.Destroy()
@@ -174,6 +179,11 @@ class WebstackClient(object):
         """Override user agent string sent on each HTTP request
         """
         self._webclient.SetUserAgent(userAgent)
+
+    def SetAuthor(self, author):
+        """Override author header sent on each HTTP request
+        """
+        self._webclient.SetAuthor(author)
 
     @property
     def graphApi(self):
@@ -211,7 +221,14 @@ class WebstackClient(object):
         if not serverString.startswith('mujinwebstack/'):
             return (0, 0, 0, 'unknown')
         serverVersion = serverString[len('mujinwebstack/'):]
-        serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersion.split('.', 4)
+        serverVersionParts = serverVersion.split('+', 1)
+        if len(serverVersionParts) == 1:
+            # handle old format 1.2.3.commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersionParts[0].split('.', 3)
+        else:
+            # handle new format 1.2.3+commitHash
+            serverVersionMajor, serverVersionMinor, serverVersionPatch = serverVersionParts[0].split('.', 2)
+            serverVersionCommit = serverVersionParts[1]
         return (int(serverVersionMajor), int(serverVersionMinor), int(serverVersionPatch), serverVersionCommit)
 
     def SetLogLevel(self, componentLevels, timeout=5):
@@ -234,6 +251,7 @@ class WebstackClient(object):
         """
         return self.UploadFile(f, timeout=timeout)['filename']
 
+    @UseLazyQuery
     def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         """List all available scene on controller
         """
@@ -559,6 +577,7 @@ class WebstackClient(object):
     # Task related
     #
 
+    @UseLazyQuery
     def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, timeout=5):
         params = {
             'offset': offset,
@@ -621,6 +640,7 @@ class WebstackClient(object):
     # Job related
     #
 
+    @UseLazyQuery
     def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
@@ -642,20 +662,15 @@ class WebstackClient(object):
     # Cycle Log
     #
 
-    def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
-        params = {
-            'offset': offset,
-            'limit': limit,
-        }
-        params.update(kwargs)
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
-
-    def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'cycleLog/', data={
-            'cycleLogs': cycleLogs,
-            'reporterControllerId': reporterControllerId,
-            'reporterDateCreated': reporterDateCreated,
-        }, fields=fields, timeout=timeout)
+    def CreateLogEntries(self, logEntries, timeout=5):
+        # type: (List[Tuple[str, Any, Dict[str, bytes]]], int) -> Any
+        files = []
+        for logType, logEntry, attachments in logEntries:
+            files.append((u'logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
+            if attachments is not None:
+                for attachmentName, attachmentData in six.iteritems(attachments):
+                    files.append((u'attachment', (attachmentName, attachmentData)))
+        return self._webclient.APICall('POST', u'logEntry', files=files, timeout=timeout, apiVersion='v2')
 
     #
     # Controller State
@@ -677,10 +692,10 @@ class WebstackClient(object):
         for encodedGeometry in response['geometries']:
             geometry = {}
             positions = numpy.fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
-            positions.resize(len(positions) / 3, 3)
+            positions = positions.reshape(len(positions) // 3, 3)
             geometry['positions'] = positions
             indices = numpy.fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=numpy.uint32)
-            indices.resize(len(indices) / 3, 3)
+            indices = indices.reshape(len(indices) // 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)
         return geometries
@@ -823,6 +838,24 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
+    # 
+    # Blob related
+    # 
+
+    def DownloadBlob(self, blobId, timeout=5):
+        """Downloads a blob with given id
+
+        :return: A streaming response
+        """
+        response = self._webclient.Request('GET', u'/api/v2/blob/%s' % blobId, stream=True, timeout=timeout)
+        if response.status_code == 404:
+            raise WebstackClientError(_('Blob "%s" does not exist, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code == 204:
+            raise WebstackClientError(_('Blob "%s" has no content, status code is %d') % (blobId, response.status_code), response=response)
+        if response.status_code != 200:
+            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+        return response
+
     #
     # Log related
     #
@@ -843,7 +876,29 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response.json()
+    
+    def DownloadSignalLog(self, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
+        """Get the signal log from the controller.
 
+        Returns a stream response, so have to use 
+        
+        for chunk in GetSignalLog().iter_content(chunk_size=10000):
+            if chunk:
+                f.write(chunk)
+        
+        """
+        params = {
+            'cursor': (cursor or '').strip(),
+            'includecursor': 'true' if includecursor else 'false',
+            'forward': 'true' if forward else 'false',
+            'limit': str(limit or 0),
+        }
+        
+        response = self._webclient.Request('GET', '/log/plcsignal/', params=params, timeout=timeout, stream=True)
+        if response.status_code != 200:
+            raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
+        return response
+    
     #
     # Query list of scenepks based on barcdoe field
     #
@@ -880,6 +935,21 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code, response=response)
         return response.json()
+
+    def HeadConfig(self, filename, timeout=5):
+        """Perform a HEAD operation on the given configuration filename to retrieve metadata.
+
+        :return: A dict containing "modified (datetime.datetime)" and "size (int)"
+        """
+        path = '/config/'
+        if filename:
+            path = '/config/%s/' % filename
+        response = self._webclient.Request('HEAD', path, timeout=timeout)
+        if response.status_code != 200:
+            raise WebstackClientError(_('Failed to check configuration existence, status code is %d') % response.status_code, response=response)
+        return {
+            'modified': datetime.datetime(*parsedate(response.headers['Last-Modified'])[:6]),
+        }
 
     def SetConfig(self, data, filename=None, timeout=5):
         """Set configuration file content to controller.
@@ -944,6 +1014,7 @@ class WebstackClient(object):
     # ITL program related
     #
 
+    @UseLazyQuery
     def GetITLPrograms(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
         params = {
             'offset': offset,
@@ -972,7 +1043,7 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, savedebug=False, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
@@ -981,6 +1052,7 @@ class WebstackClient(object):
         :param saveitl: Whether we want to include itl programs in the backup, defaults to True
         :param savedetection: Whether we want to include detection files in the backup, defaults to False
         :param savecalibration: Whether we want to include calibration files in the backup, defaults to False
+        :param savedebug: Whether we want to include debug files in the backup, defaults to False
         :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
@@ -993,18 +1065,21 @@ class WebstackClient(object):
             'itl': 'true' if saveitl else 'false',
             'detection': 'true' if savedetection else 'false',
             'calibration': 'true' if savecalibration else 'false',
+            'debug': 'true' if savedebug else 'false',
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
-    def Restore(self, file, restoreconfig=True, restoremedia=True, timeout=600):
+    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, timeout=600):
         """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
         :param restoreconfig: Whether we want to restore the configs, defaults to True
         :param restoremedia: Whether we want to restore the media data, defaults to True
+        :param restoreapps: Whether we want to restore the web apps, defaults to True
+        :param restoreitl: Whether we want to restore the itl programs, defaults to True
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: JSON response
@@ -1012,6 +1087,8 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/backup/', files={'file': file}, params={
             'media': 'true' if restoremedia else 'false',
             'config': 'true' if restoreconfig else 'false',
+            'apps': 'true' if restoreapps else 'false',
+            'itl': 'true' if restoreitl else 'false',
         }, timeout=timeout)
         if response.status_code in (200,):
             try:
@@ -1032,16 +1109,21 @@ class WebstackClient(object):
         """
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
 
-    def DownloadDebugResource(self, debugresourcepk, timeout=10):
+    def DownloadDebugResource(self, debugresourcepk, downloadSizeLimit=100*1024*1024, timeout=10):
         """downloads contents of the given debug resource
 
         :param debugresourcepk: Exact name of the debug resource to download
+        :param downloadSizeLimit: Limit of the size of the debug resource to download, defaults to 100*1024*1024 bytes
         :param timeout: Amount of time in seconds to wait before failing, defaults to 10
         :raises WebstackClientError: If request wasn't successful
         :return: Contents of the requested resource
         """
         # custom http call because APICall currently only supports json
-        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout)
+        # params is used to store query parameters and passed to the request
+        params = {
+            'sizeLimit' : downloadSizeLimit
+        }
+        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout, params=params)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response

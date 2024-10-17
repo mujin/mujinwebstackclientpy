@@ -148,15 +148,17 @@ class UserInterrupt(ClientExceptionBase):
 
 class ControllerGraphClientException(ClientExceptionBase):
 
-    _statusCode = None
-    _content = None
-    _response = None
+    _statusCode = None  # the HTTP status code
+    _content = None  # the body of the response (dict, JSON decoded)
+    _response = None  # the raw requests.Response object
+    _errorCode = None  # the error code from the server, can be 'not-found', 'conflict', etc.
 
-    def __init__(self, message='', statusCode=None, content=None, response=None):
+    def __init__(self, message='', statusCode=None, content=None, response=None, errorCode=None):
         super(ControllerGraphClientException, self).__init__(message)
         self._statusCode = statusCode
         self._content = content
         self._response = response
+        self._errorCode = errorCode
 
     @property
     def statusCode(self):
@@ -169,3 +171,7 @@ class ControllerGraphClientException(ClientExceptionBase):
     @property
     def response(self):
         return self._response
+
+    @property
+    def errorCode(self):
+        return self._errorCode
