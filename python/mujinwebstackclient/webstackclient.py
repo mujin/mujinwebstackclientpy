@@ -1097,7 +1097,6 @@ class WebstackClient(object):
             'config': 'true' if restoreconfig else 'false',
             'apps': 'true' if restoreapps else 'false',
             'itl': 'true' if restoreitl else 'false',
-            'state': 'true' if restorestate else 'false',
             'eds': 'true' if restoreeds else 'false',
             'iodd': 'true' if restoreiodd else 'false',
         }, timeout=timeout)
