@@ -1086,9 +1086,9 @@ class WebstackClient(object):
         :param restoremedia: Whether we want to restore the media data, defaults to True
         :param restoreapps: Whether we want to restore the web apps, defaults to True
         :param restoreitl: Whether we want to restore the itl programs, defaults to True
-        :param restoreitl: Whether we want to restore the state files, defaults to False
-        :param restoreitl: Whether we want to restore the eds files, defaults to False
-        :param restoreitl: Whether we want to restore the iodd files, defaults to True
+        :param restorestate: Whether we want to restore the state files, defaults to False
+        :param restoreeds: Whether we want to restore the eds files, defaults to False
+        :param restoreiodd: Whether we want to restore the iodd files, defaults to True
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: JSON response
