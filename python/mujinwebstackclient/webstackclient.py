@@ -1078,7 +1078,7 @@ class WebstackClient(object):
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
-    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, restorestate=True, restoreeds=True, restoreiodd=True, timeout=600):
+    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, restoreeds=True, restoreiodd=True, timeout=600):
         """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
@@ -1086,7 +1086,6 @@ class WebstackClient(object):
         :param restoremedia: Whether we want to restore the media data, defaults to True
         :param restoreapps: Whether we want to restore the web apps, defaults to True
         :param restoreitl: Whether we want to restore the itl programs, defaults to True
-        :param restorestate: Whether we want to restore the state files, defaults to True
         :param restoreeds: Whether we want to restore the eds files, defaults to True
         :param restoreiodd: Whether we want to restore the iodd files, defaults to True
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
