@@ -72,10 +72,10 @@ def _ShowDiffInOneLine(oldconfig, newconfig, parentPath=None, useColours=True):
 
 
 def _DiffConfig(oldconfig, newconfig, showInOneLine=False):
-    with tempfile.NamedTemporaryFile(prefix='old-config-', suffix='.json', bufsize=0) as oldfile:
-        with tempfile.NamedTemporaryFile(prefix='new-config-', suffix='.json', bufsize=0) as newfile:
-            oldfile.write(_PrettifyConfig(oldconfig))
-            newfile.write(_PrettifyConfig(newconfig))
+    with tempfile.NamedTemporaryFile(prefix='old-config-', suffix='.json') as oldfile:
+        with tempfile.NamedTemporaryFile(prefix='new-config-', suffix='.json') as newfile:
+            oldfile.write(_PrettifyConfig(oldconfig).encode('utf-8') )
+            newfile.write(_PrettifyConfig(newconfig).encode('utf-8') )
             if showInOneLine:
                 res = None
                 try:
@@ -209,14 +209,14 @@ def _RunMain():
         logging.basicConfig(format='%(asctime)s %(name)s [%(levelname)s] [%(filename)s:%(lineno)s %(funcName)s] %(message)s', level=options.loglevel)
 
     # load template
-    with open(options.template, 'r') as f:
+    with open(options.template, 'rb') as f:
         template = json.load(f)
 
     # load preservelist
     preservedpaths = None
     if options.preserve:
         preservedpaths = []
-        with open(options.preserve, 'r') as f:
+        with open(options.preserve, 'rb') as f:
             for line in f.read().strip().split('\n'):
                 line = line.split('#')[0].strip()
                 if line:
@@ -229,7 +229,7 @@ def _RunMain():
         config = webstackclient.GetConfig()
         target = webstackclient.controllerIp
     elif options.config:
-        with open(options.config, 'r') as f:
+        with open(options.config, 'rb') as f:
             config = json.load(f)
         target = options.config
     else:
@@ -260,7 +260,7 @@ def _RunMain():
     if options.controller:
         webstackclient.SetConfig(newconfig)
     elif options.config:
-        with open(options.config, 'w') as f:
+        with open(options.config, 'wb') as f:
             f.write(_PrettifyConfig(newconfig))
     log.debug('done')
 
