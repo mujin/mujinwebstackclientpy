@@ -209,14 +209,14 @@ def _RunMain():
         logging.basicConfig(format='%(asctime)s %(name)s [%(levelname)s] [%(filename)s:%(lineno)s %(funcName)s] %(message)s', level=options.loglevel)
 
     # load template
-    with open(options.template, 'rb') as f:
+    with open(options.template, 'r') as f:
         template = json.load(f)
 
     # load preservelist
     preservedpaths = None
     if options.preserve:
         preservedpaths = []
-        with open(options.preserve, 'rb') as f:
+        with open(options.preserve, 'r') as f:
             for line in f.read().strip().split('\n'):
                 line = line.split('#')[0].strip()
                 if line:
@@ -229,7 +229,7 @@ def _RunMain():
         config = webstackclient.GetConfig()
         target = webstackclient.controllerIp
     elif options.config:
-        with open(options.config, 'rb') as f:
+        with open(options.config, 'r') as f:
             config = json.load(f)
         target = options.config
     else:
@@ -260,7 +260,7 @@ def _RunMain():
     if options.controller:
         webstackclient.SetConfig(newconfig)
     elif options.config:
-        with open(options.config, 'wb') as f:
+        with open(options.config, 'w') as f:
             f.write(_PrettifyConfig(newconfig))
     log.debug('done')
 
