@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3 (2024-11-08)
+
+### Changes
+
+- Added options to backup/restore iodd
+
 ## 0.8.2 (2024-07-05)
 
 ### Changes
