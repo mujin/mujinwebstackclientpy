@@ -1043,7 +1043,7 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, savedebug=False, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savestate=True, savecalibration=False, savedebug=False, saveeds=True, saveiodd=True, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
@@ -1051,8 +1051,11 @@ class WebstackClient(object):
         :param saveapps: Whether we want to include web apps in the backup, defaults to True
         :param saveitl: Whether we want to include itl programs in the backup, defaults to True
         :param savedetection: Whether we want to include detection files in the backup, defaults to False
+        :param savestate: Whether we want to include state files in the backup, defaults to True
         :param savecalibration: Whether we want to include calibration files in the backup, defaults to False
         :param savedebug: Whether we want to include debug files in the backup, defaults to False
+        :param saveeds: Whether we want to include eds files in the backup, defaults to True
+        :param saveiodd: Whether we want to include iodd files in the backup, defaults to True
         :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
@@ -1064,15 +1067,18 @@ class WebstackClient(object):
             'apps': 'true' if saveapps else 'false',
             'itl': 'true' if saveitl else 'false',
             'detection': 'true' if savedetection else 'false',
+            'state': 'true' if savestate else 'false',
             'calibration': 'true' if savecalibration else 'false',
             'debug': 'true' if savedebug else 'false',
+            'eds': 'true' if saveeds else 'false',
+            'iodd': 'true' if saveiodd else 'false',
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
-    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, timeout=600):
+    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, restoreeds=True, restoreiodd=True, timeout=600):
         """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
@@ -1080,6 +1086,8 @@ class WebstackClient(object):
         :param restoremedia: Whether we want to restore the media data, defaults to True
         :param restoreapps: Whether we want to restore the web apps, defaults to True
         :param restoreitl: Whether we want to restore the itl programs, defaults to True
+        :param restoreeds: Whether we want to restore the eds files, defaults to True
+        :param restoreiodd: Whether we want to restore the iodd files, defaults to True
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: JSON response
@@ -1089,6 +1097,8 @@ class WebstackClient(object):
             'config': 'true' if restoreconfig else 'false',
             'apps': 'true' if restoreapps else 'false',
             'itl': 'true' if restoreitl else 'false',
+            'eds': 'true' if restoreeds else 'false',
+            'iodd': 'true' if restoreiodd else 'false',
         }, timeout=timeout)
         if response.status_code in (200,):
             try:
