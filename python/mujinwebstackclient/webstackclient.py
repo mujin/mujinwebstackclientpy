@@ -205,7 +205,7 @@ class WebstackClient(object):
         """
         try:
             self._webclient.Login(timeout=timeout)
-        except Exception as e:
+        except Exception:
             self.Ping(timeout=timeout)
 
     def Ping(self, timeout=5):
