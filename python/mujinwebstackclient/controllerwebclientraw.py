@@ -22,6 +22,7 @@ from . import _
 from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
 from .unixsocketadapter import UnixSocketAdapter
+from . import webstackgraphclient
 
 import logging
 log = logging.getLogger(__name__)
@@ -248,3 +249,19 @@ class ControllerWebClientRaw(object):
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)
 
         return content['data']
+
+    def Login(self, timeout=5):
+        jsonWebToken = ''
+        try:
+            # login through graph API
+            jsonWebToken = webstackgraphclient.GraphClient(self).Login(username=self._username, password=self._password, fields={'jsonWebToken': None}, timeout=timeout)['jsonWebToken']
+        except Exception as e:
+            log.debug('failed to login through graphql api, use basic HTTP authorization: %s', e)
+            raise e
+        finally:
+            if jsonWebToken == '':
+                self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
+                self._headers.pop('Authorization', None)
+            else:
+                self._session.auth = None
+                self._headers['Authorization'] = 'Bearer ' + jsonWebToken

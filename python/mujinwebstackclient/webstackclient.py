@@ -155,6 +155,8 @@ class WebstackClient(object):
             'locale': os.environ.get('LANG', ''),
         }
         self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint)
+        
+        self.Login()
 
     def __del__(self):
         self.Destroy()
@@ -201,7 +203,10 @@ class WebstackClient(object):
     def Login(self, timeout=5):
         """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
         """
-        self.Ping(timeout=timeout)
+        try:
+            self._webclient.Login(timeout=timeout)
+        except Exception:
+            self.Ping(timeout=timeout)
 
     def Ping(self, timeout=5):
         """Sends a dummy HEAD request to api endpoint
