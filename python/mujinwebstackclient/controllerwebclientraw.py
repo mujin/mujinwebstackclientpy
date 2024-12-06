@@ -128,12 +128,6 @@ class ControllerWebClientRaw(object):
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
-        # unauthorized access, probably token expires
-        if response.status_code == 401:
-            self.Login() # try login again
-            headers.update(self._headers)
-            response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
-
         # in verbose logging, log the caller
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('request %s %s response %s took %.03f seconds:\n%s', method, url, response.status_code, response.elapsed.total_seconds(), '\n'.join([line.strip() for line in traceback.format_stack()[:-1]]))
