@@ -64,3 +64,11 @@ class UnixSocketAdapter(HTTPAdapter):
     def get_connection(self, url, proxies=None):
         assert not proxies, 'proxies not supported for unix socket'
         return self._connectionPool
+
+    def get_connection_with_tls_context(self, request, verify, proxies=None, cert=None):
+        '''
+        To support requests>=2.32.2 (Note that 2.32.0 and 2.32.1 are not supported)
+
+        https://github.com/psf/requests/pull/6710
+        '''
+        return self.get_connection(request.url, proxies=proxies)

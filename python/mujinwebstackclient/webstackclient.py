@@ -676,29 +676,13 @@ class WebstackClient(object):
     # Cycle Log
     #
 
-    @UseLazyQuery
-    def GetCycleLogs(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
-        params = {
-            'offset': offset,
-            'limit': limit,
-        }
-        params.update(kwargs)
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
-
-    def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'cycleLog/', data={
-            'cycleLogs': cycleLogs,
-            'reporterControllerId': reporterControllerId,
-            'reporterDateCreated': reporterDateCreated,
-        }, fields=fields, timeout=timeout)
-
     def CreateLogEntries(self, logEntries, timeout=5):
         # type: (List[Tuple[str, Any, Dict[str, bytes]]], int) -> Any
         files = []
         for logType, logEntry, attachments in logEntries:
             files.append((u'logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
             if attachments is not None:
-                for attachmentName, attachmentData in attachments.iteritems():
+                for attachmentName, attachmentData in six.iteritems(attachments):
                     files.append((u'attachment', (attachmentName, attachmentData)))
         return self._webclient.APICall('POST', u'logEntry', files=files, timeout=timeout, apiVersion='v2')
 
@@ -966,6 +950,21 @@ class WebstackClient(object):
             raise WebstackClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code, response=response)
         return response.json()
 
+    def HeadConfig(self, filename, timeout=5):
+        """Perform a HEAD operation on the given configuration filename to retrieve metadata.
+
+        :return: A dict containing "modified (datetime.datetime)" and "size (int)"
+        """
+        path = '/config/'
+        if filename:
+            path = '/config/%s/' % filename
+        response = self._webclient.Request('HEAD', path, timeout=timeout)
+        if response.status_code != 200:
+            raise WebstackClientError(_('Failed to check configuration existence, status code is %d') % response.status_code, response=response)
+        return {
+            'modified': datetime.datetime(*parsedate(response.headers['Last-Modified'])[:6]),
+        }
+
     def SetConfig(self, data, filename=None, timeout=5):
         """Set configuration file content to controller.
 
@@ -1058,7 +1057,7 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, savedebug=False, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savestate=True, savecalibration=False, savedebug=False, saveeds=True, saveiodd=True, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
@@ -1066,8 +1065,11 @@ class WebstackClient(object):
         :param saveapps: Whether we want to include web apps in the backup, defaults to True
         :param saveitl: Whether we want to include itl programs in the backup, defaults to True
         :param savedetection: Whether we want to include detection files in the backup, defaults to False
+        :param savestate: Whether we want to include state files in the backup, defaults to True
         :param savecalibration: Whether we want to include calibration files in the backup, defaults to False
         :param savedebug: Whether we want to include debug files in the backup, defaults to False
+        :param saveeds: Whether we want to include eds files in the backup, defaults to True
+        :param saveiodd: Whether we want to include iodd files in the backup, defaults to True
         :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
@@ -1079,20 +1081,27 @@ class WebstackClient(object):
             'apps': 'true' if saveapps else 'false',
             'itl': 'true' if saveitl else 'false',
             'detection': 'true' if savedetection else 'false',
+            'state': 'true' if savestate else 'false',
             'calibration': 'true' if savecalibration else 'false',
             'debug': 'true' if savedebug else 'false',
+            'eds': 'true' if saveeds else 'false',
+            'iodd': 'true' if saveiodd else 'false',
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
-    def Restore(self, file, restoreconfig=True, restoremedia=True, timeout=600):
+    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, restoreeds=True, restoreiodd=True, timeout=600):
         """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
         :param restoreconfig: Whether we want to restore the configs, defaults to True
         :param restoremedia: Whether we want to restore the media data, defaults to True
+        :param restoreapps: Whether we want to restore the web apps, defaults to True
+        :param restoreitl: Whether we want to restore the itl programs, defaults to True
+        :param restoreeds: Whether we want to restore the eds files, defaults to True
+        :param restoreiodd: Whether we want to restore the iodd files, defaults to True
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: JSON response
@@ -1100,6 +1109,10 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/backup/', files={'file': file}, params={
             'media': 'true' if restoremedia else 'false',
             'config': 'true' if restoreconfig else 'false',
+            'apps': 'true' if restoreapps else 'false',
+            'itl': 'true' if restoreitl else 'false',
+            'eds': 'true' if restoreeds else 'false',
+            'iodd': 'true' if restoreiodd else 'false',
         }, timeout=timeout)
         if response.status_code in (200,):
             try:
@@ -1120,16 +1133,21 @@ class WebstackClient(object):
         """
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
 
-    def DownloadDebugResource(self, debugresourcepk, timeout=10):
+    def DownloadDebugResource(self, debugresourcepk, downloadSizeLimit=100*1024*1024, timeout=10):
         """downloads contents of the given debug resource
 
         :param debugresourcepk: Exact name of the debug resource to download
+        :param downloadSizeLimit: Limit of the size of the debug resource to download, defaults to 100*1024*1024 bytes
         :param timeout: Amount of time in seconds to wait before failing, defaults to 10
         :raises WebstackClientError: If request wasn't successful
         :return: Contents of the requested resource
         """
         # custom http call because APICall currently only supports json
-        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout)
+        # params is used to store query parameters and passed to the request
+        params = {
+            'sizeLimit' : downloadSizeLimit
+        }
+        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout, params=params)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response

@@ -295,6 +295,8 @@ def UseLazyGraphQuery(queryFunction):
     """
     @wraps(queryFunction)
     def wrapper(self, *args, **kwargs):
+        if 'fields' in kwargs and not isinstance(kwargs['fields'], dict):
+            kwargs['fields'] = {key: None for key in kwargs['fields']}
         queryResult = LazyGraphQuery(queryFunction, *((self,) + args), **kwargs)
         response = {}
         if queryResult.typeName is not None:

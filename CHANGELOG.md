@@ -1,10 +1,67 @@
 # Changelog
 
-## 0.7.7 (2024-02-21)
+## 0.8.4 (2024-12-06)
 
 ### Changes
 
 - Login through json web token. Automatically login again if the token is expired.
+
+## 0.8.3 (2024-11-08)
+
+### Changes
+
+- Added options to backup/restore iodd
+
+## 0.8.2 (2024-07-05)
+
+### Changes
+
+- Added downloadSizeLimit parameter to the DownloadDebugResource function.
+
+## 0.8.1 (2024-07-04)
+
+### Changes
+
+- Regenerate the graph client.
+
+## 0.8.0 (2024-06-21)
+
+### Changes
+
+- Support `GetWebStackState`.
+
+## 0.7.11 (2024-06-14)
+
+### Changes
+
+- Allow customizing headers in `CallGraphAPI` calls.
+
+## 0.7.10 (2024-04-11)
+
+### Changes
+
+- Remove `CreateCycleLogs`.
+
+## 0.7.9 (2024-04-10)
+
+### Changes
+
+- Add `HeadConfig` API.
+
+
+## 0.7.8 (2024-03-19)
+
+### Changes
+
+- Regenerate the graph client.
+
+
+## 0.7.7 (2024-02-29)
+
+### Changes
+
+- Regenerate the graph client.
+
 
 ## 0.7.6 (2023-11-05)
 
@@ -41,7 +98,7 @@
 
 ### Changes
 
-- add DownloadSignalLog
+- Add DownloadSignalLog
 
 
 ## 0.7.1 (2023-07-27)
@@ -102,7 +159,7 @@
 
 - Remove automatic query field generation for graphql api. These fields can be
   changed frequently causing the webstack client to be unusuable. Users of
-  graph api now nees to explicitly specify fields and subfields they are
+  graph api now need to explicitly specify fields and subfields they are
   interested in.
 
 
@@ -110,7 +167,7 @@
 
 ### Changes
 
-- Regenerate graph client for sensorLInkName.
+- Regenerate graph client for sensorLinkName.
 
 
 ## 0.1.3 (2023-01-18)

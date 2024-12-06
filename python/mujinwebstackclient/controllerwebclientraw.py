@@ -205,6 +205,7 @@ class ControllerWebClientRaw(object):
                 'POST': 201,
                 'DELETE': 204,
                 'PUT': 202,
+                'PATCH': 201,
             }.get(method, 200)
 
         # Check expected status code
@@ -214,11 +215,15 @@ class ControllerWebClientRaw(object):
 
         return content
 
-    def CallGraphAPI(self, query, variables=None, timeout=5.0):
-        response = self.Request('POST', '/api/v2/graphql', headers={
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }, data=json.dumps({
+    def CallGraphAPI(self, query, variables=None, headers=None, timeout=5.0):
+        # prepare the headers
+        if headers is None:
+            headers = {}
+        headers['Content-Type'] = 'application/json'
+        headers['Accept'] = 'application/json'
+
+        # make the request
+        response = self.Request('POST', '/api/v2/graphql', headers=headers, data=json.dumps({
             'query': query,
             'variables': variables or {},
         }), timeout=timeout)
