@@ -206,10 +206,12 @@ class WebstackClient(object):
         """
         try:
             self.jsonWebToken = self.graphApi.Login(username=self.controllerusername, password=self.controllerpassword, fields={'jsonWebToken': None})['jsonWebToken']
-            self._webclient.UpdateJsonWebToken(self.jsonWebToken)
         except Exception as e:
+            self.jsonWebToken = ''
             log.debug('failed to login through graphql api, use basic HTTP authorization: %s', e)
             self.Ping(timeout=timeout)
+        finally:
+            self._webclient.UpdateJsonWebToken(self.jsonWebToken)
 
     def Ping(self, timeout=5):
         """Sends a dummy HEAD request to api endpoint

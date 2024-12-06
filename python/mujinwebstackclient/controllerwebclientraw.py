@@ -258,5 +258,9 @@ class ControllerWebClientRaw(object):
         return content['data']
 
     def UpdateJsonWebToken(self, jsonWebToken):
-        self._session.auth = None
-        self._headers['Authorization'] = 'Bearer ' + jsonWebToken
+        if jsonWebToken == '':
+            self._session.auth = None
+            self._headers['Authorization'] = 'Bearer ' + jsonWebToken
+        else:
+            self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
+            self._headers.pop('Authorization', None)
