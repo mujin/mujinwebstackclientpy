@@ -22,6 +22,7 @@ from . import _
 from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
 from .unixsocketadapter import UnixSocketAdapter
+from . import webstackgraphclient
 
 import logging
 log = logging.getLogger(__name__)
@@ -35,15 +36,14 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _loginFunction = None # Login function
+    _jsonWebToken = '' # json web token
 
-    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None, loginFunction=None):
+    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
         self._headers = {}
         self._isok = True
-        self._loginFunction = loginFunction
 
         # Create session
         self._session = requests.Session()
@@ -130,7 +130,7 @@ class ControllerWebClientRaw(object):
 
         # unauthorized access, probably token expires
         if response.status_code == 401:
-            self._loginFunction() # try login again
+            self.Login() # try login again
             headers.update(self._headers)
             response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
@@ -257,10 +257,19 @@ class ControllerWebClientRaw(object):
 
         return content['data']
 
-    def UpdateJsonWebToken(self, jsonWebToken):
-        if jsonWebToken == '':
-            self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
-            self._headers.pop('Authorization', None)
-        else:
-            self._session.auth = None
-            self._headers['Authorization'] = 'Bearer ' + jsonWebToken
+    def Login(self, timeout=5):
+        """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
+        """
+        try:
+            self._jsonWebToken = webstackgraphclient.GraphClient(self).Login(username=self._username, password=self._password, fields={'jsonWebToken': None}, timeout=timeout)['jsonWebToken']
+        except Exception as e:
+            self._jsonWebToken = ''
+            log.debug('failed to login through graphql api, use basic HTTP authorization: %s', e)
+            raise e
+        finally:
+            if self._jsonWebToken == '':
+                self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
+                self._headers.pop('Authorization', None)
+            else:
+                self._session.auth = None
+                self._headers['Authorization'] = 'Bearer ' + self._jsonWebToken
