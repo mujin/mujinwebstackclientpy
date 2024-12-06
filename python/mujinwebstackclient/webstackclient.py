@@ -211,12 +211,6 @@ class WebstackClient(object):
             log.debug('failed to login through graphql api, use basic HTTP authorization: %s', e)
             self.Ping(timeout=timeout)
 
-    def Logout(self, timeout=5):
-        """Force webclient to logout
-        """
-        if self.jsonWebToken:
-            return self.graphApi.Logout(token=self.jsonWebToken)
-
     def Ping(self, timeout=5):
         """Sends a dummy HEAD request to api endpoint
         """
