@@ -252,9 +252,8 @@ class ControllerWebClientRaw(object):
         return content['data']
 
     def Login(self, timeout=5):
-        """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
-        """
         try:
+            # login through graph API
             self._jsonWebToken = webstackgraphclient.GraphClient(self).Login(username=self._username, password=self._password, fields={'jsonWebToken': None}, timeout=timeout)['jsonWebToken']
         except Exception as e:
             self._jsonWebToken = ''
