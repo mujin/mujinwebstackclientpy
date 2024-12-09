@@ -26,9 +26,9 @@ from .unixsocketadapter import UnixSocketAdapter
 import logging
 log = logging.getLogger(__name__)
 
-class JsonWebTokenAuth(requests_auth.AuthBase):
-    """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available."""
-
+class JSONWebTokenAuth(requests_auth.AuthBase):
+    """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available.
+    """
     _username = None # controller username
     _password = None # controller password
     _jsonWebToken = None # json web token
@@ -53,11 +53,11 @@ class JsonWebTokenAuth(requests_auth.AuthBase):
         else:
             requests_auth.HTTPBasicAuth(self._username, self._password)(request)
 
-            def _SetJsonWebToken(response, *args, **kwargs):
+            def _SetJSONWebToken(response, *args, **kwargs):
                 # switch to JWT authentication
                 self._jsonWebToken = response.cookies.get('jwttoken')
 
-            request.hooks['response'].append(_SetJsonWebToken)
+            request.hooks['response'].append(_SetJSONWebToken)
         return request
 
 class ControllerWebClientRaw(object):
@@ -80,7 +80,7 @@ class ControllerWebClientRaw(object):
         self._session = requests.Session()
 
         # Use basic auth by default, use JWT if available
-        self._session.auth = JsonWebTokenAuth(self._username, self._password)
+        self._session.auth = JSONWebTokenAuth(self._username, self._password)
 
         # Add additional headers
         self._headers.update(additionalHeaders or {})
@@ -218,14 +218,14 @@ class ControllerWebClientRaw(object):
 
         if content is not None and 'error' in content:
             raise APIServerError(content['error'].get('message', raw), inputcommand=path)
-        
+
         if response.status_code >= 400:
             raise APIServerError(_('Unexpected server response %d: %s') % (response.status_code, raw))
 
         # TODO(ziyan): Figure out the expected status code from method
         #              Some APIs were mis-implemented to not return standard status code.
         if not expectedStatusCode:
-            expectedStatusCode = {  
+            expectedStatusCode = {
                 'GET': 200,
                 'POST': 201,
                 'DELETE': 204,
