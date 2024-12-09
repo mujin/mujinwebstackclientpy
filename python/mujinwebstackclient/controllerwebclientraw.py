@@ -30,19 +30,19 @@ log = logging.getLogger(__name__)
 class JsonWebTokenAuth(requests_auth.AuthBase):
     """Attaches JWT Bearer Authentication to a given Request object."""
 
-    jsonWebToken = None
+    _jsonWebToken = None
 
     def __init__(self, jsonWebToken):
-        self.jsonWebToken = jsonWebToken
+        self._jsonWebToken = jsonWebToken
 
     def __eq__(self, other):
-        return self.jsonWebToken == getattr(other, 'jsonWebToken', None)
+        return self._jsonWebToken == getattr(other, '_jsonWebToken', None)
 
     def __ne__(self, other):
         return not self == other
 
     def __call__(self, request):
-        request.headers['Authorization'] = 'Bearer ' + self.jsonWebToken
+        request.headers['Authorization'] = 'Bearer ' + self._jsonWebToken
         return request
 
 class ControllerWebClientRaw(object):
