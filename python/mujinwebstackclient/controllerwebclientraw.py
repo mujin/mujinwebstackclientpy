@@ -53,11 +53,13 @@ class JsonWebTokenAuth(requests_auth.AuthBase):
             request.headers['Authorization'] = 'Bearer ' + self._jsonWebToken
         else:
             requests_auth.HTTPBasicAuth(self._username, self._password)(request)
+
             def setJsonWebToken(response, *args, **kwargs):
                 jsonWebToken = response.cookies.get('jwttoken')
                 if jsonWebToken is not None:
                     # switch to JWT authentication
                     self._jsonWebToken = jsonWebToken
+
             request.hooks['response'].append(setJsonWebToken)
         return request
 
