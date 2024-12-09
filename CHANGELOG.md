@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.4 (2024-12-06)
+
+### Changes
+
+- Login through json web token automatically when a token is available.
+
 ## 0.8.3 (2024-11-08)
 
 ### Changes

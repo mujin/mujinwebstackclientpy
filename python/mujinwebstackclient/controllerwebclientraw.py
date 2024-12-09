@@ -26,6 +26,38 @@ from .unixsocketadapter import UnixSocketAdapter
 import logging
 log = logging.getLogger(__name__)
 
+class JSONWebTokenAuth(requests_auth.AuthBase):
+    """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available.
+    """
+    _username = None # controller username
+    _password = None # controller password
+    _jsonWebToken = None # json web token
+
+    def __init__(self, username, password):
+        self._username = username
+        self._password = password
+
+    def __eq__(self, other):
+        return all([
+            self._username == getattr(other, '_username', None),
+            self._password == getattr(other, '_password', None),
+            self._jsonWebToken == getattr(other, '_jsonWebToken', None),
+        ])
+
+    def __ne__(self, other):
+        return not self == other
+
+    def _SetJSONWebToken(self, response, *args, **kwargs):
+        # switch to JWT authentication
+        self._jsonWebToken = response.cookies.get('jwttoken')
+
+    def __call__(self, request):
+        if self._jsonWebToken is not None:
+            request.headers['Authorization'] = 'Bearer %s' % self._jsonWebToken
+        else:
+            requests_auth.HTTPBasicAuth(self._username, self._password)(request)
+            request.register_hook('response', self._SetJSONWebToken)
+        return request
 
 class ControllerWebClientRaw(object):
 
@@ -46,8 +78,8 @@ class ControllerWebClientRaw(object):
         # Create session
         self._session = requests.Session()
 
-        # Use basic auth
-        self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
+        # Use basic auth by default, use JWT if available
+        self._session.auth = JSONWebTokenAuth(self._username, self._password)
 
         # Add additional headers
         self._headers.update(additionalHeaders or {})
@@ -185,14 +217,14 @@ class ControllerWebClientRaw(object):
 
         if content is not None and 'error' in content:
             raise APIServerError(content['error'].get('message', raw), inputcommand=path)
-        
+
         if response.status_code >= 400:
             raise APIServerError(_('Unexpected server response %d: %s') % (response.status_code, raw))
 
         # TODO(ziyan): Figure out the expected status code from method
         #              Some APIs were mis-implemented to not return standard status code.
         if not expectedStatusCode:
-            expectedStatusCode = {  
+            expectedStatusCode = {
                 'GET': 200,
                 'POST': 201,
                 'DELETE': 204,
