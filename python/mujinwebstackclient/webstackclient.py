@@ -155,8 +155,6 @@ class WebstackClient(object):
             'locale': os.environ.get('LANG', ''),
         }
         self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint)
-        
-        self.Login()
 
     def __del__(self):
         self.Destroy()

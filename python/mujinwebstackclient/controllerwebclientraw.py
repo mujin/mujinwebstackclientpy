@@ -143,6 +143,10 @@ class ControllerWebClientRaw(object):
             kwargs['allow_redirects'] = method in ('GET',)
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+        jsonWebToken = response.cookies.get('jwttoken')
+        if jsonWebToken is not None:
+            # switch to JWT authentication
+            self._session.auth = JsonWebTokenAuth(jsonWebToken)
 
         # in verbose logging, log the caller
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
