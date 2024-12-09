@@ -53,6 +53,12 @@ class JsonWebTokenAuth(requests_auth.AuthBase):
             request.headers['Authorization'] = 'Bearer ' + self._jsonWebToken
         else:
             requests_auth.HTTPBasicAuth(self._username, self._password)(request)
+            def setJsonWebToken(response, *args, **kwargs):
+                jsonWebToken = response.cookies.get('jwttoken')
+                if jsonWebToken is not None:
+                    # switch to JWT authentication
+                    self._jsonWebToken = jsonWebToken
+            request.hooks['response'].append(setJsonWebToken)
         return request
 
 class ControllerWebClientRaw(object):
@@ -153,10 +159,6 @@ class ControllerWebClientRaw(object):
             kwargs['allow_redirects'] = method in ('GET',)
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
-        jsonWebToken = response.cookies.get('jwttoken')
-        if jsonWebToken is not None:
-            # switch to JWT authentication
-            self._session.auth = JsonWebTokenAuth(self._username, self._password, jsonWebToken)
 
         # in verbose logging, log the caller
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
