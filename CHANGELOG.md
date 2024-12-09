@@ -4,7 +4,7 @@
 
 ### Changes
 
-- Login through json web token. Automatically login again if the token is expired.
+- Login through json web token automatically when a token is available.
 
 ## 0.8.3 (2024-11-08)
 
