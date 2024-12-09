@@ -28,21 +28,32 @@ import logging
 log = logging.getLogger(__name__)
 
 class JsonWebTokenAuth(requests_auth.AuthBase):
-    """Attaches JWT Bearer Authentication to a given Request object."""
+    """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available."""
 
+    _username = None
+    _password = None
     _jsonWebToken = None
 
-    def __init__(self, jsonWebToken):
+    def __init__(self, username, password, jsonWebToken):
+        self._username = username
+        self._password = password
         self._jsonWebToken = jsonWebToken
 
     def __eq__(self, other):
-        return self._jsonWebToken == getattr(other, '_jsonWebToken', None)
+        return all([
+            self._username == getattr(other, '_username', None),
+            self._password == getattr(other, '_password', None),
+            self._jsonWebToken == getattr(other, '_jsonWebToken', None),
+        ])
 
     def __ne__(self, other):
         return not self == other
 
     def __call__(self, request):
-        request.headers['Authorization'] = 'Bearer ' + self._jsonWebToken
+        if self._jsonWebToken != '':
+            request.headers['Authorization'] = 'Bearer ' + self._jsonWebToken
+        else:
+            requests_auth.HTTPBasicAuth(self._username, self._password)(request)
         return request
 
 class ControllerWebClientRaw(object):
@@ -65,7 +76,7 @@ class ControllerWebClientRaw(object):
         self._session = requests.Session()
 
         # Use basic auth
-        self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
+        self._session.auth = JsonWebTokenAuth(self._username, self._password, '')
 
         # Add additional headers
         self._headers.update(additionalHeaders or {})
@@ -146,7 +157,7 @@ class ControllerWebClientRaw(object):
         jsonWebToken = response.cookies.get('jwttoken')
         if jsonWebToken is not None:
             # switch to JWT authentication
-            self._session.auth = JsonWebTokenAuth(jsonWebToken)
+            self._session.auth = JsonWebTokenAuth(self._username, self._password, jsonWebToken)
 
         # in verbose logging, log the caller
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system

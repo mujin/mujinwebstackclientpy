@@ -201,10 +201,7 @@ class WebstackClient(object):
     def Login(self, timeout=5):
         """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
         """
-        try:
-            self._webclient.Login(timeout=timeout)
-        except Exception:
-            self.Ping(timeout=timeout)
+        self.Ping(timeout=timeout)
 
     def Ping(self, timeout=5):
         """Sends a dummy HEAD request to api endpoint
