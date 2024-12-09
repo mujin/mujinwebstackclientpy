@@ -29,14 +29,13 @@ log = logging.getLogger(__name__)
 class JsonWebTokenAuth(requests_auth.AuthBase):
     """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available."""
 
-    _username = None
-    _password = None
-    _jsonWebToken = None
+    _username = None # controller username
+    _password = None # controller password
+    _jsonWebToken = None # json web token
 
-    def __init__(self, username, password, jsonWebToken):
+    def __init__(self, username, password):
         self._username = username
         self._password = password
-        self._jsonWebToken = jsonWebToken
 
     def __eq__(self, other):
         return all([
@@ -49,18 +48,16 @@ class JsonWebTokenAuth(requests_auth.AuthBase):
         return not self == other
 
     def __call__(self, request):
-        if self._jsonWebToken != '':
+        if self._jsonWebToken is not None:
             request.headers['Authorization'] = 'Bearer ' + self._jsonWebToken
         else:
             requests_auth.HTTPBasicAuth(self._username, self._password)(request)
 
-            def setJsonWebToken(response, *args, **kwargs):
-                jsonWebToken = response.cookies.get('jwttoken')
-                if jsonWebToken is not None:
-                    # switch to JWT authentication
-                    self._jsonWebToken = jsonWebToken
+            def _SetJsonWebToken(response, *args, **kwargs):
+                # switch to JWT authentication
+                self._jsonWebToken = response.cookies.get('jwttoken')
 
-            request.hooks['response'].append(setJsonWebToken)
+            request.hooks['response'].append(_SetJsonWebToken)
         return request
 
 class ControllerWebClientRaw(object):
@@ -82,8 +79,8 @@ class ControllerWebClientRaw(object):
         # Create session
         self._session = requests.Session()
 
-        # Use basic auth
-        self._session.auth = JsonWebTokenAuth(self._username, self._password, '')
+        # Use basic auth by default, use JWT if available
+        self._session.auth = JsonWebTokenAuth(self._username, self._password)
 
         # Add additional headers
         self._headers.update(additionalHeaders or {})
