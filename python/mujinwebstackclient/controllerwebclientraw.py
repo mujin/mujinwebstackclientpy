@@ -22,7 +22,6 @@ from . import _
 from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
 from .unixsocketadapter import UnixSocketAdapter
-from . import webstackgraphclient
 
 import logging
 log = logging.getLogger(__name__)
