@@ -278,6 +278,5 @@ class ControllerWebClientRaw(object):
         finally:
             if jsonWebToken == '':
                 self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
-                self._headers.pop('Authorization', None)
             else:
                 self._session.auth = JsonWebTokenAuth(jsonWebToken)
