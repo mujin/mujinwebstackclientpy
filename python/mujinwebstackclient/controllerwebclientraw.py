@@ -27,6 +27,23 @@ from . import webstackgraphclient
 import logging
 log = logging.getLogger(__name__)
 
+class JsonWebTokenAuth(requests_auth.AuthBase):
+    """Attaches JWT Bearer Authentication to a given Request object."""
+
+    jsonWebToken = None
+
+    def __init__(self, jsonWebToken):
+        self.jsonWebToken = jsonWebToken
+
+    def __eq__(self, other):
+        return self.jsonWebToken == getattr(other, 'jsonWebToken', None)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __call__(self, request):
+        request.headers['Authorization'] = 'Bearer ' + self.jsonWebToken
+        return request
 
 class ControllerWebClientRaw(object):
 
@@ -263,5 +280,4 @@ class ControllerWebClientRaw(object):
                 self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
                 self._headers.pop('Authorization', None)
             else:
-                self._session.auth = None
-                self._headers['Authorization'] = 'Bearer ' + jsonWebToken
+                self._session.auth = JsonWebTokenAuth(jsonWebToken)
