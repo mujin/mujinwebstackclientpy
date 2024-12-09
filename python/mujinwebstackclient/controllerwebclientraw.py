@@ -47,17 +47,16 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
     def __ne__(self, other):
         return not self == other
 
+    def _SetJSONWebToken(self, response, *args, **kwargs):
+        # switch to JWT authentication
+        self._jsonWebToken = response.cookies.get('jwttoken')
+
     def __call__(self, request):
         if self._jsonWebToken is not None:
-            request.headers['Authorization'] = 'Bearer ' + self._jsonWebToken
+            request.headers['Authorization'] = 'Bearer %s' % self._jsonWebToken
         else:
             requests_auth.HTTPBasicAuth(self._username, self._password)(request)
-
-            def _SetJSONWebToken(response, *args, **kwargs):
-                # switch to JWT authentication
-                self._jsonWebToken = response.cookies.get('jwttoken')
-
-            request.hooks['response'].append(_SetJSONWebToken)
+            request.register_hook('response', self._SetJSONWebToken)
         return request
 
 class ControllerWebClientRaw(object):
