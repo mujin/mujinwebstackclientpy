@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.5 (2024-12-23)
+
+### Changes
+
+- Regenerate the graph client.
+
 ## 0.8.4 (2024-12-06)
 
 ### Changes
