@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import traceback
 import os
 import requests
+import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
 
@@ -67,6 +69,8 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
+    _graphEndpoint = None # URL to http GraphQL endpoint on Mujin controller
+    _encodedUsernamePassword = None # Encoded Mujin controller's username and password
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -74,6 +78,10 @@ class ControllerWebClientRaw(object):
         self._password = password
         self._headers = {}
         self._isok = True
+        self._graphEndpoint = '%s/api/v2/graphql' % baseurl
+        
+        usernamePassword = '%s:%s' % (username, password)
+        self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
 
         # Create session
         self._session = requests.Session()
@@ -280,3 +288,40 @@ class ControllerWebClientRaw(object):
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)
 
         return content['data']
+
+    async def SubscribeGraphAPI(self, query, callbackFunction):
+        """ Subscribes to changes on Mujin controller.
+        """
+        async def _Subscribe(callbackFunction):
+            async with websockets.connect(
+                uri='ws%s' % self._graphEndpoint[len('http'):], # replace http:// with ws://, https:// with wss://
+                subprotocols=['graphql-ws'],
+                extra_headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRFToken': 'token',
+                    'Authorization': 'Basic %s' % self._encodedUsernamePassword,
+                },
+            ) as websocket:
+                # send the WebSocket connection initialization request
+                await websocket.send(json.dumps({'type': 'connection_init', 'payload': {}}))
+
+                # start a new subscription on the WebSocket connection
+                await websocket.send(json.dumps({'type': 'start', 'payload': {'query': query}}))
+
+                # read incoming messages
+                async for response in websocket:
+                    data = json.loads(response)
+                    if data['type'] == 'connection_ack':
+                        log.debug('received connection_ack')
+                    elif data['type'] == 'ka':
+                        # received keep-alive "ka" message
+                        pass
+                    else:
+                        # call the calback function to process the payload
+                        callbackFunction(data['payload'])
+
+                # stop the subscription on the WebSocket connection
+                await websocket.send(json.dumps({"type": "stop", "payload": {}}))
+
+        await _Subscribe(callbackFunction)
