@@ -289,25 +289,34 @@ class ControllerWebClientRaw(object):
 
         return content['data']
 
-    async def SubscribeGraphAPI(self, query, callbackFunction):
+    def _Callback(response):
+        # tmp: simply print the response
+        print(response)
+
+    async def SubscribeGraphAPI(self, query="subscription {SubscribeWebStackState(interval:\"5s\"){synchronizer{messages}}}", callbackFunction=_Callback):
         """ Subscribes to changes on Mujin controller.
         """
         async def _Subscribe(callbackFunction):
             async with websockets.connect(
                 uri='ws%s' % self._graphEndpoint[len('http'):], # replace http:// with ws://, https:// with wss://
                 subprotocols=['graphql-ws'],
-                extra_headers={
+                additional_headers={
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-CSRFToken': 'token',
                     'Authorization': 'Basic %s' % self._encodedUsernamePassword,
                 },
             ) as websocket:
+                print("hello1")
                 # send the WebSocket connection initialization request
                 await websocket.send(json.dumps({'type': 'connection_init', 'payload': {}}))
 
+                print("hello2")
+
                 # start a new subscription on the WebSocket connection
                 await websocket.send(json.dumps({'type': 'start', 'payload': {'query': query}}))
+
+                print("hello3")
 
                 # read incoming messages
                 async for response in websocket:
