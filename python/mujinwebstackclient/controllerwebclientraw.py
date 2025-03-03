@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import base64
-import traceback
 import os
 import requests
-import websockets
-import asyncio
 import threading
-from typing import Optional, Callable, Dict, Any
+import traceback
+import uuid
+import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
+from typing import Optional, Callable, Dict, Any
 
 from . import _
 from . import json
@@ -76,7 +77,8 @@ class ControllerWebClientRaw(object):
     _graphEndpoint = None # URL to http GraphQL endpoint on Mujin controller
     _encodedUsernamePassword = None # Encoded Mujin controller's username and password
     _websocket = None # Websocket used to connect to webstack for subscriptions
-    _subscriptions = {} # Dictionary that 
+    _subscriptionIds = {} # Dictionary that stores the subscription(key) and its subscriptionId(value)
+    _subscriptionCallbacks = {} # Dictionary that stores the subscriptionId(key) and its callback function(value)
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -333,25 +335,27 @@ class ControllerWebClientRaw(object):
                 else:
                     # parse to get the subscriptionId so that we can call the correct callback function
                     subscriptionId = data.get('id')
-                    if subscriptionId in self._subscriptions:
-                        self._subscriptions[subscriptionId](data['payload'])
+                    if subscriptionId in self._subscriptionCallbacks:
+                        self._subscriptionCallbacks[subscriptionId](data['payload'])
         except websockets.exceptions.ConnectionClosed:
             log.error("webSocket connection closed")
             self._websocket = None
         except asyncio.CancelledError:
             log.error("webSocket listener cancelled")
 
-    def SubscribeGraphAPI(self, subscriptionId: str, query: str, variables: Optional[dict] = None, callbackFunction: Callable = None):
+    def SubscribeGraphAPI(self, query: str, variables: Optional[dict] = None, callbackFunction: Callable = None):
         """ Subscribes to changes on Mujin controller.
 
         Args:
-            subscriptionId (string): an unique id to sent to the server so that we have multiple subscriptions using the same websocket
             query (string): a query to subscribe to the service (e.g. "subscription {SubscribeWebStackState(interval:\"5s\"){synchronizer{messages}}}")
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
         if callbackFunction is None:
             callbackFunction = self._Callback
+
+        # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
+        subscriptionId = str(uuid.uuid4())
 
         async def _Subscribe(callbackFunction):
             # try:
@@ -360,7 +364,7 @@ class ControllerWebClientRaw(object):
                     await self._OpenWebSocketConnection()
 
                 # store the callback function
-                self._subscriptions[subscriptionId] = callbackFunction
+                self._subscriptionCallbacks[subscriptionId] = callbackFunction
 
                 # start a new subscription on the WebSocket connection
                 await self._websocket.send(json.dumps({
@@ -369,33 +373,24 @@ class ControllerWebClientRaw(object):
                     'payload': {'query': query, 'variables': variables or {}}
                 }))
 
-                # # read incoming messages
-                # async for response in self._websocket:
-                #     data = json.loads(response)
-                #     if data['type'] == 'connection_ack':
-                #         log.debug('received connection_ack')
-                #     elif data['type'] == 'ka':
-                #         # received keep-alive "ka" message
-                #         pass
-                #     else:
-                #         # call the calback function to process the payload
-                #         callbackFunction(data['payload'])
-            # except asyncio.CancelledError:
-            #     # stop the subscription on the WebSocket connection
-            #     await self._websocket.send(json.dumps({'id': subscriptionId, "type": "stop", "payload": {}}))
+        subscription = asyncio.run_coroutine_threadsafe(_Subscribe(callbackFunction), self._loop)
+        self._subscriptionIds[subscription] = subscriptionId
+        return subscription
 
-        task = asyncio.run_coroutine_threadsafe(_Subscribe(callbackFunction), self._loop)
-        return task
-
-    def Unsubscribe(self, subscriptionId):
+    def Unsubscribe(self, subscription):
         async def _StopSubscription():
-            if subscriptionId in self._subscriptions:
+            # check if self._subscriptionIds has subscription's subscriptionId
+            if subscription in self._subscriptionIds:
+                subscriptionId = self._subscriptionIds[subscription]
                 await self._websocket.send(json.dumps({
                     'id': subscriptionId,
                     'type': 'stop',
                     'payload': {}
                 }))
-                del self._subscriptions[subscriptionId]
+                # remove subscription's subscriptionId and callback function
+                self._subscriptionIds.pop(subscription, None)
+                self._subscriptionCallbacks.pop(subscriptionId, None)
+
 
         task = asyncio.run_coroutine_threadsafe(_StopSubscription(), self._loop)
         return task
