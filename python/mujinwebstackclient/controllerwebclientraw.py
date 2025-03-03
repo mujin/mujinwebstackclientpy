@@ -75,6 +75,7 @@ class ControllerWebClientRaw(object):
     _session = None  # Requests session object
     _graphEndpoint = None # URL to http GraphQL endpoint on Mujin controller
     _encodedUsernamePassword = None # Encoded Mujin controller's username and password
+    _websocket = None # Websocket used to connect to webstack for subscriptions
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -82,16 +83,13 @@ class ControllerWebClientRaw(object):
         self._password = password
         self._headers = {}
         self._isok = True
-        self._graphEndpoint = '%s/api/v2/graphql' % baseurl
-        self._websocket = None
-        
-        self._loop = asyncio.new_event_loop()
-        threading.Thread(target=self.RunLoop, args=()).start()
 
-        self.Result = "Default"
-        
+        self._graphEndpoint = '%s/api/v2/graphql' % baseurl
         usernamePassword = '%s:%s' % (username, password)
         self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
+        # Create new event loop that is running in the MainThread so that client can add coroutine(a subscription in this case)
+        self._loop = asyncio.new_event_loop()
+        threading.Thread(target=self.RunLoop, args=()).start()
 
         # Create session
         self._session = requests.Session()
@@ -306,7 +304,6 @@ class ControllerWebClientRaw(object):
     def _Callback(self, response: Dict[str, Any]):
         # tmp: simply print the response
         print(response)
-        self.Result = response
 
     async def _ConnectToWebSocket(self):
         self._websocket = await websockets.connect(
@@ -321,7 +318,7 @@ class ControllerWebClientRaw(object):
         )
         await self._websocket.send(json.dumps({'type': 'connection_init', 'payload': {}}))
 
-    def SubscribeGraphAPI(self, query: str, variables: Optional[dict] = None, callbackFunction: Callable = _Callback):
+    def SubscribeGraphAPI(self, query: str, variables: Optional[dict] = None, callbackFunction: Callable = None):
         """ Subscribes to changes on Mujin controller.
 
         Args:
@@ -329,13 +326,15 @@ class ControllerWebClientRaw(object):
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
+        if callbackFunction is None:
+            callbackFunction = self._Callback
 
         async def _Subscribe(callbackFunction):
             if self._websocket is None:
                 await self._ConnectToWebSocket()
 
             # start a new subscription on the WebSocket connection
-            await self._websocket.send(json.dumps({'type': 'start', 'payload': {'query': query}}))
+            await self._websocket.send(json.dumps({'type': 'start', 'payload': {'query': query, 'variables': variables or {}}}))
 
             # read incoming messages
             async for response in self._websocket:
