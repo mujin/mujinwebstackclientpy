@@ -77,7 +77,7 @@ class ControllerWebClientRaw(object):
     _graphEndpoint = None # URL to http GraphQL endpoint on Mujin controller
     _encodedUsernamePassword = None # Encoded Mujin controller's username and password
     _websocket = None # Websocket used to connect to webstack for subscriptions
-    _subscriptionIds = {} # Dictionary that stores the subscription(key) and its subscriptionId(value)
+    _subscriptionIds = [] # List that stores the subscriptionId
     _subscriptionCallbacks = {} # Dictionary that stores the subscriptionId(key) and its callback function(value)
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
@@ -373,24 +373,21 @@ class ControllerWebClientRaw(object):
                     'payload': {'query': query, 'variables': variables or {}}
                 }))
 
-        subscription = asyncio.run_coroutine_threadsafe(_Subscribe(callbackFunction), self._loop)
-        self._subscriptionIds[subscription] = subscriptionId
-        return subscription
+        asyncio.run_coroutine_threadsafe(_Subscribe(callbackFunction), self._loop)
+        self._subscriptionIds.append(subscriptionId)
+        return subscriptionId
 
-    def Unsubscribe(self, subscription):
+    def Unsubscribe(self, subscriptionId):
         async def _StopSubscription():
-            # check if self._subscriptionIds has subscription's subscriptionId
-            if subscription in self._subscriptionIds:
-                subscriptionId = self._subscriptionIds[subscription]
+            # check if self._subscriptionIds has subscriptionId
+            if subscriptionId in self._subscriptionIds:
                 await self._websocket.send(json.dumps({
                     'id': subscriptionId,
                     'type': 'stop',
                     'payload': {}
                 }))
                 # remove subscription's subscriptionId and callback function
-                self._subscriptionIds.pop(subscription, None)
+                self._subscriptionIds.remove(subscriptionId)
                 self._subscriptionCallbacks.pop(subscriptionId, None)
 
-
-        task = asyncio.run_coroutine_threadsafe(_StopSubscription(), self._loop)
-        return task
+        asyncio.run_coroutine_threadsafe(_StopSubscription(), self._loop)
