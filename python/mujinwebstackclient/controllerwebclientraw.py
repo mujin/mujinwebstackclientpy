@@ -377,7 +377,7 @@ class ControllerWebClientRaw(object):
         self._subscriptionIds.append(subscriptionId)
         return subscriptionId
 
-    def Unsubscribe(self, subscriptionId):
+    def UnsubscribeGraphAPI(self, subscriptionId):
         async def _StopSubscription():
             # check if self._subscriptionIds has subscriptionId
             if subscriptionId in self._subscriptionIds:
