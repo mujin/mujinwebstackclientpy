@@ -65,6 +65,19 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
             requests_auth.HTTPBasicAuth(self._username, self._password)(request)
             request.register_hook('response', self._SetJSONWebToken)
         return request
+    
+class Subscription:
+    """Subscription that contains the unique subscription id for every subscription.
+    """
+    _subscriptionId = None # subscription id
+    _query = None # subscription query
+
+    def __init__(self, subscriptionId, query):
+        self._subscriptionId = subscriptionId
+        self._query = query
+    
+    def GetSubscriptionId(self):
+        return self._subscriptionId
 
 class ControllerWebClientRaw(object):
 
@@ -343,7 +356,7 @@ class ControllerWebClientRaw(object):
         except asyncio.CancelledError:
             log.error("webSocket listener cancelled")
 
-    def SubscribeGraphAPI(self, query: str, variables: Optional[dict] = None, callbackFunction: Callable = None):
+    def SubscribeGraphAPI(self, query: str, variables: Optional[dict] = None, callbackFunction: Callable = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
 
         Args:
@@ -375,10 +388,11 @@ class ControllerWebClientRaw(object):
 
         asyncio.run_coroutine_threadsafe(_Subscribe(callbackFunction), self._loop)
         self._subscriptionIds.append(subscriptionId)
-        return subscriptionId
+        return Subscription(subscriptionId)
 
-    def UnsubscribeGraphAPI(self, subscriptionId):
+    def UnsubscribeGraphAPI(self, subscription: Subscription) -> None:
         async def _StopSubscription():
+            subscriptionId = subscription.GetSubscriptionId()
             # check if self._subscriptionIds has subscriptionId
             if subscriptionId in self._subscriptionIds:
                 await self._websocket.send(json.dumps({
