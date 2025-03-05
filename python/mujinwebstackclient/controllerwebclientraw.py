@@ -406,7 +406,7 @@ class ControllerWebClientRaw(object):
         asyncio.run_coroutine_threadsafe(_Subscribe(), self._loop)
         return subscription
 
-    def UnsubscribeGraphAPI(self, subscription: Subscription) -> None:
+    def UnsubscribeGraphAPI(self, subscription: Subscription):
         async def _StopSubscription():
             subscriptionId = subscription.GetSubscriptionId()
             # check if self._subscriptionIds has subscriptionId
