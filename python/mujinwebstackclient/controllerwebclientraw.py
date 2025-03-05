@@ -24,6 +24,9 @@ from requests import auth as requests_auth
 from requests import adapters as requests_adapters
 from typing import Optional, Callable, Dict, Any
 
+import websockets.asyncio
+import websockets.asyncio.client
+
 from . import _
 from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
@@ -69,15 +72,28 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
 class Subscription:
     """Subscription that contains the unique subscription id for every subscription.
     """
-    _subscriptionId = None # subscription id
-    _query = None # subscription query
+    _query: str # subscription query
+    _variables: dict # subscription query variables
+    _subscriptionId: str # subscription id
+    _subscriptionCallbackFunction: Callable # subscription callback function
 
-    def __init__(self, subscriptionId, query):
-        self._subscriptionId = subscriptionId
+    def __init__(
+        self,
+        query: str,
+        variables: dict,
+        subscriptionId: str,
+        callbackFunction: Callable,
+    ):
         self._query = query
-    
-    def GetSubscriptionId(self):
+        self._variables = variables
+        self._subscriptionId = subscriptionId
+        self._subscriptionCallbackFunction = callbackFunction
+
+    def GetSubscriptionId(self) -> str:
         return self._subscriptionId
+
+    def GetSubscriptionCallbackFunction(self) -> Callable:
+        return self._subscriptionCallbackFunction
 
 class ControllerWebClientRaw(object):
 
@@ -87,11 +103,11 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _graphEndpoint = None # URL to http GraphQL endpoint on Mujin controller
-    _encodedUsernamePassword = None # Encoded Mujin controller's username and password
-    _websocket = None # Websocket used to connect to webstack for subscriptions
-    _subscriptionIds = [] # List that stores the subscriptionId
-    _subscriptionCallbacks = {} # Dictionary that stores the subscriptionId(key) and its callback function(value)
+    _graphEndpoint: str # URL to http GraphQL endpoint on Mujin controller
+    _encodedUsernamePassword: str # Encoded Mujin controller's username and password
+    _websocket: websockets.asyncio.client.ClientConnection # Websocket used to connect to webstack for subscriptions
+    _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
+    _loop: asyncio.AbstractEventLoop # Event loop that is running in the MainThread so that client can add coroutine(a subscription in this case)
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -103,9 +119,11 @@ class ControllerWebClientRaw(object):
         self._graphEndpoint = '%s/api/v2/graphql' % baseurl
         usernamePassword = '%s:%s' % (username, password)
         self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
-        # Create new event loop that is running in the MainThread so that client can add coroutine(a subscription in this case)
+        # Create new event loop
         self._loop = asyncio.new_event_loop()
         threading.Thread(target=self.RunLoop, args=()).start()
+        self._websocket = None
+        self._subscriptions = {}
 
         # Create session
         self._session = requests.Session()
@@ -317,7 +335,7 @@ class ControllerWebClientRaw(object):
 
         return content['data']
 
-    def _Callback(self, response: Dict[str, Any]):
+    def _DefaultCallback(self, response: Dict[str, Any]):
         # tmp: simply print the response
         print(response)
 
@@ -348,8 +366,9 @@ class ControllerWebClientRaw(object):
                 else:
                     # parse to get the subscriptionId so that we can call the correct callback function
                     subscriptionId = data.get('id')
-                    if subscriptionId in self._subscriptionCallbacks:
-                        self._subscriptionCallbacks[subscriptionId](data['payload'])
+                    if subscriptionId in self._subscriptions:
+                        subscription = self._subscriptions[subscriptionId]
+                        subscription.GetSubscriptionCallbackFunction()(data['payload'])
         except websockets.exceptions.ConnectionClosed:
             log.error("webSocket connection closed")
             self._websocket = None
@@ -365,43 +384,39 @@ class ControllerWebClientRaw(object):
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
         if callbackFunction is None:
-            callbackFunction = self._Callback
+            callbackFunction = self._DefaultCallback
 
         # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
         subscriptionId = str(uuid.uuid4())
+        subscription = Subscription(query, variables, subscriptionId, callbackFunction)
+        self._subscriptions[subscriptionId] = subscription
 
-        async def _Subscribe(callbackFunction):
-            # try:
-                # check if _websocket exists
-                if self._websocket is None:
-                    await self._OpenWebSocketConnection()
+        async def _Subscribe():
+            # check if _websocket exists
+            if self._websocket is None:
+                await self._OpenWebSocketConnection()
 
-                # store the callback function
-                self._subscriptionCallbacks[subscriptionId] = callbackFunction
+            # start a new subscription on the WebSocket connection
+            await self._websocket.send(json.dumps({
+                'id': subscriptionId,
+                'type': 'start',
+                'payload': {'query': query, 'variables': variables or {}}
+            }))
 
-                # start a new subscription on the WebSocket connection
-                await self._websocket.send(json.dumps({
-                    'id': subscriptionId,
-                    'type': 'start',
-                    'payload': {'query': query, 'variables': variables or {}}
-                }))
-
-        asyncio.run_coroutine_threadsafe(_Subscribe(callbackFunction), self._loop)
-        self._subscriptionIds.append(subscriptionId)
-        return Subscription(subscriptionId)
+        asyncio.run_coroutine_threadsafe(_Subscribe(), self._loop)
+        return subscription
 
     def UnsubscribeGraphAPI(self, subscription: Subscription) -> None:
         async def _StopSubscription():
             subscriptionId = subscription.GetSubscriptionId()
             # check if self._subscriptionIds has subscriptionId
-            if subscriptionId in self._subscriptionIds:
+            if subscriptionId in self._subscriptions:
                 await self._websocket.send(json.dumps({
                     'id': subscriptionId,
                     'type': 'stop',
                     'payload': {}
                 }))
-                # remove subscription's subscriptionId and callback function
-                self._subscriptionIds.remove(subscriptionId)
-                self._subscriptionCallbacks.pop(subscriptionId, None)
+                # remove subscription
+                self._subscriptions.pop(subscription.GetSubscriptionId(), None)
 
         asyncio.run_coroutine_threadsafe(_StopSubscription(), self._loop)
