@@ -72,20 +72,14 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
 class Subscription:
     """Subscription that contains the unique subscription id for every subscription.
     """
-    _query: str # subscription query
-    _variables: dict # subscription query variables
     _subscriptionId: str # subscription id
     _subscriptionCallbackFunction: Callable # subscription callback function
 
     def __init__(
         self,
-        query: str,
-        variables: dict,
         subscriptionId: str,
         callbackFunction: Callable,
     ):
-        self._query = query
-        self._variables = variables
         self._subscriptionId = subscriptionId
         self._subscriptionCallbackFunction = callbackFunction
 
@@ -388,7 +382,7 @@ class ControllerWebClientRaw(object):
 
         # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
         subscriptionId = str(uuid.uuid4())
-        subscription = Subscription(query, variables, subscriptionId, callbackFunction)
+        subscription = Subscription(subscriptionId, callbackFunction)
         self._subscriptions[subscriptionId] = subscription
 
         async def _Subscribe():
