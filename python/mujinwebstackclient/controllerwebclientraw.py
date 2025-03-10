@@ -23,6 +23,7 @@ import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
 from typing import Optional, Callable, Dict, Any
+from urllib.parse import urlparse
 
 import websockets.asyncio
 import websockets.asyncio.client
@@ -99,7 +100,6 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _graphEndpoint: str # URL to http GraphQL endpoint on Mujin controller
     _encodedUsernamePassword: str # Encoded Mujin controller's username and password
     _websocket: websockets.asyncio.client.ClientConnection # Websocket used to connect to webstack for subscriptions
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
@@ -113,7 +113,6 @@ class ControllerWebClientRaw(object):
         self._headers = {}
         self._isok = True
 
-        self._graphEndpoint = '%s/api/v2/graphql' % baseurl
         usernamePassword = '%s:%s' % (username, password)
         self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
         # Create new event loop
@@ -357,8 +356,19 @@ class ControllerWebClientRaw(object):
             else:
                 authorization = 'Bearer %s' % self._session.auth._GetJSONWebToken()
 
+        # URL to http GraphQL endpoint on Mujin controller
+        graphEndpoint = '%s/api/v2/graphql' % self._baseurl
+        parsedUrl = urlparse(graphEndpoint)
+        # parse url and handle different scheme
+        webSocketScheme = ''
+        if parsedUrl.scheme == "https":
+            webSocketScheme = 'wss'
+        elif parsedUrl.scheme == "http":
+            webSocketScheme = 'ws'
+        uri = '%s://%s%s' % (webSocketScheme, parsedUrl.netloc, parsedUrl.path)
+
         self._websocket = await websockets.connect(
-            uri='ws%s' % self._graphEndpoint[len('http'):],
+            uri=uri,
             subprotocols=['graphql-ws'],
             additional_headers={
                 'Content-Type': 'application/json',
