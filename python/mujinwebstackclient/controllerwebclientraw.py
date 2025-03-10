@@ -72,8 +72,8 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
 class Subscription:
     """Subscription that contains the unique subscription id for every subscription.
     """
-    _subscriptionId: str # subscription id
-    _subscriptionCallbackFunction: Callable # subscription callback function
+    _subscriptionId = '' # subscription id
+    _subscriptionCallbackFunction = None # subscription callback function
 
     def __init__(
         self,
@@ -97,12 +97,12 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _graphEndpoint: str # URL to http GraphQL endpoint on Mujin controller
-    _encodedUsernamePassword: str # Encoded Mujin controller's username and password
-    _websocket: websockets.asyncio.client.ClientConnection # Websocket used to connect to webstack for subscriptions
-    _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
-    _eventLoopThread: threading.Thread # A thread to run the event loop
-    _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
+    _graphEndpoint = '' # URL to http GraphQL endpoint on Mujin controller
+    _encodedUsernamePassword = '' # Encoded Mujin controller's username and password
+    _websocket = None # Websocket used to connect to webstack for subscriptions
+    _subscriptions = {} # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
+    _eventLoopThread = None # A thread to run the event loop
+    _eventLoop = None # Event loop that is running so that client can add coroutine(a subscription in this case)
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
