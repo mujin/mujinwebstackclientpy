@@ -42,10 +42,13 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
     _username = None # controller username
     _password = None # controller password
     _jsonWebToken = None # json web token
+    _encodedUsernamePassword: str # Encoded Mujin controller's username and password
 
     def __init__(self, username, password):
         self._username = username
         self._password = password
+        usernamePassword = '%s:%s' % (username, password)
+        self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
 
     def __eq__(self, other):
         return all([
@@ -61,8 +64,11 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
         # switch to JWT authentication
         self._jsonWebToken = response.cookies.get('jwttoken')
 
-    def _GetJSONWebToken(self):
-        return self._jsonWebToken
+    def _GetAuthorization(self) -> str:
+        if self._jsonWebToken is None:
+            return 'Basic %s' % self._encodedUsernamePassword
+        else:
+            return 'Bearer %s' % self._jsonWebToken
 
     def __call__(self, request):
         if self._jsonWebToken is not None:
@@ -100,7 +106,6 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _encodedUsernamePassword: str # Encoded Mujin controller's username and password
     _websocket: websockets.asyncio.client.ClientConnection # Websocket used to connect to webstack for subscriptions
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _eventLoopThread: threading.Thread # A thread to run the event loop
@@ -113,8 +118,6 @@ class ControllerWebClientRaw(object):
         self._headers = {}
         self._isok = True
 
-        usernamePassword = '%s:%s' % (username, password)
-        self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
         # Create new event loop
         self._eventLoop = asyncio.new_event_loop()
         self._eventLoopThread = threading.Thread(target=self._RunEventLoop, daemon=True)
@@ -340,21 +343,7 @@ class ControllerWebClientRaw(object):
         return content['data']
 
     async def _OpenWebSocketConnection(self):
-        authorization = ''
-        if self._session.auth._GetJSONWebToken() is None:
-            response = self.Request('POST', '/api/v2/graphql', auth=self._session.auth,
-                headers={
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                data=json.dumps({
-                    'query': 'query{Ping(host:\"%s\"){ip}}' % self._baseurl,
-                })
-            )
-            if response.status_code != 200 or self._session.auth._GetJSONWebToken() is None:
-                authorization = 'Basic %s' % self._encodedUsernamePassword
-            else:
-                authorization = 'Bearer %s' % self._session.auth._GetJSONWebToken()
+        authorization = self._session.auth._GetAuthorization()
 
         # URL to http GraphQL endpoint on Mujin controller
         graphEndpoint = '%s/api/v2/graphql' % self._baseurl
@@ -416,7 +405,6 @@ class ControllerWebClientRaw(object):
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
-
         # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
@@ -428,11 +416,7 @@ class ControllerWebClientRaw(object):
                 await self._OpenWebSocketConnection()
 
             # start a new subscription on the WebSocket connection
-            authorization = ''
-            if self._session.auth._GetJSONWebToken() is None:
-                authorization = 'Basic %s' % self._encodedUsernamePassword
-            else:
-                authorization = 'Bearer %s' % self._session.auth._GetJSONWebToken()
+            authorization = self._session.auth._GetAuthorization()
 
             await self._websocket.send(json.dumps({
                 'id': subscriptionId,
@@ -448,11 +432,7 @@ class ControllerWebClientRaw(object):
             subscriptionId = subscription.GetSubscriptionID()
             # check if self._subscriptionIds has subscriptionId
             if subscriptionId in self._subscriptions:
-                authorization = ''
-                if self._session.auth._GetJSONWebToken() is None:
-                    authorization = 'Basic %s' % self._encodedUsernamePassword
-                else:
-                    authorization = 'Bearer %s' % self._session.auth._GetJSONWebToken()
+                authorization = self._session.auth._GetAuthorization()
 
                 await self._websocket.send(json.dumps({
                     'id': subscriptionId,
