@@ -101,7 +101,8 @@ class ControllerWebClientRaw(object):
     _encodedUsernamePassword: str # Encoded Mujin controller's username and password
     _websocket: websockets.asyncio.client.ClientConnection # Websocket used to connect to webstack for subscriptions
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
-    _loop: asyncio.AbstractEventLoop # Event loop that is running in the MainThread so that client can add coroutine(a subscription in this case)
+    _eventLoopThread: threading.Thread # A thread to run the event loop
+    _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -114,8 +115,9 @@ class ControllerWebClientRaw(object):
         usernamePassword = '%s:%s' % (username, password)
         self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
         # Create new event loop
-        self._loop = asyncio.new_event_loop()
-        threading.Thread(target=self.RunLoop, args=()).start()
+        self._eventLoop = asyncio.new_event_loop()
+        self._eventLoopThread = threading.Thread(target=self._RunEventLoop, daemon=True)
+        self._eventLoopThread.start()
         self._websocket = None
         self._subscriptions = {}
 
@@ -158,8 +160,7 @@ class ControllerWebClientRaw(object):
 
     def Destroy(self):
         self.SetDestroy()
-        if self._loop is not None:
-            self._loop.close()
+        self._CloseEventLoop()
 
     def SetDestroy(self):
         self._isok = False
@@ -188,9 +189,15 @@ class ControllerWebClientRaw(object):
         else:
             self._headers.pop('User-Agent', None)
 
-    def RunLoop(self):
-        asyncio.set_event_loop(self._loop)
-        self._loop.run_forever()
+    def _RunEventLoop(self):
+        asyncio.set_event_loop(self._eventLoop)
+        self._eventLoop.run_forever()
+
+    def _CloseEventLoop(self):
+        if self._eventLoop.is_running():
+            self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
+            self._eventLoopThread.join()
+            self._eventLoop.close()
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
@@ -348,7 +355,7 @@ class ControllerWebClientRaw(object):
         )
         await self._websocket.send(json.dumps({'type': 'connection_init', 'payload': {}}))
         # create a coroutine that is specially used for listening to the websocket
-        asyncio.run_coroutine_threadsafe(self._ListenToWebsocket(), self._loop)
+        asyncio.run_coroutine_threadsafe(self._ListenToWebsocket(), self._eventLoop)
     
     async def _ListenToWebsocket(self):
         try:
@@ -399,7 +406,7 @@ class ControllerWebClientRaw(object):
                 'payload': {'query': query, 'variables': variables or {}}
             }))
 
-        asyncio.run_coroutine_threadsafe(_Subscribe(), self._loop)
+        asyncio.run_coroutine_threadsafe(_Subscribe(), self._eventLoop)
         return subscription
 
     def UnsubscribeGraphAPI(self, subscription: Subscription):
@@ -415,4 +422,4 @@ class ControllerWebClientRaw(object):
                 # remove subscription
                 self._subscriptions.pop(subscription.GetSubscriptionId(), None)
 
-        asyncio.run_coroutine_threadsafe(_StopSubscription(), self._loop)
+        asyncio.run_coroutine_threadsafe(_StopSubscription(), self._eventLoop)
