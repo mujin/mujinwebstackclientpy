@@ -34,7 +34,6 @@ from .unixsocketadapter import UnixSocketAdapter
 
 import logging
 log = logging.getLogger(__name__)
-logging.getLogger('websockets').setLevel(logging.CRITICAL)
 
 class JSONWebTokenAuth(requests_auth.AuthBase):
     """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available.
@@ -83,7 +82,7 @@ class Subscription:
         self._subscriptionId = subscriptionId
         self._subscriptionCallbackFunction = callbackFunction
 
-    def GetSubscriptionId(self) -> str:
+    def GetSubscriptionID(self) -> str:
         return self._subscriptionId
 
     def GetSubscriptionCallbackFunction(self) -> Callable:
@@ -411,7 +410,7 @@ class ControllerWebClientRaw(object):
 
     def UnsubscribeGraphAPI(self, subscription: Subscription):
         async def _StopSubscription():
-            subscriptionId = subscription.GetSubscriptionId()
+            subscriptionId = subscription.GetSubscriptionID()
             # check if self._subscriptionIds has subscriptionId
             if subscriptionId in self._subscriptions:
                 await self._websocket.send(json.dumps({
@@ -420,6 +419,6 @@ class ControllerWebClientRaw(object):
                     'payload': {}
                 }))
                 # remove subscription
-                self._subscriptions.pop(subscription.GetSubscriptionId(), None)
+                self._subscriptions.pop(subscription.GetSubscriptionID(), None)
 
         asyncio.run_coroutine_threadsafe(_StopSubscription(), self._eventLoop)
