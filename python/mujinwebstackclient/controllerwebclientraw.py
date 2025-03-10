@@ -60,6 +60,9 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
         # switch to JWT authentication
         self._jsonWebToken = response.cookies.get('jwttoken')
 
+    def _GetJSONWebToken(self):
+        return self._jsonWebToken
+
     def __call__(self, request):
         if self._jsonWebToken is not None:
             request.headers['Authorization'] = 'Bearer %s' % self._jsonWebToken
@@ -338,6 +341,22 @@ class ControllerWebClientRaw(object):
         return content['data']
 
     async def _OpenWebSocketConnection(self):
+        authorization = ''
+        if self._session.auth._GetJSONWebToken() is None:
+            response = self.Request('POST', '/api/v2/graphql', auth=self._session.auth,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                data=json.dumps({
+                    'query': 'query{Ping(host:\"%s\"){ip}}' % self._baseurl,
+                })
+            )
+            if response.status_code != 200 or self._session.auth._GetJSONWebToken() is None:
+                authorization = 'Basic %s' % self._encodedUsernamePassword
+            else:
+                authorization = 'Bearer %s' % self._session.auth._GetJSONWebToken()
+
         self._websocket = await websockets.connect(
             uri='ws%s' % self._graphEndpoint[len('http'):],
             subprotocols=['graphql-ws'],
@@ -345,10 +364,16 @@ class ControllerWebClientRaw(object):
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-CSRFToken': 'token',
-                'Authorization': 'Basic %s' % self._encodedUsernamePassword,
+                'Authorization': authorization,
             },
         )
-        await self._websocket.send(json.dumps({'type': 'connection_init', 'payload': {}}))
+
+        await self._websocket.send(json.dumps({
+            'type': 'connection_init',
+            'payload': {
+                'Authorization': authorization,
+            }
+        }))
         # create a coroutine that is specially used for listening to the websocket
         asyncio.run_coroutine_threadsafe(self._ListenToWebsocket(), self._eventLoop)
     
@@ -393,10 +418,16 @@ class ControllerWebClientRaw(object):
                 await self._OpenWebSocketConnection()
 
             # start a new subscription on the WebSocket connection
+            authorization = ''
+            if self._session.auth._GetJSONWebToken() is None:
+                authorization = 'Basic %s' % self._encodedUsernamePassword
+            else:
+                authorization = 'Bearer %s' % self._session.auth._GetJSONWebToken()
+
             await self._websocket.send(json.dumps({
                 'id': subscriptionId,
                 'type': 'start',
-                'payload': {'query': query, 'variables': variables or {}}
+                'payload': {'query': query, 'variables': variables or {}, 'payload': {'Authorization': authorization}}
             }))
 
         asyncio.run_coroutine_threadsafe(_Subscribe(), self._eventLoop)
@@ -407,10 +438,16 @@ class ControllerWebClientRaw(object):
             subscriptionId = subscription.GetSubscriptionID()
             # check if self._subscriptionIds has subscriptionId
             if subscriptionId in self._subscriptions:
+                authorization = ''
+                if self._session.auth._GetJSONWebToken() is None:
+                    authorization = 'Basic %s' % self._encodedUsernamePassword
+                else:
+                    authorization = 'Bearer %s' % self._session.auth._GetJSONWebToken()
+
                 await self._websocket.send(json.dumps({
                     'id': subscriptionId,
                     'type': 'stop',
-                    'payload': {}
+                    'payload': {'Authorization': authorization}
                 }))
                 # remove subscription
                 self._subscriptions.pop(subscription.GetSubscriptionID(), None)
