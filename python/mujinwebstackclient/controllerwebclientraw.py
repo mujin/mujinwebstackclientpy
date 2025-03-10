@@ -158,6 +158,8 @@ class ControllerWebClientRaw(object):
 
     def Destroy(self):
         self.SetDestroy()
+        if self._loop is not None:
+            self._loop.close()
 
     def SetDestroy(self):
         self._isok = False
