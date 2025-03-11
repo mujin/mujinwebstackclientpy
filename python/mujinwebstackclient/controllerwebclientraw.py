@@ -121,6 +121,7 @@ class ControllerWebClientRaw(object):
         # Create new event loop
         self._eventLoop = asyncio.new_event_loop()
         self._eventLoopThread = threading.Thread(target=self._RunEventLoop, daemon=True)
+        self._shutdown_event = threading.Event()
         self._eventLoopThread.start()
         self._websocket = None
         self._subscriptions = {}
@@ -161,10 +162,14 @@ class ControllerWebClientRaw(object):
 
     def __del__(self):
         self.Destroy()
+        self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
+        self._shutdown_event.wait()
+        self._eventLoopThread.join()
+        self._eventLoop.close()
 
     def Destroy(self):
         self.SetDestroy()
-        self._CloseEventLoop()
+        # self._CloseEventLoop()
 
     def SetDestroy(self):
         self._isok = False
@@ -196,6 +201,7 @@ class ControllerWebClientRaw(object):
     def _RunEventLoop(self):
         asyncio.set_event_loop(self._eventLoop)
         self._eventLoop.run_forever()
+        self._shutdown_event.set()
 
     def _CloseEventLoop(self):
         if self._eventLoop.is_running():
@@ -411,7 +417,10 @@ class ControllerWebClientRaw(object):
         except asyncio.CancelledError:
             log.error('webSocket listener cancelled')
 
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable, variables: Optional[dict] = None) -> Subscription:
+    def _DefaultCallback(self, response: Dict[str, Any]):
+        print(response)
+
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable = None, variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
 
         Args:
@@ -419,6 +428,9 @@ class ControllerWebClientRaw(object):
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
+        if callbackFunction is None:
+            callbackFunction = self._DefaultCallback
+
         # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
