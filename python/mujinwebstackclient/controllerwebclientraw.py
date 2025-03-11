@@ -448,6 +448,11 @@ class ControllerWebClientRaw(object):
         return subscription
 
     def UnsubscribeGraphAPI(self, subscription: Subscription):
+        """ Unsubscribes to Mujin controller.
+
+        Args:
+            subscription (Subscription): the subscription that user want unsubscribe
+        """
         async def _StopSubscription():
             subscriptionId = subscription.GetSubscriptionID()
             # check if self._subscriptionIds has subscriptionId
