@@ -417,10 +417,7 @@ class ControllerWebClientRaw(object):
         except asyncio.CancelledError:
             log.error('webSocket listener cancelled')
 
-    def _DefaultCallback(self, response: Dict[str, Any]):
-        print(response)
-
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable = None, variables: Optional[dict] = None) -> Subscription:
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable, variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
 
         Args:
@@ -428,9 +425,6 @@ class ControllerWebClientRaw(object):
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
-        if callbackFunction is None:
-            callbackFunction = self._DefaultCallback
-
         # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
