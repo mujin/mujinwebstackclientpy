@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import asyncio
+import atexit
 import base64
 import os
 import requests
@@ -126,6 +127,7 @@ class ControllerWebClientRaw(object):
         self._eventLoopThread.start()
         self._websocket = None
         self._subscriptions = {}
+        atexit.register(self._CloseEventLoop)
 
         # Create session
         self._session = requests.Session()
@@ -163,11 +165,7 @@ class ControllerWebClientRaw(object):
 
     def __del__(self):
         self.Destroy()
-        self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
-        # wait for the signal to ensure the event loop has stopped
-        self._stopEvent.wait()
-        self._eventLoopThread.join()
-        self._eventLoop.close()
+        self._CloseEventLoop()
 
     def Destroy(self):
         self.SetDestroy()
@@ -204,6 +202,14 @@ class ControllerWebClientRaw(object):
         self._eventLoop.run_forever()
         # signal that the event loop has stopped
         self._stopEvent.set()
+
+    def _CloseEventLoop(self):
+        if self._eventLoop.is_running():
+            self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
+            # wait for the signal to ensure the event loop has stopped
+            self._stopEvent.wait()
+            self._eventLoopThread.join()
+            self._eventLoop.close()
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
