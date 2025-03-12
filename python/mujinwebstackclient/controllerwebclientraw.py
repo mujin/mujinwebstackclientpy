@@ -65,7 +65,7 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
         # switch to JWT authentication
         self._jsonWebToken = response.cookies.get('jwttoken')
 
-    def _GetAuthorization(self) -> str:
+    def GetAuthorization(self) -> str:
         if self._jsonWebToken is None:
             return 'Basic %s' % self._encodedUsernamePassword
         else:
@@ -351,7 +351,7 @@ class ControllerWebClientRaw(object):
         return content['data']
 
     async def _OpenWebSocketConnection(self):
-        authorization = self._session.auth._GetAuthorization()
+        authorization = self._session.auth.GetAuthorization()
 
         # URL to http GraphQL endpoint on Mujin controller
         graphEndpoint = '%s/api/v2/graphql' % self._baseurl
@@ -438,7 +438,7 @@ class ControllerWebClientRaw(object):
                 await self._OpenWebSocketConnection()
 
             # start a new subscription on the WebSocket connection
-            authorization = self._session.auth._GetAuthorization()
+            authorization = self._session.auth.GetAuthorization()
 
             await self._websocket.send(json.dumps({
                 'id': subscriptionId,
@@ -459,7 +459,7 @@ class ControllerWebClientRaw(object):
             subscriptionId = subscription.GetSubscriptionID()
             # check if self._subscriptionIds has subscriptionId
             if subscriptionId in self._subscriptions:
-                authorization = self._session.auth._GetAuthorization()
+                authorization = self._session.auth.GetAuthorization()
 
                 await self._websocket.send(json.dumps({
                     'id': subscriptionId,
