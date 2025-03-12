@@ -110,6 +110,7 @@ class ControllerWebClientRaw(object):
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _eventLoopThread: threading.Thread # A thread to run the event loop
     _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
+    _stopEvent: threading.Event # And event to signal that the event loop is stopped
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -121,7 +122,7 @@ class ControllerWebClientRaw(object):
         # Create new event loop
         self._eventLoop = asyncio.new_event_loop()
         self._eventLoopThread = threading.Thread(target=self._RunEventLoop, daemon=True)
-        self._shutdown_event = threading.Event()
+        self._stopEvent = threading.Event()
         self._eventLoopThread.start()
         self._websocket = None
         self._subscriptions = {}
@@ -163,13 +164,13 @@ class ControllerWebClientRaw(object):
     def __del__(self):
         self.Destroy()
         self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
-        self._shutdown_event.wait()
+        # wait for the signal to ensure the event loop has stopped
+        self._stopEvent.wait()
         self._eventLoopThread.join()
         self._eventLoop.close()
 
     def Destroy(self):
         self.SetDestroy()
-        # self._CloseEventLoop()
 
     def SetDestroy(self):
         self._isok = False
@@ -201,13 +202,8 @@ class ControllerWebClientRaw(object):
     def _RunEventLoop(self):
         asyncio.set_event_loop(self._eventLoop)
         self._eventLoop.run_forever()
-        self._shutdown_event.set()
-
-    def _CloseEventLoop(self):
-        if self._eventLoop.is_running():
-            self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
-            self._eventLoopThread.join()
-            self._eventLoop.close()
+        # signal that the event loop has stopped
+        self._stopEvent.set()
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
@@ -451,7 +447,7 @@ class ControllerWebClientRaw(object):
         """ Unsubscribes to Mujin controller.
 
         Args:
-            subscription (Subscription): the subscription that user want unsubscribe
+            subscription (Subscription): the subscription that the user wants to unsubscribe
         """
         async def _StopSubscription():
             subscriptionId = subscription.GetSubscriptionID()
