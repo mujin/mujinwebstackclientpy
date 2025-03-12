@@ -364,29 +364,29 @@ class ControllerWebClientRaw(object):
             webSocketScheme = 'ws'
         uri = '%s://%s%s' % (webSocketScheme, parsedUrl.netloc, parsedUrl.path)
 
+        # prepare the headers
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRFToken': 'token',
+            'Authorization': authorization,
+        }
+        subprotocols = ['graphql-ws']
+
+        # decide on using unix socket or not
         adapter = self._session.adapters.get("http://")
         if isinstance(adapter, UnixSocketAdapter):
             self._websocket = await websockets.unix_connect(
                 path=adapter.get_unix_endpoint(),
                 uri=uri,
-                subprotocols=['graphql-ws'],
-                additional_headers={
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRFToken': 'token',
-                    'Authorization': authorization,
-                },
+                subprotocols=subprotocols,
+                additional_headers=headers,
             )
         else:
             self._websocket = await websockets.connect(
                 uri=uri,
-                subprotocols=['graphql-ws'],
-                additional_headers={
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRFToken': 'token',
-                    'Authorization': authorization,
-                },
+                subprotocols=subprotocols,
+                additional_headers=headers,
             )
 
         await self._websocket.send(json.dumps({
