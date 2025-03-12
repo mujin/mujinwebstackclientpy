@@ -369,7 +369,6 @@ class ControllerWebClientRaw(object):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-CSRFToken': 'token',
-            'Authorization': authorization,
         }
         subprotocols = ['graphql-ws']
 
@@ -443,7 +442,7 @@ class ControllerWebClientRaw(object):
             await self._websocket.send(json.dumps({
                 'id': subscriptionId,
                 'type': 'start',
-                'payload': {'query': query, 'variables': variables or {}, 'payload': {'Authorization': authorization}}
+                'payload': {'query': query, 'variables': variables or {}, 'payload': {}}
             }))
 
         asyncio.run_coroutine_threadsafe(_Subscribe(), self._eventLoop)
@@ -464,7 +463,7 @@ class ControllerWebClientRaw(object):
                 await self._websocket.send(json.dumps({
                     'id': subscriptionId,
                     'type': 'stop',
-                    'payload': {'Authorization': authorization}
+                    'payload': {}
                 }))
                 # remove subscription
                 self._subscriptions.pop(subscription.GetSubscriptionID(), None)
