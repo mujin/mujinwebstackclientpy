@@ -412,7 +412,7 @@ class ControllerWebClientRaw(object):
                     subscriptionId = data.get('id')
                     if subscriptionId in self._subscriptions:
                         subscription = self._subscriptions[subscriptionId]
-                        subscription.GetSubscriptionCallbackFunction()(data['payload'])
+                        subscription.GetSubscriptionCallbackFunction()(data.get('payload') or {})
         except websockets.exceptions.ConnectionClosed:
             log.error('webSocket connection closed')
             self._websocket = None
