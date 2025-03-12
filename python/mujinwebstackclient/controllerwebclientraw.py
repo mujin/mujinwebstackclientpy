@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import asyncio
-import atexit
 import base64
 import os
 import requests
@@ -127,7 +126,6 @@ class ControllerWebClientRaw(object):
         self._eventLoopThread.start()
         self._websocket = None
         self._subscriptions = {}
-        atexit.register(self._CloseEventLoop)
 
         # Create session
         self._session = requests.Session()
