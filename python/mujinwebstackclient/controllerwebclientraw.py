@@ -413,8 +413,6 @@ class ControllerWebClientRaw(object):
         except websockets.exceptions.ConnectionClosed:
             log.error('webSocket connection closed')
             self._websocket = None
-        except asyncio.CancelledError:
-            log.error('webSocket listener cancelled')
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable, variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
