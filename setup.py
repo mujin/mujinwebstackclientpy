@@ -31,6 +31,6 @@ setup(
     enable_flake8=True,  # Enable checks
     fail_on_flake=True,  # Fail builds when checks fail
     install_requires=[
-        'websockets>=14.1',
+        'websockets==14.1',
     ],
 )
