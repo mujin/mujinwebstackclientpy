@@ -22,7 +22,7 @@ import uuid
 import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable
 from urllib.parse import urlparse
 
 import websockets.asyncio
@@ -393,9 +393,9 @@ class ControllerWebClientRaw(object):
             }
         }))
         # create a coroutine that is specially used for listening to the websocket
-        asyncio.run_coroutine_threadsafe(self._ListenToWebsocket(), self._eventLoop)
+        asyncio.run_coroutine_threadsafe(self._ListenToWebSocket(), self._eventLoop)
     
-    async def _ListenToWebsocket(self):
+    async def _ListenToWebSocket(self):
         try:
             async for response in self._websocket:
                 data = json.loads(response)
