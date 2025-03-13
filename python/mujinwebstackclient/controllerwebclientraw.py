@@ -356,9 +356,9 @@ class ControllerWebClientRaw(object):
         parsedUrl = urlparse(graphEndpoint)
         # parse url and handle different scheme
         webSocketScheme = ''
-        if parsedUrl.scheme == "https":
+        if parsedUrl.scheme == 'https':
             webSocketScheme = 'wss'
-        elif parsedUrl.scheme == "http":
+        elif parsedUrl.scheme == 'http':
             webSocketScheme = 'ws'
         uri = '%s://%s%s' % (webSocketScheme, parsedUrl.netloc, parsedUrl.path)
 
@@ -371,7 +371,7 @@ class ControllerWebClientRaw(object):
         subprotocols = ['graphql-ws']
 
         # decide on using unix socket or not
-        adapter = self._session.adapters.get("http://")
+        adapter = self._session.adapters.get('http://')
         if isinstance(adapter, UnixSocketAdapter):
             self._websocket = await websockets.unix_connect(
                 path=adapter.get_unix_endpoint(),
