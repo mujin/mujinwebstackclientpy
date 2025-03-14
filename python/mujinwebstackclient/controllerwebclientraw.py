@@ -110,7 +110,6 @@ class ControllerWebClientRaw(object):
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _eventLoopThread: threading.Thread # A thread to run the event loop
     _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
-    _eventLoopStopped: bool
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -119,8 +118,8 @@ class ControllerWebClientRaw(object):
         self._headers = {}
         self._isok = True
 
-        self._eventLoopStopped = True
         self._eventLoop = None
+        self._eventLoopThread = None
         self._websocket = None
         self._subscriptions = {}
 
@@ -194,25 +193,22 @@ class ControllerWebClientRaw(object):
 
     def _InitializeEventLoopThread(self):
         # Create new event loop if _eventLoop is None, otherwise, reuse the existed one
-        self._eventLoopStopped = False
         if self._eventLoop is None:
             self._eventLoop = asyncio.new_event_loop()
+        if self._eventLoopThread is not None and self._eventLoopThread.is_alive():
+            self._eventLoopThread.join()
         self._eventLoopThread = threading.Thread(target=self._RunEventLoop)
         self._eventLoopThread.start()
 
     def _RunEventLoop(self):
-        if self._eventLoop is None:
-            return
-
         asyncio.set_event_loop(self._eventLoop)
-        while not self._eventLoopStopped:
+        while self._eventLoop is not None:
             self._eventLoop.run_forever()
 
     def _StopEventLoop(self):
         if self._eventLoop is None:
             return
 
-        self._eventLoopStopped = True
         self._eventLoop.stop()
 
     def _CloseEventLoop(self):
@@ -429,8 +425,6 @@ class ControllerWebClientRaw(object):
         except websockets.exceptions.ConnectionClosed:
             log.error('webSocket connection closed')
             self._websocket = None
-            self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
-            self._eventLoopThread.join()
             # send a message back to the caller using the callback function and drop all subscriptions
             for subscriptionId, subscription in self._subscriptions.items():
                 subscription.GetSubscriptionCallbackFunction()({'errorMessage': 'webSocketConnectionClosed'})
@@ -448,8 +442,7 @@ class ControllerWebClientRaw(object):
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
         self._subscriptions[subscriptionId] = subscription
-
-        if self._eventLoopStopped:
+        if self._eventLoop is None or not self._eventLoop.is_running:
             self._InitializeEventLoopThread()
 
         async def _Subscribe():
