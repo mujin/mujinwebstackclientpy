@@ -110,7 +110,7 @@ class ControllerWebClientRaw(object):
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _eventLoopThread: threading.Thread # A thread to run the event loop
     _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
-    _stopEvent: threading.Event # And event to signal that the event loop is stopped
+    _eventLoopStopped: bool
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -119,11 +119,8 @@ class ControllerWebClientRaw(object):
         self._headers = {}
         self._isok = True
 
-        # Create new event loop
-        self._eventLoop = asyncio.new_event_loop()
-        self._eventLoopThread = threading.Thread(target=self._RunEventLoop, daemon=True)
-        self._stopEvent = threading.Event()
-        self._eventLoopThread.start()
+        self._eventLoopStopped = True
+        self._eventLoop = None
         self._websocket = None
         self._subscriptions = {}
 
@@ -195,19 +192,42 @@ class ControllerWebClientRaw(object):
         else:
             self._headers.pop('User-Agent', None)
 
+    def _InitializeEventLoopThread(self):
+        # Create new event loop if _eventLoop is None, otherwise, reuse the existed one
+        self._eventLoopStopped = False
+        if self._eventLoop is None:
+            self._eventLoop = asyncio.new_event_loop()
+        self._eventLoopThread = threading.Thread(target=self._RunEventLoop)
+        self._eventLoopThread.start()
+
     def _RunEventLoop(self):
+        if self._eventLoop is None:
+            return
+
         asyncio.set_event_loop(self._eventLoop)
-        self._eventLoop.run_forever()
-        # signal that the event loop has stopped
-        self._stopEvent.set()
+        while not self._eventLoopStopped:
+            self._eventLoop.run_forever()
+            if self._eventLoop.is_running():
+                print('running3')
+            if not self._eventLoop.is_running():
+                print('stopped3')
+
+    def _StopEventLoop(self):
+        if self._eventLoop is None:
+            return
+
+        self._eventLoopStopped = True
+        self._eventLoop.stop()
 
     def _CloseEventLoop(self):
+        if self._eventLoop is None:
+            return
+
         if self._eventLoop.is_running():
-            self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
-            # wait for the signal to ensure the event loop has stopped
-            self._stopEvent.wait()
+            self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
             self._eventLoopThread.join()
-            self._eventLoop.close()
+        
+        self._eventLoop.close()
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
@@ -413,8 +433,13 @@ class ControllerWebClientRaw(object):
         except websockets.exceptions.ConnectionClosed:
             log.error('webSocket connection closed')
             self._websocket = None
+            self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
+            self._eventLoopThread.join()
 
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable, variables: Optional[dict] = None) -> Subscription:
+    def Default(self, resp):
+        print(resp)
+
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable=None, variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
 
         Args:
@@ -422,10 +447,15 @@ class ControllerWebClientRaw(object):
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
+        if callbackFunction is None:
+            callbackFunction = self.Default
         # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
         self._subscriptions[subscriptionId] = subscription
+
+        if self._eventLoopStopped:
+            self._InitializeEventLoopThread()
 
         async def _Subscribe():
             # check if _websocket exists
