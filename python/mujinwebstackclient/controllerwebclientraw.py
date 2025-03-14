@@ -207,10 +207,6 @@ class ControllerWebClientRaw(object):
         asyncio.set_event_loop(self._eventLoop)
         while not self._eventLoopStopped:
             self._eventLoop.run_forever()
-            if self._eventLoop.is_running():
-                print('running3')
-            if not self._eventLoop.is_running():
-                print('stopped3')
 
     def _StopEventLoop(self):
         if self._eventLoop is None:
@@ -435,6 +431,10 @@ class ControllerWebClientRaw(object):
             self._websocket = None
             self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
             self._eventLoopThread.join()
+            # send a message back to the caller using the callback function and drop all subscriptions
+            for subscriptionId, subscription in self._subscriptions.items():
+                subscription.GetSubscriptionCallbackFunction()({'errorMessage': 'webSocketConnectionClosed'})
+            self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable, variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
