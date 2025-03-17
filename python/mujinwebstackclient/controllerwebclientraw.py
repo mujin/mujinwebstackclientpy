@@ -110,6 +110,7 @@ class ControllerWebClientRaw(object):
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _eventLoopThread: threading.Thread # A thread to run the event loop
     _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
+    _websocketLock: threading.Lock # lock protecting initializing the websocket
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -121,6 +122,7 @@ class ControllerWebClientRaw(object):
         self._eventLoop = None
         self._eventLoopThread = None
         self._websocket = None
+        self._websocketLock = threading.Lock()
         self._subscriptions = {}
 
         # Create session
@@ -446,9 +448,11 @@ class ControllerWebClientRaw(object):
             self._InitializeEventLoopThread()
 
         async def _Subscribe():
-            # check if _websocket exists
-            if self._websocket is None:
-                await self._OpenWebSocketConnection()
+            # need to ensure only one thread is initializing the websocket; otherwise, it might trigger ErrTooManyInitializationRequests on the webstack side
+            with self._websocketLock:
+                # check if _websocket exists
+                if self._websocket is None:
+                    await self._OpenWebSocketConnection()
 
             # start a new subscription on the WebSocket connection
             await self._websocket.send(json.dumps({
