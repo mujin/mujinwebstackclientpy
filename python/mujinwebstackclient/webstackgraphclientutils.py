@@ -139,8 +139,6 @@ class GraphClientBase(object):
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
         subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
-        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
-            log.verbose('got response from graph query: %s', query)
         return subscription
 
 class GraphQueryIterator:
