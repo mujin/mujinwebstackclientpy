@@ -432,7 +432,7 @@ class ControllerWebClientRaw(object):
                 subscription.GetSubscriptionCallbackFunction()({'errorMessage': 'webSocketConnectionClosed'})
             self._subscriptions.clear()
 
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable, variables: Optional[dict] = None) -> Subscription:
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[dict], None], variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
 
         Args:

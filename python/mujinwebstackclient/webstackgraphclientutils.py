@@ -95,7 +95,7 @@ class GraphClientBase(object):
             log.verbose('got response from graph query: %r', data)
         return data.get(operationName)
 
-    def _CallSubscribeGraphAPI(self, operationName: str, parameterNameTypeValues: list, returnType: str, callbackFunction: Callable, fields: Optional[list[str]] = None) -> controllerwebclientraw.Subscription:
+    def _CallSubscribeGraphAPI(self, operationName: str, parameterNameTypeValues: list, returnType: str, callbackFunction: Callable[[dict], None], fields: Optional[list[str]] = None) -> controllerwebclientraw.Subscription:
         """
         API for the webstack client to use for subscription.
 
