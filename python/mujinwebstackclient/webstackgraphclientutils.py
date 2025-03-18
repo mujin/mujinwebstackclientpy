@@ -57,34 +57,7 @@ class GraphClientBase(object):
         """
         if timeout is None:
             timeout = 5.0
-        queryFields = ''
-        if _IsScalarType(returnType):
-            queryFields = '' # scalar types cannot have subfield queries
-        elif not fields:
-            queryFields = '{ __typename }' # query the __typename field if caller didn't want anything back
-        else:
-            queryFields = _StringifyQueryFields(fields)
-        queryParameters = ', '.join([
-            '$%s: %s' % (parameterName, parameterType)
-            for parameterName, parameterType, parameterValue in parameterNameTypeValues
-        ])
-        if queryParameters:
-            queryParameters = '(%s)' % queryParameters
-        queryArguments = ', '.join([
-            '%s: $%s' % (parameterName, parameterName)
-            for parameterName, parameterType, parameterValue in parameterNameTypeValues
-        ])
-        if queryArguments:
-            if queryFields:
-                queryFields = ' %s' % queryFields
-            queryArguments = '(%s)' % queryArguments
-        query = '%(queryOrMutation)s %(operationName)s%(queryParameters)s {\n    %(operationName)s%(queryArguments)s%(queryFields)s\n}' % {
-            'queryOrMutation': queryOrMutation,
-            'operationName': operationName,
-            'queryParameters': queryParameters,
-            'queryArguments': queryArguments,
-            'queryFields': queryFields,
-        }
+        query = self._GenerateQuery(queryOrMutation, operationName, parameterNameTypeValues, returnType, fields)
         variables = {}
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
@@ -104,6 +77,26 @@ class GraphClientBase(object):
             parameterNameTypeValues (list): list of tuple (parameterName, parameterType, parameterValue)
             returnType (string): name of the return type, used to construct query fields
             callbackFunction (func): a callback function to process the response data that is received from the subscription
+            fields (list[string]): list of fieldName to filter for
+        """
+        query = self._GenerateQuery('subscription', operationName, parameterNameTypeValues, returnType, fields)
+        variables = {}
+        for parameterName, parameterType, parameterValue in parameterNameTypeValues:
+            variables[parameterName] = parameterValue
+        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+            log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
+        subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
+        return subscription
+    
+    def _GenerateQuery(self, queryOrMutationOrSubscription: str, operationName: str, parameterNameTypeValues: list, returnType: str, fields: Optional[list[str]] = None) -> str:
+        """
+        Function to generate query for the webstack client to use.
+
+        Args:
+            queryOrMutationOrSubscription (string): either "query" or "mutation" or "subscription"
+            operationName (string): name of the subscription operation
+            parameterNameTypeValues (list): list of tuple (parameterName, parameterType, parameterValue)
+            returnType (string): name of the return type, used to construct query fields
             fields (list[string]): list of fieldName to filter for
         """
         queryFields = ''
@@ -127,19 +120,14 @@ class GraphClientBase(object):
             if queryFields:
                 queryFields = ' %s' % queryFields
             queryArguments = '(%s)' % queryArguments
-        query = 'subscription %(operationName)s%(queryParameters)s {\n    %(operationName)s%(queryArguments)s%(queryFields)s\n}' % {
+        query = '%(queryOrMutationOrSubscription)s %(operationName)s%(queryParameters)s {\n    %(operationName)s%(queryArguments)s%(queryFields)s\n}' % {
+            'queryOrMutationOrSubscription': queryOrMutationOrSubscription,
             'operationName': operationName,
             'queryParameters': queryParameters,
             'queryArguments': queryArguments,
             'queryFields': queryFields,
         }
-        variables = {}
-        for parameterName, parameterType, parameterValue in parameterNameTypeValues:
-            variables[parameterName] = parameterValue
-        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
-            log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
-        subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
-        return subscription
+        return query
 
 class GraphQueryIterator:
     """Converts a large graph query to a iterator. The iterator will internally query webstack with a few small queries
