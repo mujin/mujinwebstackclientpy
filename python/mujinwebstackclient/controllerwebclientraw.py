@@ -161,10 +161,10 @@ class ControllerWebClientRaw(object):
 
     def __del__(self):
         self.Destroy()
-        self._CloseEventLoop()
 
     def Destroy(self):
         self.SetDestroy()
+        self._CloseEventLoop()
 
     def SetDestroy(self):
         self._isok = False
@@ -204,8 +204,7 @@ class ControllerWebClientRaw(object):
 
     def _RunEventLoop(self):
         asyncio.set_event_loop(self._eventLoop)
-        while self._eventLoop is not None:
-            self._eventLoop.run_forever()
+        self._eventLoop.run_forever()
 
     def _StopEventLoop(self):
         if self._eventLoop is None:
@@ -219,9 +218,12 @@ class ControllerWebClientRaw(object):
 
         if self._eventLoop.is_running():
             self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
+        
+        if self._eventLoopThread.is_alive():
             self._eventLoopThread.join()
         
-        self._eventLoop.close()
+        if not self._eventLoop.is_closed():
+            self._eventLoop.close()
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
@@ -406,8 +408,6 @@ class ControllerWebClientRaw(object):
                 'Authorization': authorization,
             }
         }))
-        # create a coroutine that is specially used for listening to the websocket
-        asyncio.run_coroutine_threadsafe(self._ListenToWebSocket(), self._eventLoop)
     
     async def _ListenToWebSocket(self):
         try:
@@ -424,6 +424,11 @@ class ControllerWebClientRaw(object):
                     if subscriptionId in self._subscriptions:
                         subscription = self._subscriptions[subscriptionId]
                         subscription.GetSubscriptionCallbackFunction()(data.get('payload') or {})
+
+                # stop listening if there is no subscriptions, and the connection will close automatically after breaking out the loop 
+                if len(self._subscriptions) == 0:
+                    await self._websocket.close()
+                    break
         except websockets.exceptions.ConnectionClosed:
             log.error('webSocket connection closed')
             self._websocket = None
@@ -453,13 +458,15 @@ class ControllerWebClientRaw(object):
                 # check if _websocket exists
                 if self._websocket is None:
                     await self._OpenWebSocketConnection()
+                    # create a coroutine that is specially used for listening to the websocket
+                    asyncio.run_coroutine_threadsafe(self._ListenToWebSocket(), self._eventLoop)
 
-            # start a new subscription on the WebSocket connection
-            await self._websocket.send(json.dumps({
-                'id': subscriptionId,
-                'type': 'start',
-                'payload': {'query': query, 'variables': variables or {}}
-            }))
+                # start a new subscription on the WebSocket connection
+                await self._websocket.send(json.dumps({
+                    'id': subscriptionId,
+                    'type': 'start',
+                    'payload': {'query': query, 'variables': variables or {}}
+                }))
 
         asyncio.run_coroutine_threadsafe(_Subscribe(), self._eventLoop)
         return subscription
