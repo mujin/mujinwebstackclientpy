@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.7 (2025-03-27)
+
+### Changes
+
+- Remove suffixes from archive file correctly
+
 ## 0.8.6 (2025-02-06)
 
 ### Changes

@@ -70,7 +70,7 @@ def _DownloadBackup(webClient, sceneList, timeout=600.0):
 
     # extract the response, use the name supplied by webstack
     archiveFilename = re.findall('filename=(.+)', response.headers['Content-Disposition'])[0].strip('"')
-    downloadDirectory = os.path.join(os.getcwd(), archiveFilename.rstrip('.tar.gz'))
+    downloadDirectory = os.path.join(os.getcwd(), archiveFilename.removesuffix('.tar.gz'))
     log.info('downloading and saving data to: %s', downloadDirectory)
     with tarfile.open(fileobj=response.raw, mode='r|gz') as tar:
         tar.extractall(path=downloadDirectory)
