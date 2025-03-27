@@ -429,13 +429,14 @@ class ControllerWebClientRaw(object):
                 if len(self._subscriptions) == 0:
                     await self._websocket.close()
                     break
-        except websockets.exceptions.ConnectionClosed:
-            log.error('webSocket connection closed')
+        except Exception as e:
+            log.exception('webSocket exception: %s', e)
             self._websocket = None
-            # send a message back to the caller using the callback function and drop all subscriptions
-            for subscriptionId, subscription in self._subscriptions.items():
-                subscription.GetSubscriptionCallbackFunction()({'errorMessage': 'webSocketConnectionClosed'})
-            self._subscriptions.clear()
+            with self._websocketLock:
+                # send a message back to the caller using the callback function and drop all subscriptions
+                for subscriptionId, subscription in self._subscriptions.items():
+                    subscription.GetSubscriptionCallbackFunction()({'errorMessage': 'webSocketException'})
+                self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[dict], None], variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
@@ -449,8 +450,9 @@ class ControllerWebClientRaw(object):
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
         self._subscriptions[subscriptionId] = subscription
-        if self._eventLoop is None or not self._eventLoop.is_running:
-            self._InitializeEventLoopThread()
+        with self._websocketLock:
+            if self._eventLoop is None or not self._eventLoop.is_running:
+                self._InitializeEventLoopThread()
 
         async def _Subscribe():
             # need to ensure only one thread is initializing the websocket; otherwise, it might trigger ErrTooManyInitializationRequests on the webstack side
@@ -479,13 +481,14 @@ class ControllerWebClientRaw(object):
         """
         async def _StopSubscription():
             subscriptionId = subscription.GetSubscriptionID()
-            # check if self._subscriptionIds has subscriptionId
-            if subscriptionId in self._subscriptions:
-                await self._websocket.send(json.dumps({
-                    'id': subscriptionId,
-                    'type': 'stop'
-                }))
-                # remove subscription
-                self._subscriptions.pop(subscription.GetSubscriptionID(), None)
+            with self._websocketLock:
+                # check if self._subscriptionIds has subscriptionId
+                if subscriptionId in self._subscriptions:
+                    await self._websocket.send(json.dumps({
+                        'id': subscriptionId,
+                        'type': 'stop'
+                    }))
+                    # remove subscription
+                    self._subscriptions.pop(subscription.GetSubscriptionID(), None)
 
         asyncio.run_coroutine_threadsafe(_StopSubscription(), self._eventLoop)
