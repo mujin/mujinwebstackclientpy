@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 (2025-03-28)
+
+### Changes
+
+- Add support for GraphQL subscriptions.
+
 ## 0.8.7 (2025-03-27)
 
 ### Changes
