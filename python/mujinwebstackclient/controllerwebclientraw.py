@@ -82,12 +82,12 @@ class Subscription:
     """Subscription that contains the unique subscription id for every subscription.
     """
     _subscriptionId: str # subscription id
-    _subscriptionCallbackFunction: Callable # subscription callback function
+    _subscriptionCallbackFunction: Callable[[Optional[str], Optional[dict]], None] # subscription callback function
 
     def __init__(
         self,
         subscriptionId: str,
-        callbackFunction: Callable,
+        callbackFunction: Callable[[Optional[str], Optional[dict]], None],
     ):
         self._subscriptionId = subscriptionId
         self._subscriptionCallbackFunction = callbackFunction
@@ -95,7 +95,7 @@ class Subscription:
     def GetSubscriptionID(self) -> str:
         return self._subscriptionId
 
-    def GetSubscriptionCallbackFunction(self) -> Callable:
+    def GetSubscriptionCallbackFunction(self) -> Callable[[Optional[str], Optional[dict]], None]:
         return self._subscriptionCallbackFunction
 
 class ControllerWebClientRaw(object):
@@ -450,10 +450,10 @@ class ControllerWebClientRaw(object):
             with self._websocketLock:
                 # send a message back to the caller using the callback function and drop all subscriptions
                 for subscriptionId, subscription in self._subscriptions.items():
-                    subscription.GetSubscriptionCallbackFunction()(error='webSocketException')
+                    subscription.GetSubscriptionCallbackFunction()(error=str(e))
                 self._subscriptions.clear()
 
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[dict], None], variables: Optional[dict] = None) -> Subscription:
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[str], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
 
         Args:
