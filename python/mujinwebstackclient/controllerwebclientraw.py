@@ -412,18 +412,33 @@ class ControllerWebClientRaw(object):
     async def _ListenToWebSocket(self):
         try:
             async for response in self._websocket:
-                data = json.loads(response)
-                if data['type'] == 'connection_ack':
+                try:
+                    content = json.loads(response)
+                except ValueError as e:
+                    log.exception('caught exception parsing json response: %s: %s', e, response)
+
+                if content['type'] == 'connection_ack':
                     log.debug('received connection_ack')
-                elif data['type'] == 'ka':
+                elif content['type'] == 'ka':
                     # received keep-alive "ka" message
                     pass
                 else:
+                    # raise any error returned
+                    if content is not None and 'payload' in content and 'errors' in content['payload'] and len(content['payload']['errors']) > 0:
+                        message = content['payload']['errors'][0].get('message', response)
+                        errorCode = None
+                        if 'extensions' in content['payload']['errors'][0]:
+                            errorCode = content['payload']['errors'][0]['extensions'].get('errorCode', None)
+                        raise ControllerGraphClientException(message, content=content, errorCode=errorCode)
+
+                    if content is None or 'payload' not in content:
+                        raise ControllerGraphClientException(_('Unexpected server response: %s') % (response))
+
                     # parse to get the subscriptionId so that we can call the correct callback function
-                    subscriptionId = data.get('id')
+                    subscriptionId = content.get('id')
                     if subscriptionId in self._subscriptions:
                         subscription = self._subscriptions[subscriptionId]
-                        subscription.GetSubscriptionCallbackFunction()(data.get('payload') or {})
+                        subscription.GetSubscriptionCallbackFunction()(response=content.get('payload') or {})
 
                 # stop listening if there is no subscriptions, and the connection will close automatically after breaking out the loop 
                 if len(self._subscriptions) == 0:
@@ -435,7 +450,7 @@ class ControllerWebClientRaw(object):
             with self._websocketLock:
                 # send a message back to the caller using the callback function and drop all subscriptions
                 for subscriptionId, subscription in self._subscriptions.items():
-                    subscription.GetSubscriptionCallbackFunction()({'errorMessage': 'webSocketException'})
+                    subscription.GetSubscriptionCallbackFunction()(errorMessage='webSocketException')
                 self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[dict], None], variables: Optional[dict] = None) -> Subscription:
