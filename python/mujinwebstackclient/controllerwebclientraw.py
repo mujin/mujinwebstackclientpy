@@ -450,7 +450,7 @@ class ControllerWebClientRaw(object):
             with self._websocketLock:
                 # send a message back to the caller using the callback function and drop all subscriptions
                 for subscriptionId, subscription in self._subscriptions.items():
-                    subscription.GetSubscriptionCallbackFunction()(errorMessage='webSocketException')
+                    subscription.GetSubscriptionCallbackFunction()(error='webSocketException')
                 self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[dict], None], variables: Optional[dict] = None) -> Subscription:
