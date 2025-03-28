@@ -446,11 +446,12 @@ class ControllerWebClientRaw(object):
                     break
         except Exception as e:
             log.exception('webSocket exception: %s', e)
+            errorTraceback = traceback.format_exc()
             self._websocket = None
             with self._websocketLock:
                 # send a message back to the caller using the callback function and drop all subscriptions
                 for subscriptionId, subscription in self._subscriptions.items():
-                    subscription.GetSubscriptionCallbackFunction()(error=str(e))
+                    subscription.GetSubscriptionCallbackFunction()(error=errorTraceback)
                 self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[str], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
