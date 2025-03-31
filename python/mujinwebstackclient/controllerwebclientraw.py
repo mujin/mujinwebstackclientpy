@@ -77,25 +77,21 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
             requests_auth.HTTPBasicAuth(self._username, self._password)(request)
             request.register_hook('response', self._SetJSONWebToken)
         return request
-    
+
 class Subscription:
     """Subscription that contains the unique subscription id for every subscription.
     """
     _subscriptionId: str # subscription id
-    _subscriptionCallbackFunction: Callable[[Optional[str], Optional[dict]], None] # subscription callback function
+    _subscriptionCallbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None] # subscription callback function
 
-    def __init__(
-        self,
-        subscriptionId: str,
-        callbackFunction: Callable[[Optional[str], Optional[dict]], None],
-    ):
+    def __init__(self, subscriptionId: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
         self._subscriptionId = subscriptionId
         self._subscriptionCallbackFunction = callbackFunction
 
     def GetSubscriptionID(self) -> str:
         return self._subscriptionId
 
-    def GetSubscriptionCallbackFunction(self) -> Callable[[Optional[str], Optional[dict]], None]:
+    def GetSubscriptionCallbackFunction(self) -> Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]:
         return self._subscriptionCallbackFunction
 
 class ControllerWebClientRaw(object):
@@ -106,11 +102,11 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _websocket: websockets.asyncio.client.ClientConnection # Websocket used to connect to webstack for subscriptions
+    _webSocket: websockets.asyncio.client.ClientConnection # WebSocket used to connect to WebStack for subscriptions
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _eventLoopThread: threading.Thread # A thread to run the event loop
     _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
-    _websocketLock: threading.Lock # lock protecting initializing the websocket
+    _webSocketLock: threading.Lock # Lock protecting initializing the WebSocket
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -121,8 +117,8 @@ class ControllerWebClientRaw(object):
 
         self._eventLoop = None
         self._eventLoopThread = None
-        self._websocket = None
-        self._websocketLock = threading.Lock()
+        self._webSocket = None
+        self._webSocketLock = threading.Lock()
         self._subscriptions = {}
 
         # Create session
@@ -194,7 +190,7 @@ class ControllerWebClientRaw(object):
             self._headers.pop('User-Agent', None)
 
     def _InitializeEventLoopThread(self):
-        # Create new event loop if _eventLoop is None, otherwise, reuse the existed one
+        # Create new event loop if _eventLoop is None, otherwise, reuse the existing one
         if self._eventLoop is None:
             self._eventLoop = asyncio.new_event_loop()
         if self._eventLoopThread is not None and self._eventLoopThread.is_alive():
@@ -209,19 +205,15 @@ class ControllerWebClientRaw(object):
     def _StopEventLoop(self):
         if self._eventLoop is None:
             return
-
         self._eventLoop.stop()
 
     def _CloseEventLoop(self):
         if self._eventLoop is None:
             return
-
         if self._eventLoop.is_running():
             self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
-        
         if self._eventLoopThread.is_alive():
             self._eventLoopThread.join()
-        
         if not self._eventLoop.is_closed():
             self._eventLoop.close()
 
@@ -389,29 +381,29 @@ class ControllerWebClientRaw(object):
         # decide on using unix socket or not
         adapter = self._session.adapters.get('http://')
         if isinstance(adapter, UnixSocketAdapter):
-            self._websocket = await websockets.unix_connect(
+            self._webSocket = await websockets.unix_connect(
                 path=adapter.get_unix_endpoint(),
                 uri=uri,
                 subprotocols=subprotocols,
                 additional_headers=headers,
             )
         else:
-            self._websocket = await websockets.connect(
+            self._webSocket = await websockets.connect(
                 uri=uri,
                 subprotocols=subprotocols,
                 additional_headers=headers,
             )
 
-        await self._websocket.send(json.dumps({
+        await self._webSocket.send(json.dumps({
             'type': 'connection_init',
             'payload': {
                 'Authorization': authorization,
             }
         }))
-    
+
     async def _ListenToWebSocket(self):
         try:
-            async for response in self._websocket:
+            async for response in self._webSocket:
                 try:
                     content = json.loads(response)
                 except ValueError as e:
@@ -438,19 +430,19 @@ class ControllerWebClientRaw(object):
                     subscriptionId = content.get('id')
                     if subscriptionId in self._subscriptions:
                         subscription = self._subscriptions[subscriptionId]
-                        subscription.GetSubscriptionCallbackFunction()(response=content.get('payload') or {})
+                        subscription.GetSubscriptionCallbackFunction()(error=None, response=content.get('payload') or {})
 
-                # stop listening if there is no subscriptions, and the connection will close automatically after breaking out the loop 
+                # stop listening if there is no subscriptions and the connection will close automatically after breaking out the loop
                 if len(self._subscriptions) == 0:
-                    await self._websocket.close()
+                    await self._webSocket.close()
                     break
         except Exception as e:
-            log.exception('webSocket exception: %s', e)
-            self._websocket = None
-            with self._websocketLock:
+            log.exception('caught WebSocket exception: %s', e)
+            self._webSocket = None
+            with self._webSocketLock:
                 # send a message back to the caller using the callback function and drop all subscriptions
                 for subscriptionId, subscription in self._subscriptions.items():
-                    subscription.GetSubscriptionCallbackFunction()(error=e)
+                    subscription.GetSubscriptionCallbackFunction()(error=e, response=None)
                 self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[str], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
@@ -461,25 +453,25 @@ class ControllerWebClientRaw(object):
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
-        # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same websocket
+        # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same WebSocket
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
         self._subscriptions[subscriptionId] = subscription
-        with self._websocketLock:
+        with self._webSocketLock:
             if self._eventLoop is None or not self._eventLoop.is_running:
                 self._InitializeEventLoopThread()
 
         async def _Subscribe():
-            # need to ensure only one thread is initializing the websocket; otherwise, it might trigger ErrTooManyInitializationRequests on the webstack side
-            with self._websocketLock:
-                # check if _websocket exists
-                if self._websocket is None:
+            # need to ensure only one thread is initializing the WebSocket
+            with self._webSocketLock:
+                # check if _webSocket exists
+                if self._webSocket is None:
                     await self._OpenWebSocketConnection()
-                    # create a coroutine that is specially used for listening to the websocket
+                    # create a coroutine that is specially used for listening to the WebSocket
                     asyncio.run_coroutine_threadsafe(self._ListenToWebSocket(), self._eventLoop)
 
                 # start a new subscription on the WebSocket connection
-                await self._websocket.send(json.dumps({
+                await self._webSocket.send(json.dumps({
                     'id': subscriptionId,
                     'type': 'start',
                     'payload': {'query': query, 'variables': variables or {}}
@@ -496,10 +488,10 @@ class ControllerWebClientRaw(object):
         """
         async def _StopSubscription():
             subscriptionId = subscription.GetSubscriptionID()
-            with self._websocketLock:
+            with self._webSocketLock:
                 # check if self._subscriptionIds has subscriptionId
                 if subscriptionId in self._subscriptions:
-                    await self._websocket.send(json.dumps({
+                    await self._webSocket.send(json.dumps({
                         'id': subscriptionId,
                         'type': 'stop'
                     }))

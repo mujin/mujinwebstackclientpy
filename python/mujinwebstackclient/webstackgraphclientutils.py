@@ -84,7 +84,7 @@ class GraphClientBase(object):
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
         if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
-            log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
+            log.verbose('executing graph subscription with variables %r:\n\n%s\n', variables, query)
         subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
         return subscription
     
