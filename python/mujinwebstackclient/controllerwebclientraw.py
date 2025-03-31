@@ -19,6 +19,7 @@ import requests
 import threading
 import traceback
 import uuid
+import copy
 import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
@@ -34,6 +35,7 @@ from . import APIServerError, WebstackClientError, ControllerGraphClientExceptio
 from .unixsocketadapter import UnixSocketAdapter
 
 import logging
+logging.getLogger('websockets').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
 class JSONWebTokenAuth(requests_auth.AuthBase):
@@ -203,18 +205,15 @@ class ControllerWebClientRaw(object):
         self._eventLoop.run_forever()
 
     def _StopEventLoop(self):
-        if self._eventLoop is None:
-            return
-        self._eventLoop.stop()
+        if self._eventLoop is not None:
+            self._eventLoop.stop()
 
     def _CloseEventLoop(self):
-        if self._eventLoop is None:
-            return
-        if self._eventLoop.is_running():
+        if self._eventLoop is not None and self._eventLoop.is_running():
             self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
-        if self._eventLoopThread.is_alive():
+        if self._eventLoopThread is not None and self._eventLoopThread.is_alive():
             self._eventLoopThread.join()
-        if not self._eventLoop.is_closed():
+        if self._eventLoop is not None and not self._eventLoop.is_closed():
             self._eventLoop.close()
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
@@ -371,11 +370,9 @@ class ControllerWebClientRaw(object):
         uri = '%s://%s%s' % (webSocketScheme, parsedUrl.netloc, parsedUrl.path)
 
         # prepare the headers
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-CSRFToken': 'token',
-        }
+        headers = copy.deepcopy(self._headers)
+        headers['Content-Type'] = 'application/json'
+        headers['Accept'] = 'application/json'
         subprotocols = ['graphql-ws']
 
         # decide on using unix socket or not
@@ -404,38 +401,58 @@ class ControllerWebClientRaw(object):
     async def _ListenToWebSocket(self):
         try:
             async for response in self._webSocket:
-                try:
-                    content = json.loads(response)
-                except ValueError as e:
-                    log.exception('caught exception parsing json response: %s: %s', e, response)
-
-                if content['type'] == 'connection_ack':
-                    log.debug('received connection_ack')
-                elif content['type'] == 'ka':
-                    # received keep-alive "ka" message
-                    pass
-                else:
-                    # raise any error returned
-                    if content is not None and 'payload' in content and 'errors' in content['payload'] and len(content['payload']['errors']) > 0:
-                        message = content['payload']['errors'][0].get('message', response)
-                        errorCode = None
-                        if 'extensions' in content['payload']['errors'][0]:
-                            errorCode = content['payload']['errors'][0]['extensions'].get('errorCode', None)
-                        raise ControllerGraphClientException(message, content=content, errorCode=errorCode)
-
-                    if content is None or 'payload' not in content:
-                        raise ControllerGraphClientException(_('Unexpected server response: %s') % (response))
-
-                    # parse to get the subscriptionId so that we can call the correct callback function
-                    subscriptionId = content.get('id')
-                    if subscriptionId in self._subscriptions:
-                        subscription = self._subscriptions[subscriptionId]
-                        subscription.GetSubscriptionCallbackFunction()(error=None, response=content.get('payload') or {})
-
-                # stop listening if there is no subscriptions and the connection will close automatically after breaking out the loop
+                # stop listening if there is no subscriptions
+                # the connection will close automatically after breaking out the loop
                 if len(self._subscriptions) == 0:
                     await self._webSocket.close()
                     break
+
+                # parse the result
+                content = None
+                if len(response) > 0:
+                    try:
+                        content = json.loads(response)
+                    except ValueError as e:
+                        log.exception('caught exception parsing json response: %s: %s', e, response)
+
+                # sanity checks
+                if content is None or 'type' not in content:
+                    # raise an error, this should never happen
+                    raise ControllerGraphClientException(_('Unexpected server response: %s') % (response))
+
+                # handle control messages
+                contentType = content['type']
+                if contentType == 'connection_ack':
+                    log.debug('received connection_ack')
+                    continue
+                if contentType == 'ka':
+                    # received keep-alive "ka" message
+                    continue
+
+                # sanity checks
+                if 'id' not in content:
+                    # raise an error, this should never happen
+                    raise ControllerGraphClientException(_('Unexpected server response, missing id: %s') % (response))
+
+                # select the right subscription
+                subscriptionId = content['id']
+                subscription = self._subscriptions.get(subscriptionId)
+                if subscription is None:
+                    # subscriber is gone
+                    continue
+
+                # return if there is an error
+                if 'payload' in content and 'errors' in content['payload'] and len(content['payload']['errors']) > 0:
+                    message = content['payload']['errors'][0].get('message', response)
+                    errorCode = None
+                    if 'extensions' in content['payload']['errors'][0]:
+                        errorCode = content['payload']['errors'][0]['extensions'].get('errorCode', None)
+                    subscription.GetSubscriptionCallbackFunction()(error=ControllerGraphClientException(message, content=content, errorCode=errorCode), response=None)
+                    continue
+
+                # return the payload
+                subscription.GetSubscriptionCallbackFunction()(error=None, response=content.get('payload') or {})
+
         except Exception as e:
             log.exception('caught WebSocket exception: %s', e)
             self._webSocket = None
@@ -456,8 +473,8 @@ class ControllerWebClientRaw(object):
         # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same WebSocket
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
-        self._subscriptions[subscriptionId] = subscription
         with self._webSocketLock:
+            self._subscriptions[subscriptionId] = subscription
             if self._eventLoop is None or not self._eventLoop.is_running:
                 self._InitializeEventLoopThread()
 
