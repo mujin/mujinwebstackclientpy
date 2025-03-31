@@ -80,7 +80,7 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
             request.register_hook('response', self._SetJSONWebToken)
         return request
 
-class Subscription:
+class Subscription(object):
     """Subscription that contains the unique subscription id for every subscription.
     """
     _subscriptionId: str # subscription id
@@ -96,8 +96,44 @@ class Subscription:
     def GetSubscriptionCallbackFunction(self) -> Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]:
         return self._subscriptionCallbackFunction
 
-class ControllerWebClientRaw(object):
+    def __repr__(self):
+        return '<Subscription(%r, %r)>' % (self._subscriptionId, self._subscriptionCallbackFunction)
 
+class BackgroundThread(object):
+    _thread: threading.Thread # A thread to run the event loop
+    _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine
+
+    def __init__(self):
+        # create a new event loop in a background thread
+        self._eventLoop = asyncio.new_event_loop()
+        self._thread = threading.Thread(target=self._RunEventLoop)
+        self._thread.start()
+
+    def _RunEventLoop(self):
+        # set the created loop as the current event loop for this thread
+        asyncio.set_event_loop(self._eventLoop)
+        self._eventLoop.run_forever()
+
+    def RunCoroutine(self, coroutine: Callable):
+        """Schedule a coroutine to run on the event loop from another thread
+        """
+        return asyncio.run_coroutine_threadsafe(coroutine, self._eventLoop)
+
+    def __del__(self):
+        self.Destroy()
+
+    def Destroy(self):
+        if self._eventLoop.is_closed():
+            return
+        # cancel all tasks in the event loop
+        for task in asyncio.all_tasks(loop=self._eventLoop):
+            task.cancel()
+        # run the loop briefly to let cancellations propagate
+        self._eventLoop.call_soon_threadsafe(self._eventLoop.stop)
+        self._thread.join()
+        self._eventLoop.close()
+
+class ControllerWebClientRaw(object):
     _baseurl = None  # Base URL of the controller
     _username = None  # Username to login with
     _password = None  # Password to login with
@@ -106,9 +142,7 @@ class ControllerWebClientRaw(object):
     _session = None  # Requests session object
     _webSocket: websockets.asyncio.client.ClientConnection # WebSocket used to connect to WebStack for subscriptions
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
-    _eventLoopThread: threading.Thread # A thread to run the event loop
-    _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine(a subscription in this case)
-    _webSocketLock: threading.Lock # Lock protecting initializing the WebSocket
+    _subscriptionLock: threading.Lock # Lock protecting _webSocket and _subscriptions
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -117,11 +151,12 @@ class ControllerWebClientRaw(object):
         self._headers = {}
         self._isok = True
 
-        self._eventLoop = None
-        self._eventLoopThread = None
         self._webSocket = None
-        self._webSocketLock = threading.Lock()
         self._subscriptions = {}
+        self._subscriptionLock = threading.Lock()
+
+        # Create the background thread for async operations
+        self._backgroundThread = BackgroundThread()
 
         # Create session
         self._session = requests.Session()
@@ -162,7 +197,12 @@ class ControllerWebClientRaw(object):
 
     def Destroy(self):
         self.SetDestroy()
-        self._CloseEventLoop()
+        if self._backgroundThread is not None:
+            # make sure to stop subscriptions and close the websocket first
+            self._backgroundThread.RunCoroutine(self._StopAllSubscriptions()).result()
+            # next destroy the thread
+            self._backgroundThread.Destroy()
+            self._backgroundThread = None
 
     def SetDestroy(self):
         self._isok = False
@@ -190,31 +230,6 @@ class ControllerWebClientRaw(object):
             self._headers['User-Agent'] = userAgent
         else:
             self._headers.pop('User-Agent', None)
-
-    def _InitializeEventLoopThread(self):
-        # Create new event loop if _eventLoop is None, otherwise, reuse the existing one
-        if self._eventLoop is None:
-            self._eventLoop = asyncio.new_event_loop()
-        if self._eventLoopThread is not None and self._eventLoopThread.is_alive():
-            self._eventLoopThread.join()
-        self._eventLoopThread = threading.Thread(target=self._RunEventLoop)
-        self._eventLoopThread.start()
-
-    def _RunEventLoop(self):
-        asyncio.set_event_loop(self._eventLoop)
-        self._eventLoop.run_forever()
-
-    def _StopEventLoop(self):
-        if self._eventLoop is not None:
-            self._eventLoop.stop()
-
-    def _CloseEventLoop(self):
-        if self._eventLoop is not None and self._eventLoop.is_running():
-            self._eventLoop.call_soon_threadsafe(self._StopEventLoop)
-        if self._eventLoopThread is not None and self._eventLoopThread.is_alive():
-            self._eventLoopThread.join()
-        if self._eventLoop is not None and not self._eventLoop.is_closed():
-            self._eventLoop.close()
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
@@ -355,6 +370,21 @@ class ControllerWebClientRaw(object):
 
         return content['data']
 
+    def _EnsureWebSocketConnection(self):
+        if self._webSocket is None:
+            # wait until the connection is established
+            self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result()
+            # start listening without blocking
+            self._backgroundThread.RunCoroutine(self._ListenToWebSocket())
+
+    def _IsWebSocketConnectionOpen(self):
+        return self._webSocket is not None
+
+    async def _CloseWebSocket(self):
+        if self._webSocket is not None:
+            await self._webSocket.close()
+            self._webSocket = None
+
     async def _OpenWebSocketConnection(self):
         authorization = self._session.auth.GetAuthorizationHeader()
 
@@ -401,10 +431,8 @@ class ControllerWebClientRaw(object):
     async def _ListenToWebSocket(self):
         try:
             async for response in self._webSocket:
-                # stop listening if there is no subscriptions
-                # the connection will close automatically after breaking out the loop
-                if len(self._subscriptions) == 0:
-                    await self._webSocket.close()
+                # stop if stop is requested
+                if not self._isok:
                     break
 
                 # parse the result
@@ -434,33 +462,40 @@ class ControllerWebClientRaw(object):
                     # raise an error, this should never happen
                     raise ControllerGraphClientException(_('Unexpected server response, missing id: %s') % (response))
 
-                # select the right subscription
-                subscriptionId = content['id']
-                subscription = self._subscriptions.get(subscriptionId)
-                if subscription is None:
-                    # subscriber is gone
-                    continue
+                # reply back to subscribers
+                with self._subscriptionLock:
+                    # select the right subscription
+                    subscriptionId = content['id']
+                    subscription = self._subscriptions.get(subscriptionId)
+                    if subscription is None:
+                        # subscriber is gone
+                        continue
 
-                # return if there is an error
-                if 'payload' in content and 'errors' in content['payload'] and len(content['payload']['errors']) > 0:
-                    message = content['payload']['errors'][0].get('message', response)
-                    errorCode = None
-                    if 'extensions' in content['payload']['errors'][0]:
-                        errorCode = content['payload']['errors'][0]['extensions'].get('errorCode', None)
-                    subscription.GetSubscriptionCallbackFunction()(error=ControllerGraphClientException(message, content=content, errorCode=errorCode), response=None)
-                    continue
+                    # return if there is an error
+                    if 'payload' in content and 'errors' in content['payload'] and len(content['payload']['errors']) > 0:
+                        message = content['payload']['errors'][0].get('message', response)
+                        errorCode = None
+                        if 'extensions' in content['payload']['errors'][0]:
+                            errorCode = content['payload']['errors'][0]['extensions'].get('errorCode', None)
+                        subscription.GetSubscriptionCallbackFunction()(error=ControllerGraphClientException(message, content=content, errorCode=errorCode), response=None)
+                        continue
 
-                # return the payload
-                subscription.GetSubscriptionCallbackFunction()(error=None, response=content.get('payload') or {})
+                    # return the payload
+                    subscription.GetSubscriptionCallbackFunction()(error=None, response=content.get('payload') or {})
 
         except Exception as e:
             log.exception('caught WebSocket exception: %s', e)
-            self._webSocket = None
-            with self._webSocketLock:
-                # send a message back to the caller using the callback function and drop all subscriptions
-                for subscriptionId, subscription in self._subscriptions.items():
-                    subscription.GetSubscriptionCallbackFunction()(error=e, response=None)
-                self._subscriptions.clear()
+            with self._subscriptionLock:
+                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to listen to WebSocket: %s') % (e)))
+
+    async def _StopAllSubscriptions(self, error: Optional[ControllerGraphClientException] = None):
+        # close the websocket
+        await self._CloseWebSocket()
+        # send a message back to the callers using the callback function and drop all subscriptions
+        if error is not None:
+            for subscriptionId, subscription in self._subscriptions.items():
+                subscription.GetSubscriptionCallbackFunction()(error=error, response=None)
+        self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[str], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
@@ -470,32 +505,34 @@ class ControllerWebClientRaw(object):
             variables (dict): variables that should be passed into the query if necessary
             callbackFunction (func): a callback function to process the response data that is received from the subscription
         """
-        # generate subscriptionId, an unique id to sent to the server so that we can have multiple subscriptions using the same WebSocket
+        # create a new subscription
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
-        with self._webSocketLock:
-            self._subscriptions[subscriptionId] = subscription
-            if self._eventLoop is None or not self._eventLoop.is_running:
-                self._InitializeEventLoopThread()
 
         async def _Subscribe():
-            # need to ensure only one thread is initializing the WebSocket
-            with self._webSocketLock:
-                # check if _webSocket exists
-                if self._webSocket is None:
-                    await self._OpenWebSocketConnection()
-                    # create a coroutine that is specially used for listening to the WebSocket
-                    asyncio.run_coroutine_threadsafe(self._ListenToWebSocket(), self._eventLoop)
-
+            try:
                 # start a new subscription on the WebSocket connection
-                await self._webSocket.send(json.dumps({
-                    'id': subscriptionId,
+                message = {
+                    'id': subscription.GetSubscriptionID(),
                     'type': 'start',
-                    'payload': {'query': query, 'variables': variables or {}}
-                }))
+                    'payload': { 'query': query }
+                }
+                if variables:
+                    message['payload']['variables'] = variables
+                await self._webSocket.send(json.dumps(message))
+            except Exception as e:
+                log.exception('caught WebSocket exception: %s', e)
+                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
 
-        asyncio.run_coroutine_threadsafe(_Subscribe(), self._eventLoop)
-        return subscription
+        with self._subscriptionLock:
+            # make sure the websocket connection is running
+            self._EnsureWebSocketConnection()
+
+            # wait until the subscription is created
+            self._backgroundThread.RunCoroutine(_Subscribe()).result()
+            self._subscriptions[subscriptionId] = subscription
+
+            return subscription
 
     def UnsubscribeGraphAPI(self, subscription: Subscription):
         """ Unsubscribes to Mujin controller.
@@ -503,9 +540,10 @@ class ControllerWebClientRaw(object):
         Args:
             subscription (Subscription): the subscription that the user wants to unsubscribe
         """
-        async def _StopSubscription():
-            subscriptionId = subscription.GetSubscriptionID()
-            with self._webSocketLock:
+        subscriptionId = subscription.GetSubscriptionID()
+
+        async def _Unsubscribe():
+            try:
                 # check if self._subscriptionIds has subscriptionId
                 if subscriptionId in self._subscriptions:
                     await self._webSocket.send(json.dumps({
@@ -513,6 +551,23 @@ class ControllerWebClientRaw(object):
                         'type': 'stop'
                     }))
                     # remove subscription
-                    self._subscriptions.pop(subscription.GetSubscriptionID(), None)
+                    self._subscriptions.pop(subscriptionId, None)
 
-        asyncio.run_coroutine_threadsafe(_StopSubscription(), self._eventLoop)
+                # close the websocket connection if no more subscribers are left
+                if len(self._subscriptions) == 0:
+                    await self._CloseWebSocket()
+            except Exception as e:
+                log.exception('caught WebSocket exception: %s', e)
+                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to unsubscribe: %s') % (e)))
+
+        with self._subscriptionLock:
+            # nothing to do if websocket is not established
+            if not self._IsWebSocketConnectionOpen():
+                return
+
+            # check if the subscription exists
+            if subscription.GetSubscriptionID() not in self._subscriptions:
+                raise ControllerGraphClientException(_('Unknown subscription %r') % (subscription))
+
+            # actually unsubscribe and wait until there is a result
+            self._backgroundThread.RunCoroutine(_Unsubscribe()).result()
