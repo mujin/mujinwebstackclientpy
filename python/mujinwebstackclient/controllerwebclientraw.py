@@ -199,7 +199,8 @@ class ControllerWebClientRaw(object):
         self.SetDestroy()
         if self._backgroundThread is not None:
             # make sure to stop subscriptions and close the websocket first
-            self._backgroundThread.RunCoroutine(self._StopAllSubscriptions()).result()
+            with self._subscriptionLock:
+                self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down')))).result()
             # next destroy the thread
             self._backgroundThread.Destroy()
             self._backgroundThread = None
@@ -488,13 +489,14 @@ class ControllerWebClientRaw(object):
             with self._subscriptionLock:
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to listen to WebSocket: %s') % (e)))
 
-    async def _StopAllSubscriptions(self, error: Optional[ControllerGraphClientException] = None):
+    async def _StopAllSubscriptions(self, error: Optional[ControllerGraphClientException]):
+        """Needs to run under self._subscriptionLock
+        """
         # close the websocket
         await self._CloseWebSocket()
         # send a message back to the callers using the callback function and drop all subscriptions
-        if error is not None:
-            for subscriptionId, subscription in self._subscriptions.items():
-                subscription.GetSubscriptionCallbackFunction()(error=error, response=None)
+        for subscriptionId, subscription in self._subscriptions.items():
+            subscription.GetSubscriptionCallbackFunction()(error=error, response=None)
         self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[str], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
