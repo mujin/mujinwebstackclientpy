@@ -140,9 +140,10 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _webSocket: websockets.asyncio.client.ClientConnection # WebSocket used to connect to WebStack for subscriptions
+    _webSocket: websockets.asyncio.client.ClientConnection = None # WebSocket used to connect to WebStack for subscriptions
     _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _subscriptionLock: threading.Lock # Lock protecting _webSocket and _subscriptions
+    _backgroundThread: BackgroundThread = None # The background thread to handle async operations
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -151,12 +152,8 @@ class ControllerWebClientRaw(object):
         self._headers = {}
         self._isok = True
 
-        self._webSocket = None
         self._subscriptions = {}
         self._subscriptionLock = threading.Lock()
-
-        # Create the background thread for async operations
-        self._backgroundThread = BackgroundThread()
 
         # Create session
         self._session = requests.Session()
@@ -372,6 +369,9 @@ class ControllerWebClientRaw(object):
         return content['data']
 
     def _EnsureWebSocketConnection(self):
+        if self._backgroundThread is None:
+            # create the background thread for async operations
+            self._backgroundThread = BackgroundThread()
         if self._webSocket is None:
             # wait until the connection is established
             self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result()
