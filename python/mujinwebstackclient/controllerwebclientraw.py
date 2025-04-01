@@ -567,9 +567,9 @@ class ControllerWebClientRaw(object):
             if not self._IsWebSocketConnectionOpen():
                 return
 
-            # check if the subscription exists
+            # check if the subscription exists at all
             if subscription.GetSubscriptionID() not in self._subscriptions:
-                raise ControllerGraphClientException(_('Unknown subscription %r') % (subscription))
+                return
 
             # actually unsubscribe and wait until there is a result
             self._backgroundThread.RunCoroutine(_Unsubscribe()).result()
