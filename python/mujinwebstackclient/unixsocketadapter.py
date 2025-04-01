@@ -47,7 +47,9 @@ class UnixSocketConnectionPool(HTTPConnectionPool):
 
     def __str__(self):
         return '%s(unixEndpoint=%s)' % (type(self).__name__, self._unixEndpoint)
-
+    
+    def get_unix_endpoint(self):
+        return self._unixEndpoint
 
 class UnixSocketAdapter(HTTPAdapter):
 
@@ -72,3 +74,6 @@ class UnixSocketAdapter(HTTPAdapter):
         https://github.com/psf/requests/pull/6710
         '''
         return self.get_connection(request.url, proxies=proxies)
+
+    def get_unix_endpoint(self):
+        return self._connectionPool.get_unix_endpoint()

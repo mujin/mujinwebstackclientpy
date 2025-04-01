@@ -32,9 +32,12 @@ def _Main():
 
     self = WebstackClient(options.url, options.username, options.password)
 
+    # launch interactive shell
     from IPython.terminal import embed
     ipshell = embed.InteractiveShellEmbed(config=embed.load_default_config())(local_ns=locals())
 
+    # destroy the client
+    self.Destroy()
 
 if __name__ == "__main__":
     _Main()
