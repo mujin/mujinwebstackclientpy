@@ -499,7 +499,7 @@ class ControllerWebClientRaw(object):
             subscription.GetSubscriptionCallbackFunction()(error=error, response=None)
         self._subscriptions.clear()
 
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[str], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
         """ Subscribes to changes on Mujin controller.
 
         Args:
