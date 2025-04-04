@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.2 (2025-04-04)
+
+### Changes
+
+- Regenerate the graph client.
+
 ## 0.9.1 (2025-04-04)
 
 ### Changes
