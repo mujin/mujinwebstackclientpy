@@ -565,7 +565,7 @@ class ControllerWebClientRaw(object):
         with self._subscriptionLock:
             # nothing to do if websocket is not established
             if not self._IsWebSocketConnectionOpen():
-                return
+                self._EnsureWebSocketConnection()
 
             # check if the subscription exists at all
             if subscription.GetSubscriptionID() not in self._subscriptions:
