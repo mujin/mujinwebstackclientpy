@@ -4950,7 +4950,7 @@ class GraphMutations:
         """Modify an existing attached sensor on a robot.
 
         Args:
-            attachedSensor (AttachedSensorInput): Proprties to modify on the attached sensor.
+            attachedSensor (AttachedSensorInput): Properties to modify on the attached sensor.
             attachedSensorId (str): ID of the attached sensor to modify.
             bodyId (str): ID of the body.
             environmentId (str): ID of the environment.
@@ -5025,7 +5025,7 @@ class GraphMutations:
 
         Args:
             bodyId (str): ID of the body.
-            connectedBody (ConnectedBodyInput): Proprties to modify on the connected body.
+            connectedBody (ConnectedBodyInput): Properties to modify on the connected body.
             connectedBodyId (str): ID of the connected body to modify.
             environmentId (str): ID of the environment.
             resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
@@ -5196,7 +5196,7 @@ class GraphMutations:
         Args:
             bodyId (str): ID of the body.
             environmentId (str): ID of the environment.
-            gripperInfo (GripperInfoInput): Proprties to modify on the gripper info.
+            gripperInfo (GripperInfoInput): Properties to modify on the gripper info.
             gripperInfoId (str): ID of the gripper info to modify.
             resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
             units (UnitSelectionInput, optional): Optional unit selection.
@@ -5496,7 +5496,7 @@ class GraphMutations:
         Args:
             bodyId (str): ID of the body.
             environmentId (str): ID of the environment.
-            tool (ToolInput): Proprties to modify on the tool.
+            tool (ToolInput): Properties to modify on the tool.
             toolId (str): ID of the tool to modify.
             resolveReferences (bool, optional): Whether to operate on resolved bodies in the environment. Defaults to operate and return unresolved data.
             units (UnitSelectionInput, optional): Optional unit selection.

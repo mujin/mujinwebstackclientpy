@@ -44,7 +44,7 @@ def _RunMain():
     elif options.backup:
         command = 'Backup'
     else:
-        raise Exception('Have to sepecify either --syncMasterFile or --backup')
+        raise Exception('Have to specify either --syncMasterFile or --backup')
     taskName = 'registration-%s-%s' % (command.lower(), datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
     webstackclient = WebstackClient(options.controllerUrl, options.controllerUsername, options.controllerPassword)

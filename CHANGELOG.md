@@ -188,7 +188,7 @@
 ### Changes
 
 - Remove automatic query field generation for graphql api. These fields can be
-  changed frequently causing the webstack client to be unusuable. Users of
+  changed frequently causing the webstack client to be unusable. Users of
   graph api now need to explicitly specify fields and subfields they are
   interested in.
 
