@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.1 (2025-04-04)
+
+### Changes
+
+- Fix typing annotation.
+
 ## 0.9.0 (2025-03-28)
 
 ### Changes
