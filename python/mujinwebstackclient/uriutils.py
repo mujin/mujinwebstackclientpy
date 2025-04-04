@@ -94,7 +94,7 @@ def _ParseURIFast(uri, fragmentSeparator):
 
     input:
         uri: A unicode str
-        fragmentSeparator: The separator to find the framgent
+        fragmentSeparator: The separator to find the fragment
     output:
         ParseResult object which has the utf-8 decoded path part.
 
@@ -441,7 +441,7 @@ class MujinResourceIdentifier(object):
         else:
             raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
         
-        # Guess suffix based on primary key. Look for last occurance of .mujin.
+        # Guess suffix based on primary key. Look for last occurrence of .mujin.
         if not self._suffix:
             primaryKey = _EnsureUnicode(self._primaryKey)
             index = primaryKey.rfind('.mujin.')

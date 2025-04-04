@@ -309,7 +309,7 @@ class ControllerWebClientRaw(object):
             raise APIServerError(_('Unexpected server response %d: %s') % (response.status_code, raw))
 
         # TODO(ziyan): Figure out the expected status code from method
-        #              Some APIs were mis-implemented to not return standard status code.
+        #              Some APIs were miss-implemented to not return standard status code.
         if not expectedStatusCode:
             expectedStatusCode = {
                 'GET': 200,
@@ -342,7 +342,7 @@ class ControllerWebClientRaw(object):
         # try to parse response
         raw = response.content.decode('utf-8', 'replace').strip()
 
-        # repsonse must be 200 OK
+        # response must be 200 OK
         statusCode = response.status_code
         if statusCode != 200:
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)
