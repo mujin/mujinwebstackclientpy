@@ -197,7 +197,7 @@ class ControllerWebClientRaw(object):
         if self._backgroundThread is not None:
             # make sure to stop subscriptions and close the websocket first
             with self._subscriptionLock:
-                self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down')))).result()
+                self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down'), errorCode='not-available'))).result()
             # next destroy the thread
             self._backgroundThread.Destroy()
             self._backgroundThread = None

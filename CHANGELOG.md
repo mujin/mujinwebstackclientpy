@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.3 (2025-04-08)
+
+### Changes
+
+- Set error code while destroying the client.
+
 ## 0.9.2 (2025-04-04)
 
 ### Changes
