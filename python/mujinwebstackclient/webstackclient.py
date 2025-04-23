@@ -1046,7 +1046,7 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, savewebapps=True, saveitl=True, savedetection=False, savestate=True, savecalibration=False, savedebug=False, saveeds=True, saveiodd=True, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, backupSceneFormat=None, savewebapps=True, saveitl=True, savedetection=False, savestate=True, savecalibration=False, savedebug=False, saveeds=True, saveiodd=True, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
@@ -1060,6 +1060,7 @@ class WebstackClient(object):
         :param saveeds: Whether we want to include eds files in the backup, defaults to True
         :param saveiodd: Whether we want to include iodd files in the backup, defaults to True
         :param backupscenepks: List of scenes to backup, defaults to None
+        :param backupSceneFormat: The scene format to use in backup files, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: A streaming response to the backup file
@@ -1080,6 +1081,7 @@ class WebstackClient(object):
                 'eds': 'true' if saveeds else 'false',
                 'iodd': 'true' if saveiodd else 'false',
                 'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
+                'backupSceneFormat': backupSceneFormat,
             },
             timeout=timeout,
         )
