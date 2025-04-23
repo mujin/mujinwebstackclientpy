@@ -20,6 +20,7 @@ def _ParseArguments():
     parser.add_argument('--url', type=str, default='http://127.0.0.1', help='URL of the controller (default: %(default)s)')
     parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
     parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
+    parser.add_argument('--backupSceneFormat', type=str, default=None, help='The scene format to use in backup files, one of "msgpack", "json", or "yaml" (default: %(default)s)')
     parser.add_argument('--timeout', type=float, default=600, help='Timeout in seconds (default: %(default)s)')
     return parser.parse_args()
 
@@ -57,7 +58,7 @@ def _GetScenes(webClient):
 
     return sceneList
 
-def _DownloadBackup(webClient, sceneList, timeout=600.0):
+def _DownloadBackup(webClient, sceneList, backupSceneFormat, timeout=600.0):
     import re
     import tarfile
 
@@ -65,6 +66,7 @@ def _DownloadBackup(webClient, sceneList, timeout=600.0):
     response = webClient.Backup(      
         saveconfig=True,
         backupscenepks=sceneList,
+        backupSceneFormat=backupSceneFormat,
         timeout=timeout,
     )
 
@@ -83,7 +85,7 @@ def _Main():
 
     webClient = _CreateWebstackClient(options.url, options.username, options.password)
     sceneList = _GetScenes(webClient)
-    downloadDirectory = _DownloadBackup(webClient, sceneList, timeout=options.timeout)
+    downloadDirectory = _DownloadBackup(webClient, sceneList, options.backupSceneFormat, timeout=options.timeout)
     print(downloadDirectory) # other scripts can read stdout and learn the directory path
 
 if __name__ == "__main__":
