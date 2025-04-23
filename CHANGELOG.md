@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.4 (2025-04-23)
+
+### Changes
+
+- Add `backupSceneFormat` option to the backup API.
+
 ## 0.9.2 (2025-04-04)
 
 ### Changes
