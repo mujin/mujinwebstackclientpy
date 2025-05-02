@@ -838,9 +838,9 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
-    # 
+    #
     # Blob related
-    # 
+    #
 
     def DownloadBlob(self, blobId, timeout=5):
         """Downloads a blob with given id
@@ -876,16 +876,16 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response.json()
-    
+
     def DownloadSignalLog(self, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
         """Get the signal log from the controller.
 
-        Returns a stream response, so have to use 
-        
+        Returns a stream response, so have to use
+
         for chunk in GetSignalLog().iter_content(chunk_size=10000):
             if chunk:
                 f.write(chunk)
-        
+
         """
         params = {
             'cursor': (cursor or '').strip(),
@@ -893,12 +893,12 @@ class WebstackClient(object):
             'forward': 'true' if forward else 'false',
             'limit': str(limit or 0),
         }
-        
+
         response = self._webclient.Request('GET', '/log/plcsignal/', params=params, timeout=timeout, stream=True)
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response
-    
+
     #
     # Query list of scenepks based on barcdoe field
     #
@@ -926,7 +926,7 @@ class WebstackClient(object):
         """Retrieve configuration file content from controller.
 
         :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
-        :return: configuration file content dictionary 
+        :return: configuration file content dictionary
         """
         path = '/config/'
         if filename:
@@ -1043,12 +1043,12 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savestate=True, savecalibration=False, savedebug=False, saveeds=True, saveiodd=True, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, savewebapps=True, saveitl=True, savedetection=False, savestate=True, savecalibration=False, savedebug=False, saveeds=True, saveiodd=True, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
         :param savemedia: Whether we want to include media files in the backup, defaults to True
-        :param saveapps: Whether we want to include web apps in the backup, defaults to True
+        :param savewebapps: Whether we want to include web apps in the backup, defaults to True
         :param saveitl: Whether we want to include itl programs in the backup, defaults to True
         :param savedetection: Whether we want to include detection files in the backup, defaults to False
         :param savestate: Whether we want to include state files in the backup, defaults to True
@@ -1064,7 +1064,7 @@ class WebstackClient(object):
         response = self._webclient.Request('GET', '/backup/', stream=True, params={
             'media': 'true' if savemedia else 'false',
             'config': 'true' if saveconfig else 'false',
-            'apps': 'true' if saveapps else 'false',
+            'webApps': 'true' if savewebapps else 'false',
             'itl': 'true' if saveitl else 'false',
             'detection': 'true' if savedetection else 'false',
             'state': 'true' if savestate else 'false',
@@ -1078,13 +1078,13 @@ class WebstackClient(object):
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
         return response
 
-    def Restore(self, file, restoreconfig=True, restoremedia=True, restoreapps=True, restoreitl=True, restoreeds=True, restoreiodd=True, timeout=600):
+    def Restore(self, file, restoreconfig=True, restoremedia=True, restorewebapps=True, restoreitl=True, restoreeds=True, restoreiodd=True, timeout=600):
         """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
         :param restoreconfig: Whether we want to restore the configs, defaults to True
         :param restoremedia: Whether we want to restore the media data, defaults to True
-        :param restoreapps: Whether we want to restore the web apps, defaults to True
+        :param restorewebapps: Whether we want to restore the web apps, defaults to True
         :param restoreitl: Whether we want to restore the itl programs, defaults to True
         :param restoreeds: Whether we want to restore the eds files, defaults to True
         :param restoreiodd: Whether we want to restore the iodd files, defaults to True
@@ -1095,7 +1095,7 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/backup/', files={'file': file}, params={
             'media': 'true' if restoremedia else 'false',
             'config': 'true' if restoreconfig else 'false',
-            'apps': 'true' if restoreapps else 'false',
+            'webApps': 'true' if restorewebapps else 'false',
             'itl': 'true' if restoreitl else 'false',
             'eds': 'true' if restoreeds else 'false',
             'iodd': 'true' if restoreiodd else 'false',
