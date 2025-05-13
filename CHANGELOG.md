@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.3 (2025-05-13)
+
+### Changes
+
+- Regenerate the graph client.
+- Rename "application" to "webapp".
+
 ## 0.9.2 (2025-04-04)
 
 ### Changes
