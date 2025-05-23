@@ -778,7 +778,7 @@ class WebstackClient(object):
             raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return response.status_code != 404
 
-    def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
+    def DownloadFile(self, filename, ifmodifiedsince=None, resolveReferences=False, timeout=5):
         """Downloads a file given filename
 
         :return: A streaming response
@@ -786,7 +786,7 @@ class WebstackClient(object):
         headers = {}
         if ifmodifiedsince:
             headers['If-Modified-Since'] = _FormatHTTPDate(ifmodifiedsince)
-        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout)
+        response = self._webclient.Request('GET', u'/u/%s/%s?resolveReferences=%s' % (self.controllerusername, filename, str(resolveReferences).lower()), headers=headers, stream=True, timeout=timeout)
         if ifmodifiedsince and response.status_code == 304:
             return response
         if response.status_code != 200:
