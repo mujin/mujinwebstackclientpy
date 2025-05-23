@@ -105,9 +105,16 @@ class BackgroundThread(object):
 
     def __init__(self):
         # create a new event loop in a background thread
-        self._eventLoop = asyncio.new_event_loop()
-        self._thread = threading.Thread(target=self._RunEventLoop)
-        self._thread.start()
+        try:
+            # self._eventLoop = asyncio.new_event_loop()
+            # print("Create a new event loop, HAHAHAHA")
+            # self._eventLoop = asyncio.get_event_loop()
+            self._eventLoop = asyncio.get_running_loop()
+            print("There is a running event loop, HAHAHAHA")
+            self._thread = threading.Thread(target=self._RunEventLoop)
+            self._thread.start()
+        except RuntimeError as e:
+            print("Got an error: %s", e)
 
     def _RunEventLoop(self):
         # set the created loop as the current event loop for this thread
@@ -151,6 +158,8 @@ class ControllerWebClientRaw(object):
         self._password = password
         self._headers = {}
         self._isok = True
+
+        self._backgroundThread = BackgroundThread()
 
         self._subscriptions = {}
         self._subscriptionLock = threading.Lock()
