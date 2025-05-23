@@ -113,9 +113,10 @@ class BackgroundThread(object):
 
     def _RunEventLoop(self):
         # set the created loop as the current event loop for this thread
-        self._eventLoop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._eventLoop)
-        self._eventLoop.run_forever()
+        # self._eventLoop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(self._eventLoop)
+        # self._eventLoop.run_forever()
+        pass
 
     def RunCoroutine(self, coroutine: Callable):
         """Schedule a coroutine to run on the event loop from another thread
@@ -374,8 +375,7 @@ class ControllerWebClientRaw(object):
     def _EnsureWebSocketConnection(self):
         if self._backgroundThread is None:
             # create the background thread for async operations
-            # self._backgroundThread = BackgroundThread()
-            pass
+            self._backgroundThread = BackgroundThread()
         if self._webSocket is None:
             # wait until the connection is established
             self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result()
@@ -530,13 +530,13 @@ class ControllerWebClientRaw(object):
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
 
-        with self._subscriptionLock:
-            # make sure the websocket connection is running
-            self._EnsureWebSocketConnection()
+        # with self._subscriptionLock:
+        #     # make sure the websocket connection is running
+        #     self._EnsureWebSocketConnection()
 
-            # wait until the subscription is created
-            self._backgroundThread.RunCoroutine(_Subscribe()).result()
-            self._subscriptions[subscriptionId] = subscription
+        #     # wait until the subscription is created
+        #     self._backgroundThread.RunCoroutine(_Subscribe()).result()
+        #     self._subscriptions[subscriptionId] = subscription
 
             return subscription
 
