@@ -104,12 +104,12 @@ class BackgroundThread(object):
     _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine
 
     def __init__(self):
-        # create a new event loop in a background thread
-        self._eventLoop = asyncio.new_event_loop()
         self._thread = threading.Thread(target=self._RunEventLoop)
         self._thread.start()
 
     def _RunEventLoop(self):
+        # create a new event loop in a background thread
+        self._eventLoop = asyncio.new_event_loop()
         # set the created loop as the current event loop for this thread
         asyncio.set_event_loop(self._eventLoop)
         self._eventLoop.run_forever()
