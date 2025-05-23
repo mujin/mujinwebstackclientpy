@@ -786,7 +786,9 @@ class WebstackClient(object):
         headers = {}
         if ifmodifiedsince:
             headers['If-Modified-Since'] = _FormatHTTPDate(ifmodifiedsince)
-        response = self._webclient.Request('GET', u'/u/%s/%s?resolveReferences=%s' % (self.controllerusername, filename, str(resolveReferences).lower()), headers=headers, stream=True, timeout=timeout)
+        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout, params={
+            'resolveReferences': 'true' if resolveReferences else 'false',
+        })
         if ifmodifiedsince and response.status_code == 304:
             return response
         if response.status_code != 200:
