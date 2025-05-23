@@ -106,11 +106,6 @@ class BackgroundThread(object):
     def __init__(self):
         # create a new event loop in a background thread
         try:
-            # self._eventLoop = asyncio.new_event_loop()
-            # print("Create a new event loop, HAHAHAHA")
-            # self._eventLoop = asyncio.get_event_loop()
-            self._eventLoop = asyncio.get_running_loop()
-            print("There is a running event loop, HAHAHAHA")
             self._thread = threading.Thread(target=self._RunEventLoop)
             self._thread.start()
         except RuntimeError as e:
@@ -118,6 +113,7 @@ class BackgroundThread(object):
 
     def _RunEventLoop(self):
         # set the created loop as the current event loop for this thread
+        self._eventLoop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._eventLoop)
         self._eventLoop.run_forever()
 
@@ -158,8 +154,6 @@ class ControllerWebClientRaw(object):
         self._password = password
         self._headers = {}
         self._isok = True
-
-        self._backgroundThread = BackgroundThread()
 
         self._subscriptions = {}
         self._subscriptionLock = threading.Lock()
@@ -380,7 +374,8 @@ class ControllerWebClientRaw(object):
     def _EnsureWebSocketConnection(self):
         if self._backgroundThread is None:
             # create the background thread for async operations
-            self._backgroundThread = BackgroundThread()
+            # self._backgroundThread = BackgroundThread()
+            pass
         if self._webSocket is None:
             # wait until the connection is established
             self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result()
