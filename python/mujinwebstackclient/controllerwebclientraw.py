@@ -105,6 +105,7 @@ class BackgroundThread(object):
     _eventLoopReadyEvent: threading.Event # An event that signals the event loop is ready
 
     def __init__(self):
+        self._eventLoopReadyEvent = threading.Event()
         self._thread = threading.Thread(target=self._RunEventLoop)
         self._thread.start()
 
