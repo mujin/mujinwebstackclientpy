@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.4 (2025-05-24)
+
+### Changes
+
+- Add optional parameter to download resolved environments through file download.
+
 ## 0.9.3 (2025-05-13)
 
 ### Changes
