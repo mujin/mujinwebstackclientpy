@@ -108,7 +108,7 @@ class BackgroundThread(object):
         self._eventLoopReadyEvent = threading.Event()
         self._thread = threading.Thread(target=self._RunEventLoop)
         self._thread.start()
-        # block and wait for the signal to make sure the event loop is created and set in the _thread 
+        # block and wait for the signal to make sure the event loop is created and set in the _thread
         self._eventLoopReadyEvent.wait()
 
     def _RunEventLoop(self):

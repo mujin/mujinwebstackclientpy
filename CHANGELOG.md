@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.5 (2025-05-27)
+
+### Changes
+
+- Initialize the event loop inside the dedicated thread to avoid clashing with other event loop in the main thread.
+
 ## 0.9.4 (2025-05-24)
 
 ### Changes
