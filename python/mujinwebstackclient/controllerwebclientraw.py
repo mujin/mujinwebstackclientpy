@@ -108,6 +108,8 @@ class BackgroundThread(object):
         self._eventLoopReadyEvent = threading.Event()
         self._thread = threading.Thread(target=self._RunEventLoop)
         self._thread.start()
+        # block and wait for the signal to make sure the event loop is created and set in the _thread 
+        self._eventLoopReadyEvent.wait()
 
     def _RunEventLoop(self):
         # create a new event loop in a background thread
@@ -121,8 +123,6 @@ class BackgroundThread(object):
     def RunCoroutine(self, coroutine: Callable):
         """Schedule a coroutine to run on the event loop from another thread
         """
-        # block and wait for the signal to make sure the event loop is created and set in the _thread 
-        self._eventLoopReadyEvent.wait()
         return asyncio.run_coroutine_threadsafe(coroutine, self._eventLoop)
 
     def __del__(self):
