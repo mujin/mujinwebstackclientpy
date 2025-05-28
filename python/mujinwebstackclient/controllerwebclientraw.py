@@ -102,16 +102,22 @@ class Subscription(object):
 class BackgroundThread(object):
     _thread: threading.Thread # A thread to run the event loop
     _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine
+    _eventLoopReadyEvent: threading.Event # An event that signals the event loop is ready
 
     def __init__(self):
-        # create a new event loop in a background thread
-        self._eventLoop = asyncio.new_event_loop()
+        self._eventLoopReadyEvent = threading.Event()
         self._thread = threading.Thread(target=self._RunEventLoop)
         self._thread.start()
+        # block and wait for the signal to make sure the event loop is created and set in the _thread
+        self._eventLoopReadyEvent.wait()
 
     def _RunEventLoop(self):
+        # create a new event loop in a background thread
+        self._eventLoop = asyncio.new_event_loop()
         # set the created loop as the current event loop for this thread
         asyncio.set_event_loop(self._eventLoop)
+        # signals that the event loop is now ready
+        self._eventLoopReadyEvent.set()
         self._eventLoop.run_forever()
 
     def RunCoroutine(self, coroutine: Callable):
