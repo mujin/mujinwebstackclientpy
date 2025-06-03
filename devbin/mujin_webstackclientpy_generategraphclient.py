@@ -86,39 +86,59 @@ def _DiscoverMethods(queryOrMutationType):
         })
     return methods    
 
-def _PrintMethod(queryOrMutation, operationName, parameters, description, returnType):
-    if queryOrMutation == 'query' and operationName.startswith("List"):
+def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, description, returnType):
+    if queryOrMutationOrSubscription == 'query' and operationName.startswith("List"):
         print('    @UseLazyGraphQuery')
-    builtinParameterNames = ('fields', 'timeout')
-    print('    def %s(self, %s):' % (operationName, ', '.join([
+
+    builtinParameterNamesRequired = ()
+    builtinParameterNamesOptional = ()
+    if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
+        builtinParameterNamesRequired = ()
+        builtinParameterNamesOptional = ('fields', 'timeout')
+    elif queryOrMutationOrSubscription == 'subscription':
+        builtinParameterNamesRequired = ('callbackFunction',)
+        builtinParameterNamesOptional = ('fields',)
+    builtinParameterNames = builtinParameterNamesRequired + builtinParameterNamesOptional
+    operationParameters = [
         '%s=None' % parameter['parameterName'] if parameter['parameterNullable'] else parameter['parameterName']
         for parameter in parameters
         if parameter['parameterName'] not in builtinParameterNames
-    ] + ['fields=None', 'timeout=None'])))
+    ]
+    fullParameterList = list(builtinParameterNamesRequired) + operationParameters + ['%s=None' % name for name in builtinParameterNamesOptional]
+    print('    def %s(self, %s):' % (operationName, ', '.join(fullParameterList)))
+
     if description:
         print('        """%s' % description)
         print('')
         print('        Args:')
+        if queryOrMutationOrSubscription == 'subscription':
+            print('            callbackFunction (Callable[[Optional[str], Optional[dict]], None]): Customized callback function for subscription.')
         for parameter in parameters:
             if parameter['parameterName'] in builtinParameterNames:
                 continue
             isOptionalString = ", optional" if parameter['parameterNullable'] else ""
             print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
         print('            fields (list or dict, optional): Specifies a subset of fields to return.')
-        print('            timeout (float, optional): Number of seconds to wait for response.')
+        if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
+            print('            timeout (float, optional): Number of seconds to wait for response.')
         print('')
         print('        Returns:')
         print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), _IndentNewlines(returnType['description'])))
         print('        """')
     print('        parameterNameTypeValues = [')
+
     for parameter in parameters:
         if parameter['parameterName'] in builtinParameterNames:
             continue
         print('            (\'%s\', \'%s\', %s),' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
     print('        ]')
-    print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutation, operationName, returnType['baseTypeName']))
 
-def _PrintClient(serverVersion, queryMethods, mutationMethods):
+    if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
+        print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutationOrSubscription, operationName, returnType['baseTypeName']))
+    elif queryOrMutationOrSubscription == 'subscription':
+        print('        return self._CallSubscribeGraphAPI(operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', callbackFunction=callbackFunction, fields=fields)' % (operationName, returnType['baseTypeName']))
+
+def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMethods):
     print('# -*- coding: utf-8 -*-')
     print('#')
     print('# DO NOT EDIT, THIS FILE WAS AUTO-GENERATED')
@@ -141,7 +161,13 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods):
         _PrintMethod('mutation', **mutationMethod)
         print('')
     print('')
-    print('class GraphClient(GraphClientBase, GraphQueries, GraphMutations):')
+    print('class GraphSubscriptions:')
+    print('')
+    for subscriptionMethod in subscriptionMethods:
+        _PrintMethod('subscription', **subscriptionMethod)
+        print('')
+    print('')
+    print('class GraphClient(GraphClientBase, GraphQueries, GraphMutations, GraphSubscriptions):')
     print('    pass')
     print('')
     print('#')
@@ -157,8 +183,9 @@ def _Main():
     serverVersion, schema = _FetchServerVersionAndSchema(options.url, options.username, options.password)
     queryMethods = _DiscoverMethods(schema.query_type)
     mutationMethods = _DiscoverMethods(schema.mutation_type)
+    subscriptionMethods = _DiscoverMethods(schema.subscription_type)
 
-    _PrintClient(serverVersion, queryMethods, mutationMethods)
+    _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMethods)
 
 
 if __name__ == "__main__":
