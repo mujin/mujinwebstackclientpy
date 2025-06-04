@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.6 (2025-06-04)
+
+### Changes
+
+- Re-generate graph api.
+
 ## 0.9.5 (2025-05-27)
 
 ### Changes
