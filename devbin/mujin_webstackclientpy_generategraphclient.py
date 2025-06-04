@@ -109,24 +109,26 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
 
     if description:
         print('        """%s' % description)
-        print('')
-        print('        Args:')
-        if queryOrMutationOrSubscription == 'subscription':
-            print('            callbackFunction (Callable[[Optional[str], Optional[dict]], None]): Customized callback function for subscription.')
-        for parameter in parameters:
-            if parameter['parameterName'] in builtinParameterNames:
-                continue
-            isOptionalString = ", optional" if parameter['parameterNullable'] else ""
-            print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
-        print('            fields (list or dict, optional): Specifies a subset of fields to return.')
-        if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
-            print('            timeout (float, optional): Number of seconds to wait for response.')
-        print('')
-        print('        Returns:')
-        print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), _IndentNewlines(returnType['description'])))
+    else:
         print('        """')
-    print('        parameterNameTypeValues = [')
+    print('')
+    print('        Args:')
+    if queryOrMutationOrSubscription == 'subscription':
+        print('            callbackFunction (Callable[[Optional[str], Optional[dict]], None]): Customized callback function for subscription.')
+    for parameter in parameters:
+        if parameter['parameterName'] in builtinParameterNames:
+            continue
+        isOptionalString = ", optional" if parameter['parameterNullable'] else ""
+        print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
+    print('            fields (list or dict, optional): Specifies a subset of fields to return.')
+    if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
+        print('            timeout (float, optional): Number of seconds to wait for response.')
+    print('')
+    print('        Returns:')
+    print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), _IndentNewlines(returnType['description'])))
+    print('        """')
 
+    print('        parameterNameTypeValues = [')
     for parameter in parameters:
         if parameter['parameterName'] in builtinParameterNames:
             continue
