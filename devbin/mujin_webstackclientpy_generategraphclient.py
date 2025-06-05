@@ -92,7 +92,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
 
     builtinParameterNamesRequired = ()
     builtinParameterNamesOptional = ()
-    if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
+    if queryOrMutationOrSubscription in ['query', 'mutation']:
         builtinParameterNamesRequired = ()
         builtinParameterNamesOptional = ('fields', 'timeout')
     elif queryOrMutationOrSubscription == 'subscription':
@@ -114,14 +114,18 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
     print('')
     print('        Args:')
     if queryOrMutationOrSubscription == 'subscription':
-        print('            callbackFunction (Callable[[Optional[str], Optional[dict]], None]): Customized callback function for subscription.')
+        print('            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):')
+        print('                A user-provided callback function with signature that will be called when the subscription is triggered:')
+        print('                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None')
+        print('                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).')
+        print('                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)')
     for parameter in parameters:
         if parameter['parameterName'] in builtinParameterNames:
             continue
         isOptionalString = ", optional" if parameter['parameterNullable'] else ""
         print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
     print('            fields (list or dict, optional): Specifies a subset of fields to return.')
-    if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
+    if queryOrMutationOrSubscription in ['query', 'mutation']:
         print('            timeout (float, optional): Number of seconds to wait for response.')
     print('')
     print('        Returns:')
@@ -135,7 +139,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         print('            (\'%s\', \'%s\', %s),' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
     print('        ]')
 
-    if queryOrMutationOrSubscription == 'query' or queryOrMutationOrSubscription == 'mutation':
+    if queryOrMutationOrSubscription in ['query', 'mutation']:
         print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutationOrSubscription, operationName, returnType['baseTypeName']))
     elif queryOrMutationOrSubscription == 'subscription':
         print('        return self._CallSubscribeGraphAPI(operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', callbackFunction=callbackFunction, fields=fields)' % (operationName, returnType['baseTypeName']))
