@@ -84,7 +84,7 @@ def _DiscoverMethods(queryOrMutationType):
             'description': field.description,
             'returnType': _DiscoverType(field.type),
         })
-    return methods    
+    return methods
 
 def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, description, returnType):
     if queryOrMutationOrSubscription == 'query' and operationName.startswith("List"):
