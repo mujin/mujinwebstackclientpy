@@ -7,39 +7,98 @@
 
 from .webstackgraphclientutils import GraphClientBase
 from .webstackgraphclientutils import UseLazyGraphQuery
+from .controllerwebclientraw import Subscription
 
 class GraphQueries:
 
     def CommandBaseSystemOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandBaseSystemOrchestratorQueries: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('query', operationName='CommandBaseSystemOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandBaseSystemOrchestratorQueries', fields=fields, timeout=timeout)
 
     def CommandPackingOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandPackingOrchestratorQueries: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('query', operationName='CommandPackingOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandPackingOrchestratorQueries', fields=fields, timeout=timeout)
 
     def CommandRobotBridgesEx(self, queueId=None, fields=None, timeout=None):
+        """
+
+        Args:
+            queueId (str, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandRobotBridgesExQueries: 
+        """
         parameterNameTypeValues = [
             ('queueId', 'String', queueId),
         ]
         return self._CallSimpleGraphAPI('query', operationName='CommandRobotBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandRobotBridgesExQueries', fields=fields, timeout=timeout)
 
     def CommandRobotBridgesV2(self, queueId=None, fields=None, timeout=None):
+        """
+
+        Args:
+            queueId (str, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandRobotBridgesV2Queries: 
+        """
         parameterNameTypeValues = [
             ('queueId', 'String', queueId),
         ]
         return self._CallSimpleGraphAPI('query', operationName='CommandRobotBridgesV2', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandRobotBridgesV2Queries', fields=fields, timeout=timeout)
 
     def ConfigureRobotBridgesEx(self, fields=None, timeout=None):
+        """
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            ConfigureRobotBridgesExQueries: 
+        """
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('query', operationName='ConfigureRobotBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesExQueries', fields=fields, timeout=timeout)
 
     def ConfigureRobotBridgesV2(self, fields=None, timeout=None):
+        """
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            ConfigureRobotBridgesV2Queries: 
+        """
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('query', operationName='ConfigureRobotBridgesV2', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesV2Queries', fields=fields, timeout=timeout)
@@ -2900,41 +2959,110 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='CancelUpgrade', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def CommandBaseSystemOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandBaseSystemOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandBaseSystemOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandBaseSystemOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandCalibrationOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandCalibrationOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandCalibrationOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandCalibrationOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandFleetOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandFleetOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandFleetOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandFleetOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandOrchestratorMaster(self, fields=None, timeout=None):
+        """
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandOrchestratorMasterMutations: 
+        """
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandOrchestratorMaster', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandOrchestratorMasterMutations', fields=fields, timeout=timeout)
 
     def CommandOrderCycleOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandOrderCycleOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandOrderCycleOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandOrderCycleOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandPackingClusterOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandPackingClusterOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandPackingClusterOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandPackingClusterOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandPackingOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandPackingOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
@@ -2965,18 +3093,50 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='CommandPlanningServer', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def CommandProductionCycleOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandProductionCycleOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandProductionCycleOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandProductionCycleOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandRegistrationOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandRegistrationOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandRegistrationOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandRegistrationOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandRobotBridges(self, command, parameters=None, queueId=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            parameters (Any, optional): 
+            queueId (str, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('parameters', 'Any', parameters),
@@ -2985,24 +3145,65 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='CommandRobotBridges', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def CommandRobotBridgesEx(self, queueId=None, fields=None, timeout=None):
+        """
+
+        Args:
+            queueId (str, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandRobotBridgesExMutations: 
+        """
         parameterNameTypeValues = [
             ('queueId', 'String', queueId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandRobotBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandRobotBridgesExMutations', fields=fields, timeout=timeout)
 
     def CommandRobotBridgesV2(self, queueId=None, fields=None, timeout=None):
+        """
+
+        Args:
+            queueId (str, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandRobotBridgesV2Mutations: 
+        """
         parameterNameTypeValues = [
             ('queueId', 'String', queueId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandRobotBridgesV2', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandRobotBridgesV2Mutations', fields=fields, timeout=timeout)
 
     def CommandRobotMotorControlOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandRobotMotorControlOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandRobotMotorControlOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandRobotMotorControlOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandSensorBridges(self, command, parameters=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            parameters (Any, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('parameters', 'Any', parameters),
@@ -3010,17 +3211,47 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='CommandSensorBridges', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def CommandSensorBridgesEx(self, fields=None, timeout=None):
+        """
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandSensorBridgesExMutations: 
+        """
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandSensorBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandSensorBridgesExMutations', fields=fields, timeout=timeout)
 
     def CommandTeachWorkerOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandTeachWorkerOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandTeachWorkerOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandTeachWorkerOrchestratorMutations', fields=fields, timeout=timeout)
 
     def CommandUserInterface(self, command, parameters=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            parameters (Any, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('parameters', 'Any', parameters),
@@ -3028,6 +3259,18 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='CommandUserInterface', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def CommandVisionManager(self, command, options=None, parameters=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            options (VisionManagerOptionsInput, optional): 
+            parameters (Any, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('options', 'VisionManagerOptionsInput', options),
@@ -3036,18 +3279,49 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='CommandVisionManager', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def CommandVisionManagerEx(self, slaverequestid, fields=None, timeout=None):
+        """
+
+        Args:
+            slaverequestid (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandVisionManagerExMutations: 
+        """
         parameterNameTypeValues = [
             ('slaverequestid', 'String!', slaverequestid),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandVisionManagerEx', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandVisionManagerExMutations', fields=fields, timeout=timeout)
 
     def CommandWarehouseExecutionOrchestrator(self, orchestratorId, fields=None, timeout=None):
+        """
+
+        Args:
+            orchestratorId (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            CommandWarehouseExecutionOrchestratorMutations: 
+        """
         parameterNameTypeValues = [
             ('orchestratorId', 'String!', orchestratorId),
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandWarehouseExecutionOrchestrator', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandWarehouseExecutionOrchestratorMutations', fields=fields, timeout=timeout)
 
     def ConfigureRobotBridges(self, command, parameters=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            parameters (Any, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('parameters', 'Any', parameters),
@@ -3055,16 +3329,45 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureRobotBridges', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def ConfigureRobotBridgesEx(self, fields=None, timeout=None):
+        """
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            ConfigureRobotBridgesExMutations: 
+        """
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureRobotBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesExMutations', fields=fields, timeout=timeout)
 
     def ConfigureRobotBridgesV2(self, fields=None, timeout=None):
+        """
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            ConfigureRobotBridgesV2Mutations: 
+        """
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureRobotBridgesV2', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesV2Mutations', fields=fields, timeout=timeout)
 
     def ConfigureSensorBridges(self, command, parameters=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            parameters (Any, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('parameters', 'Any', parameters),
@@ -3072,11 +3375,31 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureSensorBridges', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def ConfigureSensorBridgesEx(self, fields=None, timeout=None):
+        """
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            ConfigureSensorBridgesExMutations: 
+        """
         parameterNameTypeValues = [
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureSensorBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureSensorBridgesExMutations', fields=fields, timeout=timeout)
 
     def ConfigureUserInterface(self, command, parameters=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            parameters (Any, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('parameters', 'Any', parameters),
@@ -3084,6 +3407,18 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureUserInterface', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def ConfigureVisionManager(self, command, options=None, parameters=None, fields=None, timeout=None):
+        """
+
+        Args:
+            command (str): 
+            options (VisionManagerOptionsInput, optional): 
+            parameters (Any, optional): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Any: 
+        """
         parameterNameTypeValues = [
             ('command', 'String!', command),
             ('options', 'VisionManagerOptionsInput', options),
@@ -3092,6 +3427,16 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureVisionManager', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def ConfigureVisionManagerEx(self, slaverequestid, fields=None, timeout=None):
+        """
+
+        Args:
+            slaverequestid (str): 
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            ConfigureVisionManagerExMutations: 
+        """
         parameterNameTypeValues = [
             ('slaverequestid', 'String!', slaverequestid),
         ]
@@ -6261,7 +6606,715 @@ class GraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='Upgrade', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
 
-class GraphClient(GraphClientBase, GraphQueries, GraphMutations):
+class GraphSubscriptions:
+
+    def Unsubscribe(self, subscription: Subscription):
+        """
+        Cancel an actively running subscription instance.
+
+        Args:
+            subscription (Subscription): The subscription instance to cancel.
+        """
+        self._webclient.UnsubscribeGraphAPI(subscription)
+
+    def SubscribeBaseSystemOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            BaseSystemOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeBaseSystemOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='BaseSystemOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeCalibrationOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            CalibrationOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeCalibrationOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='CalibrationOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeConfigurationChange(self, callbackFunction, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            ConfigurationChange: 
+        """
+        parameterNameTypeValues = [
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeConfigurationChange', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigurationChange', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeDiscoveredDevices(self, callbackFunction, interfaceLabels, deviceTypes=None, interval=None, fields=None):
+        """Subscribe to the devices discovered on an interface.
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interfaceLabels ([String]): The LAN labels to be used, e.g. ["LAN1", "LAN2"].
+            deviceTypes ([String], optional): The device types to be used. Leave empty for selecting all device types.
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms".
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            NetProbeState: 
+        """
+        parameterNameTypeValues = [
+            ('interfaceLabels', '[String!]!', interfaceLabels),
+            ('deviceTypes', '[String!]', deviceTypes),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeDiscoveredDevices', parameterNameTypeValues=parameterNameTypeValues, returnType='NetProbeState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeEnvironmentChange(self, callbackFunction, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            EnvironmentChange: 
+        """
+        parameterNameTypeValues = [
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeEnvironmentChange', parameterNameTypeValues=parameterNameTypeValues, returnType='EnvironmentChange', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeFleetOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            FleetOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeFleetOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='FleetOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeLogEntryChange(self, callbackFunction, logTypes=None, fields=None):
+        """Subscribe to log entry changes.
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            logTypes ([LogType], optional): Filter by log entry type.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            LogEntryChange: 
+        """
+        parameterNameTypeValues = [
+            ('logTypes', '[LogType!]', logTypes),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeLogEntryChange', parameterNameTypeValues=parameterNameTypeValues, returnType='LogEntryChange', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeOrchestratorMasterState(self, callbackFunction, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            OrchestratorMasterState: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeOrchestratorMasterState', parameterNameTypeValues=parameterNameTypeValues, returnType='OrchestratorMasterState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeOrderCycleOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            OrderCycleOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeOrderCycleOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='OrderCycleOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribePackingClusterOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribePackingClusterOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribePackingOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            SubscribePackingOrchestratorStateReturns: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribePackingOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='SubscribePackingOrchestratorStateReturns', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribePendantServerState(self, callbackFunction, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms".
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            PendantServerState: Pendant server state
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribePendantServerState', parameterNameTypeValues=parameterNameTypeValues, returnType='PendantServerState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribePlanningServerState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            PlanningServerState: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribePlanningServerState', parameterNameTypeValues=parameterNameTypeValues, returnType='PlanningServerState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeProductionCycleOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            ProductionCycleOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeProductionCycleOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='ProductionCycleOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeProgramLogLines(self, callbackFunction, executionId, programId, interval=None, tail=None, fields=None):
+        """Subscribe to program log lines.
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            executionId (str): ID of the execution.
+            programId (str): ID of the program.
+            interval (str, optional): Polling interval, for example "2s" or "200ms".
+                    If not specified, 500ms is used.
+            tail (int, optional): Number of lines to retrieve from the end of the logs.
+                    If not specified, only subscribe to new lines.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            [String]: The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
+        """
+        parameterNameTypeValues = [
+            ('executionId', 'String!', executionId),
+            ('programId', 'String!', programId),
+            ('interval', 'String', interval),
+            ('tail', 'Int', tail),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeProgramLogLines', parameterNameTypeValues=parameterNameTypeValues, returnType='String', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeRegistrationOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            RegistrationOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeRegistrationOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='RegistrationOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeRobotBridgesEnvironment(self, callbackFunction, interval=None, units=None, fields=None):
+        """Subscribe to the main environment in robotbridges. Upon subscription start, the currently tracked environment will be sent immediately.
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): The minimum interval at which the environment changes will be returned, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Environment: An OpenRAVE Environment
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeRobotBridgesEnvironment', parameterNameTypeValues=parameterNameTypeValues, returnType='Environment', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeRobotBridgesState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            RobotBridgesState: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeRobotBridgesState', parameterNameTypeValues=parameterNameTypeValues, returnType='RobotBridgesState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeRobotMotorControlOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            RobotMotorControlOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeRobotMotorControlOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='RobotMotorControlOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeSensorBridgesState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            SensorBridgesState: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeSensorBridgesState', parameterNameTypeValues=parameterNameTypeValues, returnType='SensorBridgesState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeTeachWorkerOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            TeachWorkerOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeTeachWorkerOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='TeachWorkerOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUntypedOrchestratorMasterState(self, callbackFunction, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUntypedOrchestratorMasterState', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUntypedPlanningServerState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUntypedPlanningServerState', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUntypedRobotBridgesEnvironment(self, callbackFunction, interval=None, units=None, fields=None):
+        """Subscribe to the main environment in robotbridges. Upon subscription start, the currently tracked environment will be sent immediately.
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): The minimum interval at which the environment changes will be returned, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUntypedRobotBridgesEnvironment', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUntypedRobotBridgesState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUntypedRobotBridgesState', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUntypedSensorBridgesState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUntypedSensorBridgesState', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUntypedUserInterfaceState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUntypedUserInterfaceState', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUntypedVisionManagerMasterState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            Any: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUntypedVisionManagerMasterState', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeUserInterfaceState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            UserInterfaceState: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeUserInterfaceState', parameterNameTypeValues=parameterNameTypeValues, returnType='UserInterfaceState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeVisionManagerMasterState(self, callbackFunction, interval=None, units=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            units (UnitSelectionInput, optional): Optional unit selection.
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            SubscribeVisionManagerMasterStateReturns: 
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String', interval),
+            ('units', 'UnitSelectionInput', units),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeVisionManagerMasterState', parameterNameTypeValues=parameterNameTypeValues, returnType='SubscribeVisionManagerMasterStateReturns', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeWarehouseExecutionOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
+        """
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            orchestratorId (str): ID of the orchestrator to subscribe to
+            interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            WarehouseExecutionOrchestratorState: 
+        """
+        parameterNameTypeValues = [
+            ('orchestratorId', 'String!', orchestratorId),
+            ('interval', 'String', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeWarehouseExecutionOrchestratorState', parameterNameTypeValues=parameterNameTypeValues, returnType='WarehouseExecutionOrchestratorState', callbackFunction=callbackFunction, fields=fields)
+
+    def SubscribeWebStackState(self, callbackFunction, interval, fields=None):
+        """Subscribe to published component states of WebStack.
+
+        Args:
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
+            interval (str): Interval at which the state should be queried, for example "2s" or "200ms"
+            fields (list or dict, optional): Specifies a subset of fields to return.
+
+        Returns:
+            WebStackState: WebStackState contains published component states of WebStack.
+        """
+        parameterNameTypeValues = [
+            ('interval', 'String!', interval),
+        ]
+        return self._CallSubscribeGraphAPI(operationName='SubscribeWebStackState', parameterNameTypeValues=parameterNameTypeValues, returnType='WebStackState', callbackFunction=callbackFunction, fields=fields)
+
+
+class GraphClient(GraphClientBase, GraphQueries, GraphMutations, GraphSubscriptions):
     pass
 
 #

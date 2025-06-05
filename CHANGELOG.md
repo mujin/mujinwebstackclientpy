@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.7 (2025-06-05)
+
+### Changes
+
+- Generate GraphQL subscription methods based on WebStack GraphQL schema.
+
 ## 0.9.6 (2025-06-04)
 
 ### Changes

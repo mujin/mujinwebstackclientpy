@@ -78,6 +78,9 @@ class GraphClientBase(object):
             returnType (string): name of the return type, used to construct query fields
             callbackFunction (func): a callback function to process the response data that is received from the subscription
             fields (list[string]): list of fieldName to filter for
+
+        Returns:
+            controllerwebclientraw.Subscription: the subscription object that the operation subscribes to.
         """
         query = self._GenerateQuery('subscription', operationName, parameterNameTypeValues, returnType, fields)
         variables = {}
@@ -87,7 +90,7 @@ class GraphClientBase(object):
             log.verbose('executing graph subscription with variables %r:\n\n%s\n', variables, query)
         subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
         return subscription
-    
+
     def _GenerateQuery(self, queryOrMutationOrSubscription: str, operationName: str, parameterNameTypeValues: list, returnType: str, fields: Optional[list[str]] = None) -> str:
         """
         Function to generate query for the webstack client to use.
@@ -141,7 +144,7 @@ class GraphQueryIterator:
           do_something(environment['id'])
     """
 
-    _queryFunction = None # the actual webstack client query function (e.g. client.graphApi.ListEnvironments) 
+    _queryFunction = None # the actual webstack client query function (e.g. client.graphApi.ListEnvironments)
     _queryArgs = None # positional arguments supplied to the query function (e.g. environmentId)
     _queryKwargs = None # keyword arguments supplied to the query function (e.g. options={'first': 10, 'offset': 5}, fields={'environments': {'id': None}})
     _items = [] # internal buffer for items retrieved from webstack
@@ -156,7 +159,7 @@ class GraphQueryIterator:
         if hasattr(queryFunction, "inner"):
             args = (queryFunction.__self__,) + args
             queryFunction = queryFunction.inner
-        
+
         # save the query function and all parameters
         self._queryFunction = queryFunction
         self._queryArgs = args
@@ -204,7 +207,7 @@ class GraphQueryIterator:
             del rawResponse['meta']
         if '__typename' in rawResponse:
             del rawResponse['__typename']
-        
+
         # process actual data
         if not rawResponse:
             # no actual items
@@ -219,7 +222,7 @@ class GraphQueryIterator:
             # all remaining items user requests are in internal buffer, no need to query webstack again
             self._shouldStop = True
             self._items = self._items[:self._initialLimit - self._count]
-        
+
         return self.next()
 
 class LazyGraphQuery(webstackclientutils.LazyQuery):
@@ -275,7 +278,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         self._queryKwargs['options']['offset'] = self._initialOffset
         self._queryKwargs['options']['first'] = self._initialLimit
         return GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)
-    
+
     def _APICall(self):
         """Make one webstack query
         """
@@ -306,7 +309,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
            e.g. 'bodies', 'environments', 'geometries'
         """
         return self._keyName
-    
+
     @property
     def typeName(self):
         """the top level typename in the dictionary retrieved from webstack
@@ -325,7 +328,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         items = list(GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs))
         list.__init__(self, items)
         self._fetchedAll = True
-    
+
 def UseLazyGraphQuery(queryFunction):
     """This decorator break a large graph query into a few small queries with the help of LazyGraphQuery class to prevent webstack from consuming too much memory.
     """
