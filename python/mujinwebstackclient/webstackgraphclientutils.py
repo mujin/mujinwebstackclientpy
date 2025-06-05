@@ -78,6 +78,9 @@ class GraphClientBase(object):
             returnType (string): name of the return type, used to construct query fields
             callbackFunction (func): a callback function to process the response data that is received from the subscription
             fields (list[string]): list of fieldName to filter for
+
+        Returns:
+            controllerwebclientraw.Subscription: the subscription object that the operation subscribes to.
         """
         query = self._GenerateQuery('subscription', operationName, parameterNameTypeValues, returnType, fields)
         variables = {}
@@ -87,7 +90,7 @@ class GraphClientBase(object):
             log.verbose('executing graph subscription with variables %r:\n\n%s\n', variables, query)
         subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
         return subscription
-    
+
     def _GenerateQuery(self, queryOrMutationOrSubscription: str, operationName: str, parameterNameTypeValues: list, returnType: str, fields: Optional[list[str]] = None) -> str:
         """
         Function to generate query for the webstack client to use.
@@ -128,6 +131,15 @@ class GraphClientBase(object):
             'queryFields': queryFields,
         }
         return query
+
+    def CallUnsubscribeGraphAPI(self, subscription: controllerwebclientraw.Subscription):
+        """
+        API for the webstack client to use for unsubscription.
+
+        Args:
+            subscription (Subscription): the subscription that the user want to unsubscribe
+        """
+        self._webclient.UnsubscribeGraphAPI(subscription)
 
 class GraphQueryIterator:
     """Converts a large graph query to a iterator. The iterator will internally query webstack with a few small queries
