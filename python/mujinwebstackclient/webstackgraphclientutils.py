@@ -132,15 +132,6 @@ class GraphClientBase(object):
         }
         return query
 
-    def UnsubscribeSubscription(self, subscription: controllerwebclientraw.Subscription):
-        """
-        API for the webstack client to use for unsubscription.
-
-        Args:
-            subscription (Subscription): the subscription that the user want to unsubscribe
-        """
-        self._webclient.UnsubscribeGraphAPI(subscription)
-
 class GraphQueryIterator:
     """Converts a large graph query to a iterator. The iterator will internally query webstack with a few small queries
     Examples:

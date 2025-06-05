@@ -7,6 +7,7 @@
 
 from .webstackgraphclientutils import GraphClientBase
 from .webstackgraphclientutils import UseLazyGraphQuery
+from .controllerwebclientraw import Subscription
 
 class GraphQueries:
 
@@ -6607,15 +6608,24 @@ class GraphMutations:
 
 class GraphSubscriptions:
 
+    def Unsubscribe(self, subscription: Subscription):
+        """
+        Cancel an actively running subscription instance.
+
+        Args:
+            subscription (Subscription): The subscription instance to cancel.
+        """
+        self._webclient.UnsubscribeGraphAPI(subscription)
+
     def SubscribeBaseSystemOrchestratorState(self, callbackFunction, orchestratorId, interval=None, fields=None):
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6633,11 +6643,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6655,11 +6665,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             fields (list or dict, optional): Specifies a subset of fields to return.
 
         Returns:
@@ -6673,11 +6683,11 @@ class GraphSubscriptions:
         """Subscribe to the devices discovered on an interface.
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interfaceLabels ([String]): The LAN labels to be used, e.g. ["LAN1", "LAN2"].
             deviceTypes ([String], optional): The device types to be used. Leave empty for selecting all device types.
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms".
@@ -6697,11 +6707,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
 
@@ -6717,11 +6727,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6739,11 +6749,11 @@ class GraphSubscriptions:
         """Subscribe to log entry changes.
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             logTypes ([LogType], optional): Filter by log entry type.
             fields (list or dict, optional): Specifies a subset of fields to return.
 
@@ -6759,11 +6769,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
 
@@ -6779,11 +6789,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6801,11 +6811,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6823,11 +6833,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6845,11 +6855,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms".
             fields (list or dict, optional): Specifies a subset of fields to return.
 
@@ -6865,11 +6875,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6887,11 +6897,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6909,11 +6919,11 @@ class GraphSubscriptions:
         """Subscribe to program log lines.
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             executionId (str): ID of the execution.
             programId (str): ID of the program.
             interval (str, optional): Polling interval, for example "2s" or "200ms".
@@ -6937,11 +6947,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6959,11 +6969,11 @@ class GraphSubscriptions:
         """Subscribe to the main environment in robotbridges. Upon subscription start, the currently tracked environment will be sent immediately.
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): The minimum interval at which the environment changes will be returned, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -6981,11 +6991,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7003,11 +7013,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7025,11 +7035,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7047,11 +7057,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7069,11 +7079,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
 
@@ -7089,11 +7099,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7111,11 +7121,11 @@ class GraphSubscriptions:
         """Subscribe to the main environment in robotbridges. Upon subscription start, the currently tracked environment will be sent immediately.
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): The minimum interval at which the environment changes will be returned, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7133,11 +7143,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7155,11 +7165,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7177,11 +7187,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7199,11 +7209,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7221,11 +7231,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7243,11 +7253,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             units (UnitSelectionInput, optional): Optional unit selection.
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7265,11 +7275,11 @@ class GraphSubscriptions:
         """
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             orchestratorId (str): ID of the orchestrator to subscribe to
             interval (str, optional): Interval at which the subscription rate should not exceed, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
@@ -7287,11 +7297,11 @@ class GraphSubscriptions:
         """Subscribe to published component states of WebStack.
 
         Args:
-            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):
-                A user-provided callback function with signature that will be called when the subscription is triggered:
-                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None
-                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).
-                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)
+            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
+                A function with signature that will be called when the subscription is triggered:
+                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None
+                - error: Contains an error message (or `None` if no error occurred).
+                - response: Contains the returned payload (or `None` if an error occurred).
             interval (str): Interval at which the state should be queried, for example "2s" or "200ms"
             fields (list or dict, optional): Specifies a subset of fields to return.
 

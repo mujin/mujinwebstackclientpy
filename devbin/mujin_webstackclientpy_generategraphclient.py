@@ -92,8 +92,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
 
     builtinParameterNamesRequired = ()
     builtinParameterNamesOptional = ()
-    if queryOrMutationOrSubscription in ['query', 'mutation']:
-        builtinParameterNamesRequired = ()
+    if queryOrMutationOrSubscription in ('query', 'mutation'):
         builtinParameterNamesOptional = ('fields', 'timeout')
     elif queryOrMutationOrSubscription == 'subscription':
         builtinParameterNamesRequired = ('callbackFunction',)
@@ -114,18 +113,18 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
     print('')
     print('        Args:')
     if queryOrMutationOrSubscription == 'subscription':
-        print('            callbackFunction (Callable[[Optional[str], Optional[dict]], None]):')
-        print('                A user-provided callback function with signature that will be called when the subscription is triggered:')
-        print('                    def callbackFunction(error: Optional[str], response: Optional[dict]) -> None')
-        print('                - error (str, optional): An error message if an error occurs (otherwise `None` if no error occurs).')
-        print('                - response (dict, optional): A dictionary that contains the returned payload (otherwise `None` if error occurs)')
+        print('            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):')
+        print('                A function with signature that will be called when the subscription is triggered:')
+        print('                    def CallbackFunction(error: Optional[ControllerGraphClientException], response: Optional[dict]) -> None')
+        print('                - error: Contains an error message (or `None` if no error occurred).')
+        print('                - response: Contains the returned payload (or `None` if an error occurred).')
     for parameter in parameters:
         if parameter['parameterName'] in builtinParameterNames:
             continue
         isOptionalString = ", optional" if parameter['parameterNullable'] else ""
         print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
     print('            fields (list or dict, optional): Specifies a subset of fields to return.')
-    if queryOrMutationOrSubscription in ['query', 'mutation']:
+    if queryOrMutationOrSubscription in ('query', 'mutation'):
         print('            timeout (float, optional): Number of seconds to wait for response.')
     print('')
     print('        Returns:')
@@ -139,7 +138,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         print('            (\'%s\', \'%s\', %s),' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
     print('        ]')
 
-    if queryOrMutationOrSubscription in ['query', 'mutation']:
+    if queryOrMutationOrSubscription in ('query', 'mutation'):
         print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutationOrSubscription, operationName, returnType['baseTypeName']))
     elif queryOrMutationOrSubscription == 'subscription':
         print('        return self._CallSubscribeGraphAPI(operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', callbackFunction=callbackFunction, fields=fields)' % (operationName, returnType['baseTypeName']))
@@ -154,6 +153,7 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMetho
     print('')
     print('from .webstackgraphclientutils import GraphClientBase')
     print('from .webstackgraphclientutils import UseLazyGraphQuery')
+    print('from .controllerwebclientraw import Subscription')
     print('')
     print('class GraphQueries:')
     print('')
@@ -168,6 +168,15 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMetho
         print('')
     print('')
     print('class GraphSubscriptions:')
+    print('')
+    print('    def Unsubscribe(self, subscription: Subscription):')
+    print('        """')
+    print('        Cancel an actively running subscription instance.')
+    print('')
+    print('        Args:')
+    print('            subscription (Subscription): The subscription instance to cancel.')
+    print('        """')
+    print('        self._webclient.UnsubscribeGraphAPI(subscription)')
     print('')
     for subscriptionMethod in subscriptionMethods:
         _PrintMethod('subscription', **subscriptionMethod)
