@@ -132,7 +132,7 @@ class GraphClientBase(object):
         }
         return query
 
-    def CallUnsubscribeGraphAPI(self, subscription: controllerwebclientraw.Subscription):
+    def UnsubscribeSubscription(self, subscription: controllerwebclientraw.Subscription):
         """
         API for the webstack client to use for unsubscription.
 
