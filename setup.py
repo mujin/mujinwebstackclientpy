@@ -15,6 +15,9 @@ setup(
     version=version['__version__'],
     packages=['mujinwebstackclient'],
     package_dir={'mujinwebstackclient': 'python/mujinwebstackclient'},
+    package_data={
+        'mujinwebstackclient': ['py.typed'],
+    },
     data_files=[
         # using scripts= will cause the first line of the script being modified for python2 or python3
         # put the scripts in data_files will copy them as-is
