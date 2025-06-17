@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.8 (2025-06-17)
+
+### Changes
+
+- Allow choose queries/mutation/subscription explicitly.
+
 ## 0.9.7 (2025-06-05)
 
 ### Changes
