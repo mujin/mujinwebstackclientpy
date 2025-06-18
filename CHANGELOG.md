@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.9 (2025-06-19)
+
+### Changes
+
+- Add startedAt and endedAt parameters to debug resource APIs.
+
 ## 0.9.8 (2025-06-17)
 
 ### Changes
