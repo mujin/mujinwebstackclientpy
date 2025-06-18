@@ -1114,19 +1114,28 @@ class WebstackClient(object):
     # Debugging related
     #
 
-    def GetDebugResources(self, timeout=5):
+    def GetDebugResources(self, startedAt=None, endedAt=None, timeout=5):
         """returns available debug resources from controller
 
+        :param startedAt: Earliest timestamp of data to include, defaults to None
+        :param endedAt: Latest timestamp of data to include, defaults to None.
         :param timeout: Amount of time in seconds to wait before failing, defaults to 5
         :return: Available debug resources
         """
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
+        params = {}
+        if startedAt:
+            params['startedAt'] = startedAt.isoformat(),
+        if endedAt:
+            params['endedAt'] = endedAt.isoformat(),
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout, params=params))
 
-    def DownloadDebugResource(self, debugresourcepk, downloadSizeLimit=100*1024*1024, timeout=10):
+    def DownloadDebugResource(self, debugresourcepk, downloadSizeLimit=100*1024*1024, startedAt=None, endedAt=None, timeout=10):
         """downloads contents of the given debug resource
 
         :param debugresourcepk: Exact name of the debug resource to download
-        :param downloadSizeLimit: Limit of the size of the debug resource to download, defaults to 100*1024*1024 bytes
+        :param downloadSizeLimit: Limit the size of the debug resource to download, defaults to 100*1024*1024 bytes
+        :param startedAt: Earliest timestamp of data to include, defaults to None
+        :param endedAt: Latest timestamp of data to include, defaults to None.
         :param timeout: Amount of time in seconds to wait before failing, defaults to 10
         :raises WebstackClientError: If request wasn't successful
         :return: Contents of the requested resource
@@ -1136,6 +1145,10 @@ class WebstackClient(object):
         params = {
             'sizeLimit' : downloadSizeLimit
         }
+        if startedAt:
+            params['startedAt'] = startedAt.isoformat(),
+        if endedAt:
+            params['endedAt'] = endedAt.isoformat(),
         response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout, params=params)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
