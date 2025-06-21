@@ -4,6 +4,7 @@
 from .version import __version__ # noqa: F401
 
 import six
+from typing import Optional 
 
 try:
     import ujson as json  # noqa: F401
@@ -49,15 +50,15 @@ class ClientExceptionBase(Exception):
     """
     _message = None  # the error message, should be unicode
     
-    def __init__(self, message=''):
-        if message is not None and not isinstance(message, six.text_type):
+    def __init__(self, message: Optional[str]='') -> None:
+        if message is not None and not isinstance(message,  six.text_type):
             message = message.decode('utf-8', 'ignore')
         self._message = message
     
-    def __str__(self):
+    def __str__(self) -> str: 
         return u'%s: %s' % (self.__class__.__name__, self._message)
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<%s(message=%r)>' % (self.__class__.__name__, self._message)
 
 
@@ -69,7 +70,7 @@ class APIServerError(ClientExceptionBase):
     _detailInfo = None # dcit, the detailed info
     _inputcommand = None  # the command sent to the server
     
-    def __init__(self, message, errorcode=None, inputcommand=None, detailInfoType=None, detailInfo=None):
+    def __init__(self, message: str, errorcode: Optional[int]=None, inputcommand: Optional[str]=None, detailInfoType: Optional[str]=None, detailInfo: Optional[dict]=None) -> None:
         if message is not None and not isinstance(message, six.text_type):
             message = message.decode('utf-8', 'ignore')
         self._message = message
@@ -78,7 +79,7 @@ class APIServerError(ClientExceptionBase):
         self._detailInfoType = detailInfoType
         self._detailInfo = detailInfo
     
-    def __str__(self):
+    def __str__(self) -> str:
         if self._message is not None:
             return _('API Server Error: %s')%self._message
         
@@ -88,7 +89,7 @@ class APIServerError(ClientExceptionBase):
         return '<%s(message=%r, errorcode=%r, inputcommand=%r, detailInfoType=%r, detailInfo=%r)>' % (self.__class__.__name__, self._message, self._errorcode, self._inputcommand, self._detailInfoType, self._detailInfo)
     
     @property
-    def message(self):
+    def message(self) -> str:
         """The error message from server."""
         return self._message
     
@@ -98,16 +99,17 @@ class APIServerError(ClientExceptionBase):
         return self._errorcode
     
     @property
-    def stacktrace(self):
+    def stacktrace(self) -> str:
+        """The stack trace for the error"""
         return ''
     
     @property
-    def inputcommand(self):
+    def inputcommand(self) -> Optional[str]:
         """The command that was sent to the server. Could be None."""
         return self._inputcommand
     
     @property
-    def detailInfoType(self):
+    def detailInfoType(self) -> Optional[str]:
         """string for the detai info type"""
         return self._detailInfoType
     
@@ -125,7 +127,7 @@ class AuthenticationError(ClientExceptionBase):
 
 
 class WebstackClientError(ClientExceptionBase):
-
+    """Exeption class for errors returned by the web stack client"""
     _response = None # http response that resulted in the error
 
     def __init__(self, message='', response=None):
@@ -134,6 +136,7 @@ class WebstackClientError(ClientExceptionBase):
 
     @property
     def response(self):
+        """The http response that resulted in the error"""
         return self._response
 
 
