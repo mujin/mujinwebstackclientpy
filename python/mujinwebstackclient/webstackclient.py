@@ -793,7 +793,7 @@ class WebstackClient(object):
         if ifmodifiedsince and response.status_code == 304:
             return response
         if response.status_code != 200:
-            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
 
     def FlushAndDownloadFile(self, filename, timeout=5):
@@ -803,7 +803,7 @@ class WebstackClient(object):
         """
         response = self._webclient.Request('GET', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
         if response.status_code != 200:
-            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
 
     def FlushAndHeadFile(self, filename, timeout=5):
@@ -852,11 +852,11 @@ class WebstackClient(object):
         """
         response = self._webclient.Request('GET', u'/api/v2/blob/%s' % blobId, stream=True, timeout=timeout)
         if response.status_code == 404:
-            raise WebstackClientError(_('Blob "%s" does not exist, status code is %d') % (blobId, response.status_code), response=response)
+            raise WebstackClientError(_('Blob "%s" does not exist, status code is %d') % (blobId, response.status_code), response=response.content)
         if response.status_code == 204:
-            raise WebstackClientError(_('Blob "%s" has no content, status code is %d') % (blobId, response.status_code), response=response)
+            raise WebstackClientError(_('Blob "%s" has no content, status code is %d') % (blobId, response.status_code), response=response.content)
         if response.status_code != 200:
-            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
 
     #
@@ -899,7 +899,7 @@ class WebstackClient(object):
 
         response = self._webclient.Request('GET', '/log/plcsignal/', params=params, timeout=timeout, stream=True)
         if response.status_code != 200:
-            raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
+            raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response.content)
         return response
 
     #
@@ -1078,7 +1078,7 @@ class WebstackClient(object):
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
-            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
 
     def Restore(self, file, restoreconfig=True, restoremedia=True, restorewebapps=True, restoreitl=True, restoreeds=True, restoreiodd=True, timeout=600):
@@ -1151,7 +1151,7 @@ class WebstackClient(object):
             params['endedAt'] = endedAt.isoformat(),
         response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout, params=params)
         if response.status_code != 200:
-            raise WebstackClientError(response.content.decode('utf-8'), response=response)
+            raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
 
     def GetSchema(self, schemaId, timeout=10):
