@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.10 (2025-06-26)
+
+- Raise WebStack client errors with a copy of the response content instead of the implicit iterator to allow caller to deserialize the content as many times as needed.
+
 ## 0.9.9 (2025-06-19)
 
 ### Changes
