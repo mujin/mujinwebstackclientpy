@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.11 (2025-07-03)
+
+- Support an optional bodyId parameter when downloading environment.
+
 ## 0.9.10 (2025-06-26)
 
 - Raise WebStack client errors with a copy of the response content instead of the implicit iterator to allow caller to deserialize the content as many times as needed.
