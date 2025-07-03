@@ -790,7 +790,7 @@ class WebstackClient(object):
         params = {
             'resolveReferences': 'true' if resolveReferences else 'false',
         }
-        filename = urllib.parse.quote(filename) # quote '#bodyId' into '%23BodyId'
+        filename = urllib.parse.quote(filename) # quote '#bodyId' into '%23bodyId'
         response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), params=params, headers=headers, stream=True, timeout=timeout)
         if ifmodifiedsince and response.status_code == 304:
             return response
