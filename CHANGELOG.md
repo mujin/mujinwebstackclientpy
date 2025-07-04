@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.11 (2025-07-04)
+
+- Re-generate graph client.
+- Don't add trailing whitespace in generated client.
+- Support default values parsed from the GraphQL schema.
+- Support deprecation warnings parsed from the GraphQL schema.
+
 ## 0.9.10 (2025-06-26)
 
 - Raise WebStack client errors with a copy of the response content instead of the implicit iterator to allow caller to deserialize the content as many times as needed.

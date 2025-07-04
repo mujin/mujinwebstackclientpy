@@ -78,15 +78,17 @@ def _DiscoverMethods(queryOrMutationType):
                     'parameterType': _DiscoverType(argument.type)['typeName'],
                     'parameterDescription': argument.description,
                     'parameterNullable': not isinstance(argument.type, graphql.GraphQLNonNull),
+                    'parameterDefaultValue': argument.default_value if argument.default_value != graphql.Undefined else None,
                 }
                 for argumentName, argument in field.args.items()
             ], key=lambda x: (x['parameterNullable'], x['parameterName'])),
             'description': field.description,
+            'deprecationReason': field.deprecation_reason,
             'returnType': _DiscoverType(field.type),
         })
     return methods
 
-def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, description, returnType):
+def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, description, deprecationReason, returnType):
     if queryOrMutationOrSubscription == 'query' and operationName.startswith("List"):
         print('    @UseLazyGraphQuery')
 
@@ -98,12 +100,20 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         builtinParameterNamesRequired = ('callbackFunction',)
         builtinParameterNamesOptional = ('fields',)
     builtinParameterNames = builtinParameterNamesRequired + builtinParameterNamesOptional
-    operationParameters = [
-        '%s=None' % parameter['parameterName'] if parameter['parameterNullable'] else parameter['parameterName']
-        for parameter in parameters
-        if parameter['parameterName'] not in builtinParameterNames
-    ]
-    fullParameterList = list(builtinParameterNamesRequired) + operationParameters + ['%s=None' % name for name in builtinParameterNamesOptional]
+    operationParametersRequired = []
+    operationParametersOptional = []
+    for parameter in parameters:
+        if parameter['parameterName'] in builtinParameterNames:
+            continue
+        if parameter['parameterDefaultValue'] is not None:
+            operationParametersOptional.append('%s=%s' % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
+            continue
+        if parameter['parameterNullable'] is True:
+            operationParametersOptional.append('%s=None' % parameter['parameterName'])
+            continue
+        operationParametersRequired.append('%s' % parameter['parameterName'])
+
+    fullParameterList = list(builtinParameterNamesRequired) + operationParametersRequired + operationParametersOptional + ['%s=None' % name for name in builtinParameterNamesOptional]
     print('    def %s(self, %s):' % (operationName, ', '.join(fullParameterList)))
 
     if description:
@@ -111,6 +121,10 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
     else:
         print('        """')
     print('')
+    if deprecationReason:
+        print('        Deprecated:')
+        print('            %s' % (deprecationReason))
+        print('')
     print('        Args:')
     if queryOrMutationOrSubscription == 'subscription':
         print('            callbackFunction (Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):')
@@ -122,14 +136,25 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         if parameter['parameterName'] in builtinParameterNames:
             continue
         isOptionalString = ", optional" if parameter['parameterNullable'] else ""
-        print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
+        print('            %s (%s%s):' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString), end='')
+        if parameter['parameterDescription']:
+            print(' %s' % _IndentNewlines(parameter['parameterDescription']))
+        else:
+            print('')
     print('            fields (list or dict, optional): Specifies a subset of fields to return.')
     if queryOrMutationOrSubscription in ('query', 'mutation'):
         print('            timeout (float, optional): Number of seconds to wait for response.')
     print('')
     print('        Returns:')
-    print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), _IndentNewlines(returnType['description'])))
+    print('            %s:' % (_FormatTypeForDocstring(returnType['typeName'])), end='')
+    if returnType['description']:
+        print(' %s' % _IndentNewlines(returnType['description']))
+    else:
+        print('')
     print('        """')
+
+    if deprecationReason:
+        print('        warnings.warn(\'"%s" is deprecated. %s\', DeprecationWarning, stacklevel=2)' % (operationName, deprecationReason))
 
     print('        parameterNameTypeValues = [')
     for parameter in parameters:
@@ -150,6 +175,8 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMetho
     print('# GENERATED BY: %s' % os.path.basename(__file__))
     print('# GENERATED AGAINST: %s' % serverVersion)
     print('#')
+    print('')
+    print('import warnings')
     print('')
     print('from .webstackgraphclientutils import GraphClientBase')
     print('from .webstackgraphclientutils import UseLazyGraphQuery')
