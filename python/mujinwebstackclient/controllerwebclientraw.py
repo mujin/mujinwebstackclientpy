@@ -35,16 +35,18 @@ from . import APIServerError, WebstackClientError, ControllerGraphClientExceptio
 from .unixsocketadapter import UnixSocketAdapter
 
 import logging
+
 logging.getLogger('websockets').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
+
 class JSONWebTokenAuth(requests_auth.AuthBase):
-    """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available.
-    """
-    _username = None # controller username
-    _password = None # controller password
-    _jsonWebToken = None # json web token
-    _encodedUsernamePassword: str # Encoded Mujin controller's username and password
+    """Attaches JWT Bearer Authentication to a given Request object. Use basic authentication if token is not available."""
+
+    _username = None  # controller username
+    _password = None  # controller password
+    _jsonWebToken = None  # json web token
+    _encodedUsernamePassword: str  # Encoded Mujin controller's username and password
 
     def __init__(self, username, password):
         self._username = username
@@ -53,11 +55,13 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
         self._encodedUsernamePassword = base64.b64encode(usernamePassword.encode('utf-8')).decode('ascii')
 
     def __eq__(self, other):
-        return all([
-            self._username == getattr(other, '_username', None),
-            self._password == getattr(other, '_password', None),
-            self._jsonWebToken == getattr(other, '_jsonWebToken', None),
-        ])
+        return all(
+            [
+                self._username == getattr(other, '_username', None),
+                self._password == getattr(other, '_password', None),
+                self._jsonWebToken == getattr(other, '_jsonWebToken', None),
+            ],
+        )
 
     def __ne__(self, other):
         return not self == other
@@ -80,11 +84,12 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
             request.register_hook('response', self._SetJSONWebToken)
         return request
 
+
 class Subscription(object):
-    """Subscription that contains the unique subscription id for every subscription.
-    """
-    _subscriptionId: str # subscription id
-    _subscriptionCallbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None] # subscription callback function
+    """Subscription that contains the unique subscription id for every subscription."""
+
+    _subscriptionId: str  # subscription id
+    _subscriptionCallbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]  # subscription callback function
 
     def __init__(self, subscriptionId: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
         self._subscriptionId = subscriptionId
@@ -99,10 +104,11 @@ class Subscription(object):
     def __repr__(self):
         return '<Subscription(%r, %r)>' % (self._subscriptionId, self._subscriptionCallbackFunction)
 
+
 class BackgroundThread(object):
-    _thread: threading.Thread # A thread to run the event loop
-    _eventLoop: asyncio.AbstractEventLoop # Event loop that is running so that client can add coroutine
-    _eventLoopReadyEvent: threading.Event # An event that signals the event loop is ready
+    _thread: threading.Thread  # A thread to run the event loop
+    _eventLoop: asyncio.AbstractEventLoop  # Event loop that is running so that client can add coroutine
+    _eventLoopReadyEvent: threading.Event  # An event that signals the event loop is ready
 
     def __init__(self):
         self._eventLoopReadyEvent = threading.Event()
@@ -121,8 +127,7 @@ class BackgroundThread(object):
         self._eventLoop.run_forever()
 
     def RunCoroutine(self, coroutine: Callable):
-        """Schedule a coroutine to run on the event loop from another thread
-        """
+        """Schedule a coroutine to run on the event loop from another thread"""
         return asyncio.run_coroutine_threadsafe(coroutine, self._eventLoop)
 
     def __del__(self):
@@ -139,6 +144,7 @@ class BackgroundThread(object):
         self._thread.join()
         self._eventLoop.close()
 
+
 class ControllerWebClientRaw(object):
     _baseurl = None  # Base URL of the controller
     _username = None  # Username to login with
@@ -146,10 +152,10 @@ class ControllerWebClientRaw(object):
     _headers = None  # Prepared headers for all requests
     _isok = False  # Flag to stop
     _session = None  # Requests session object
-    _webSocket: websockets.asyncio.client.ClientConnection = None # WebSocket used to connect to WebStack for subscriptions
-    _subscriptions: dict[str, Subscription] # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
-    _subscriptionLock: threading.Lock # Lock protecting _webSocket and _subscriptions
-    _backgroundThread: BackgroundThread = None # The background thread to handle async operations
+    _webSocket: websockets.asyncio.client.ClientConnection = None  # WebSocket used to connect to WebStack for subscriptions
+    _subscriptions: dict[str, Subscription]  # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
+    _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
+    _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
 
     def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
         self._baseurl = baseurl
@@ -252,7 +258,7 @@ class ControllerWebClientRaw(object):
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
         # in verbose logging, log the caller
-        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+        if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
             log.verbose('request %s %s response %s took %.03f seconds:\n%s', method, url, response.status_code, response.elapsed.total_seconds(), '\n'.join([line.strip() for line in traceback.format_stack()[:-1]]))
         return response
 
@@ -306,7 +312,7 @@ class ControllerWebClientRaw(object):
 
         # First check error
         if content is not None and 'error_message' in content:
-            raise APIServerError(content['error_message'], errorcode=content.get('error_code', None), inputcommand=path, detailInfoType=content.get('detailInfoType',None), detailInfo=content.get('detailInfo',None))
+            raise APIServerError(content['error_message'], errorcode=content.get('error_code', None), inputcommand=path, detailInfoType=content.get('detailInfoType', None), detailInfo=content.get('detailInfo', None))
 
         if content is not None and 'error' in content:
             raise APIServerError(content['error'].get('message', raw), inputcommand=path)
@@ -340,10 +346,18 @@ class ControllerWebClientRaw(object):
         headers['Accept'] = 'application/json'
 
         # make the request
-        response = self.Request('POST', '/api/v2/graphql', headers=headers, data=json.dumps({
-            'query': query,
-            'variables': variables or {},
-        }), timeout=timeout)
+        response = self.Request(
+            'POST',
+            '/api/v2/graphql',
+            headers=headers,
+            data=json.dumps(
+                {
+                    'query': query,
+                    'variables': variables or {},
+                },
+            ),
+            timeout=timeout,
+        )
 
         # try to parse response
         raw = response.content.decode('utf-8', 'replace').strip()
@@ -428,12 +442,16 @@ class ControllerWebClientRaw(object):
                 additional_headers=headers,
             )
 
-        await self._webSocket.send(json.dumps({
-            'type': 'connection_init',
-            'payload': {
-                'Authorization': authorization,
-            }
-        }))
+        await self._webSocket.send(
+            json.dumps(
+                {
+                    'type': 'connection_init',
+                    'payload': {
+                        'Authorization': authorization,
+                    },
+                },
+            ),
+        )
 
     async def _ListenToWebSocket(self):
         try:
@@ -496,8 +514,7 @@ class ControllerWebClientRaw(object):
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to listen to WebSocket: %s') % (e)))
 
     async def _StopAllSubscriptions(self, error: Optional[ControllerGraphClientException]):
-        """Needs to run under self._subscriptionLock
-        """
+        """Needs to run under self._subscriptionLock"""
         # close the websocket
         await self._CloseWebSocket()
         # send a message back to the callers using the callback function and drop all subscriptions
@@ -506,7 +523,7 @@ class ControllerWebClientRaw(object):
         self._subscriptions.clear()
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
-        """ Subscribes to changes on Mujin controller.
+        """Subscribes to changes on Mujin controller.
 
         Args:
             query (string): a query to subscribe to the service (e.g. "subscription {SubscribeWebStackState(interval:\"5s\"){synchronizer{messages}}}")
@@ -523,7 +540,7 @@ class ControllerWebClientRaw(object):
                 message = {
                     'id': subscription.GetSubscriptionID(),
                     'type': 'start',
-                    'payload': { 'query': query }
+                    'payload': {'query': query},
                 }
                 if variables:
                     message['payload']['variables'] = variables
@@ -543,7 +560,7 @@ class ControllerWebClientRaw(object):
             return subscription
 
     def UnsubscribeGraphAPI(self, subscription: Subscription):
-        """ Unsubscribes to Mujin controller.
+        """Unsubscribes to Mujin controller.
 
         Args:
             subscription (Subscription): the subscription that the user wants to unsubscribe
@@ -554,10 +571,14 @@ class ControllerWebClientRaw(object):
             try:
                 # check if self._subscriptionIds has subscriptionId
                 if subscriptionId in self._subscriptions:
-                    await self._webSocket.send(json.dumps({
-                        'id': subscriptionId,
-                        'type': 'stop'
-                    }))
+                    await self._webSocket.send(
+                        json.dumps(
+                            {
+                                'id': subscriptionId,
+                                'type': 'stop',
+                            },
+                        ),
+                    )
                     # remove subscription
                     self._subscriptions.pop(subscriptionId, None)
 

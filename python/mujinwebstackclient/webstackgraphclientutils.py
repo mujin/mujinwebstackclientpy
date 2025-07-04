@@ -6,7 +6,9 @@ import copy
 from . import webstackclientutils
 from . import controllerwebclientraw
 from typing import Optional, Callable
+
 log = logging.getLogger(__name__)
+
 
 def _IsScalarType(typeName):
     return typeName in (
@@ -23,6 +25,7 @@ def _IsScalarType(typeName):
         'DateTime',
     )
 
+
 def _StringifyQueryFields(fields):
     selectedFields = []
     if isinstance(fields, dict):
@@ -37,9 +40,9 @@ def _StringifyQueryFields(fields):
             selectedFields.append(fieldName)
     return '{%s}' % ', '.join(selectedFields)
 
-class GraphClientBase(object):
 
-    _webclient = None # an instance of ControllerWebClientRaw
+class GraphClientBase(object):
+    _webclient = None  # an instance of ControllerWebClientRaw
 
     def __init__(self, webclient):
         self._webclient = webclient
@@ -61,10 +64,10 @@ class GraphClientBase(object):
         variables = {}
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
-        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+        if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
             log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
         data = self._webclient.CallGraphAPI(query, variables, timeout=timeout)
-        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+        if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
             log.verbose('got response from graph query: %r', data)
         return data.get(operationName)
 
@@ -86,7 +89,7 @@ class GraphClientBase(object):
         variables = {}
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
-        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+        if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
             log.verbose('executing graph subscription with variables %r:\n\n%s\n', variables, query)
         subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
         return subscription
@@ -104,21 +107,15 @@ class GraphClientBase(object):
         """
         queryFields = ''
         if _IsScalarType(returnType):
-            queryFields = '' # scalar types cannot have subfield queries
+            queryFields = ''  # scalar types cannot have subfield queries
         elif not fields:
-            queryFields = '{ __typename }' # query the __typename field if caller didn't want anything back
+            queryFields = '{ __typename }'  # query the __typename field if caller didn't want anything back
         else:
             queryFields = _StringifyQueryFields(fields)
-        queryParameters = ', '.join([
-            '$%s: %s' % (parameterName, parameterType)
-            for parameterName, parameterType, parameterValue in parameterNameTypeValues
-        ])
+        queryParameters = ', '.join(['$%s: %s' % (parameterName, parameterType) for parameterName, parameterType, parameterValue in parameterNameTypeValues])
         if queryParameters:
             queryParameters = '(%s)' % queryParameters
-        queryArguments = ', '.join([
-            '%s: $%s' % (parameterName, parameterName)
-            for parameterName, parameterType, parameterValue in parameterNameTypeValues
-        ])
+        queryArguments = ', '.join(['%s: $%s' % (parameterName, parameterName) for parameterName, parameterType, parameterValue in parameterNameTypeValues])
         if queryArguments:
             if queryFields:
                 queryFields = ' %s' % queryFields
@@ -132,6 +129,7 @@ class GraphClientBase(object):
         }
         return query
 
+
 class GraphQueryIterator:
     """Converts a large graph query to a iterator. The iterator will internally query webstack with a few small queries
     Examples:
@@ -144,19 +142,18 @@ class GraphQueryIterator:
           do_something(environment['id'])
     """
 
-    _queryFunction = None # the actual webstack client query function (e.g. client.graphApi.ListEnvironments)
-    _queryArgs = None # positional arguments supplied to the query function (e.g. environmentId)
-    _queryKwargs = None # keyword arguments supplied to the query function (e.g. options={'first': 10, 'offset': 5}, fields={'environments': {'id': None}})
-    _items = [] # internal buffer for items retrieved from webstack
-    _shouldStop = False # boolean flag indicates whether need to query webstack again
-    _initialLimit = None # the number of items user requests (0 means no limit)
-    _count = 0 # the number of items already returned to user
+    _queryFunction = None  # the actual webstack client query function (e.g. client.graphApi.ListEnvironments)
+    _queryArgs = None  # positional arguments supplied to the query function (e.g. environmentId)
+    _queryKwargs = None  # keyword arguments supplied to the query function (e.g. options={'first': 10, 'offset': 5}, fields={'environments': {'id': None}})
+    _items = []  # internal buffer for items retrieved from webstack
+    _shouldStop = False  # boolean flag indicates whether need to query webstack again
+    _initialLimit = None  # the number of items user requests (0 means no limit)
+    _count = 0  # the number of items already returned to user
 
     def __init__(self, queryFunction, *args, **kwargs):
-        """Initialize all internal variables
-        """
+        """Initialize all internal variables"""
         # retrieve the actual query function instead of the wrapper function generated by UseLazyGraphQuery decorator
-        if hasattr(queryFunction, "inner"):
+        if hasattr(queryFunction, 'inner'):
             args = (queryFunction.__self__,) + args
             queryFunction = queryFunction.inner
 
@@ -180,13 +177,13 @@ class GraphQueryIterator:
 
     def __next__(self):
         """Retrieve the next item from iterator
-           Required by Python3
+        Required by Python3
         """
         return self.next()
 
     def next(self):
         """Retrieve the next item from iterator
-            Required by Python2
+        Required by Python2
         """
         # return an item from internal buffer if buffer is not empty
         if len(self._items) != 0:
@@ -221,20 +218,20 @@ class GraphQueryIterator:
         if self._initialLimit != 0 and self._count + len(self._items) >= self._initialLimit:
             # all remaining items user requests are in internal buffer, no need to query webstack again
             self._shouldStop = True
-            self._items = self._items[:self._initialLimit - self._count]
+            self._items = self._items[: self._initialLimit - self._count]
 
         return self.next()
 
+
 class LazyGraphQuery(webstackclientutils.LazyQuery):
-    """Wraps graph query response. Break large query into small queries automatically to save memory.
-    """
-    _keyName = None # the name of actual data in the dictionary retrieved from webstack (e.g. 'bodies', 'environments', 'geometries')
-    _typeName = None # the top level typename in the dictionary retrieved from webstack (e.g. 'ListEnvironmentsReturnValue', 'ListBodiesReturnValue', 'ListGeometryReturnValue')
-    _currentFields = None # the current fields used for querying webstack
+    """Wraps graph query response. Break large query into small queries automatically to save memory."""
+
+    _keyName = None  # the name of actual data in the dictionary retrieved from webstack (e.g. 'bodies', 'environments', 'geometries')
+    _typeName = None  # the top level typename in the dictionary retrieved from webstack (e.g. 'ListEnvironmentsReturnValue', 'ListBodiesReturnValue', 'ListGeometryReturnValue')
+    _currentFields = None  # the current fields used for querying webstack
 
     def __init__(self, queryFunction, *args, **kwargs):
-        """Initialize all internal variables
-        """
+        """Initialize all internal variables"""
         # save the query function and all parameters
         self._queryFunction = queryFunction
         self._queryArgs = args
@@ -280,8 +277,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         return GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)
 
     def _APICall(self):
-        """Make one webstack query
-        """
+        """Make one webstack query"""
         # fetch data starting from the requested offset and limit
         self._queryKwargs['fields'] = self._currentFields
         self._queryKwargs['options']['offset'] = self._currentOffset
@@ -306,20 +302,19 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
     @property
     def keyName(self):
         """the name of actual data in the dictionary retrieved from webstack
-           e.g. 'bodies', 'environments', 'geometries'
+        e.g. 'bodies', 'environments', 'geometries'
         """
         return self._keyName
 
     @property
     def typeName(self):
         """the top level typename in the dictionary retrieved from webstack
-           e.g. 'ListEnvironmentsReturnValue', 'ListBodiesReturnValue', 'ListGeometryReturnValue'
+        e.g. 'ListEnvironmentsReturnValue', 'ListBodiesReturnValue', 'ListGeometryReturnValue'
         """
         return self._typeName
 
     def FetchAll(self):
-        """fetch the complete query result from webstack
-        """
+        """fetch the complete query result from webstack"""
         if self._fetchedAll:
             return
         self._queryKwargs['fields'] = self._currentFields
@@ -329,9 +324,10 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         list.__init__(self, items)
         self._fetchedAll = True
 
+
 def UseLazyGraphQuery(queryFunction):
-    """This decorator break a large graph query into a few small queries with the help of LazyGraphQuery class to prevent webstack from consuming too much memory.
-    """
+    """This decorator break a large graph query into a few small queries with the help of LazyGraphQuery class to prevent webstack from consuming too much memory."""
+
     @wraps(queryFunction)
     def wrapper(self, *args, **kwargs):
         if 'fields' in kwargs and not isinstance(kwargs['fields'], dict):

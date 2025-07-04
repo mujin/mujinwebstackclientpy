@@ -136,13 +136,21 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         if parameter['parameterName'] in builtinParameterNames:
             continue
         isOptionalString = ", optional" if parameter['parameterNullable'] else ""
-        print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
+        print('            %s (%s%s):' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString), end='')
+        if parameter['parameterDescription']:
+            print(' %s' % _IndentNewlines(parameter['parameterDescription']))
+        else:
+            print('')
     print('            fields (list or dict, optional): Specifies a subset of fields to return.')
     if queryOrMutationOrSubscription in ('query', 'mutation'):
         print('            timeout (float, optional): Number of seconds to wait for response.')
     print('')
     print('        Returns:')
-    print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), _IndentNewlines(returnType['description'])))
+    print('            %s:' % (_FormatTypeForDocstring(returnType['typeName'])), end='')
+    if returnType['description']:
+        print(' %s' % _IndentNewlines(returnType['description']))
+    else:
+        print('')
     print('        """')
 
     if deprecationReason:
