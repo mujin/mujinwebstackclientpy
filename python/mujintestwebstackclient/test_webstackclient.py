@@ -11,12 +11,14 @@ from mujinwebstackclient.webstackclient import WebstackClient
 from mujinwebstackclient.webstackclientutils import QueryIterator, GetMaximumQueryLimit
 from mujinwebstackclient.webstackgraphclientutils import GraphQueryIterator
 
+
 def _RegisterMockGetScenesAPI(mocker, totalCount):
     """Dynamically mocks the webstack GetScenes API
 
     mocker (requests_mock.Mocker): Mocker object
     totalCount (int): The total number of scenes to be supported
     """
+
     def _GetResponse(request, context):
         offset = int(request.qs['offset'][0])
         limit = int(request.qs['limit'][0])
@@ -35,8 +37,9 @@ def _RegisterMockGetScenesAPI(mocker, totalCount):
                 'offset': offset,
             },
         }
-    
+
     mocker.register_uri('GET', requests_mock.ANY, additional_matcher=lambda request: request.url.startswith('http://controller/api/v1/scene/'), json=_GetResponse)
+
 
 def _RegisterMockListEnvironmentsAPI(mocker, totalCount):
     """Dynamically mocks the webstack ListEnvironments GraphQL API
@@ -44,6 +47,7 @@ def _RegisterMockListEnvironmentsAPI(mocker, totalCount):
     mocker (requests_mock.Mocker): Mocker object
     totalCount (int): The total number of environments to be supported
     """
+
     def _GetResponse(request, context):
         jsonRequest = request.json()
         rawQuery = jsonRequest.get('query')
@@ -96,7 +100,7 @@ def _RegisterMockListEnvironmentsAPI(mocker, totalCount):
         if first > GetMaximumQueryLimit(0):
             context.status_code = 400
             return
-        
+
         # construct the return value
         result = {}
         for selection in listEnvironmentsSelection.selection_set.selections:
@@ -129,12 +133,16 @@ def _RegisterMockListEnvironmentsAPI(mocker, totalCount):
 
     mocker.register_uri('POST', requests_mock.ANY, additional_matcher=lambda request: request.url.startswith('http://controller/api/v2/graphql'), json=_GetResponse)
 
-@pytest.mark.parametrize('url, username, password', [
-    ('http://controller', 'mujin', 'mujin'),
-    ('http://controller:8080', 'mujin', 'mujin'),
-    ('http://127.0.0.1', 'testuser', 'pass'),
-    ('http://127.0.0.1:8080', 'testuser', 'pass'),
-])
+
+@pytest.mark.parametrize(
+    'url, username, password',
+    [
+        ('http://controller', 'mujin', 'mujin'),
+        ('http://controller:8080', 'mujin', 'mujin'),
+        ('http://127.0.0.1', 'testuser', 'pass'),
+        ('http://127.0.0.1:8080', 'testuser', 'pass'),
+    ],
+)
 def test_PingAndLogin(url, username, password):
     with requests_mock.Mocker() as mock:
         mock.head('%s/u/%s/' % (url, username))
@@ -143,10 +151,12 @@ def test_PingAndLogin(url, username, password):
         webclient.Login()
         assert webclient.IsLoggedIn()
 
+
 def test_RestartController():
     with requests_mock.Mocker() as mock:
         mock.post('http://controller/restartserver/')
         WebstackClient('http://controller', 'mujin', 'mujin').RestartController()
+
 
 def test_GetScenes():
     with requests_mock.Mocker() as mock:
@@ -156,6 +166,7 @@ def test_GetScenes():
         assert scenes.offset == 0
         assert scenes.limit == 100
         assert scenes.totalCount == 101
+
 
 def test_QueryIteratorAndLazyQuery():
     totalCount = 1000
@@ -197,6 +208,7 @@ def test_QueryIteratorAndLazyQuery():
         assert len(scenes) == initialLimit
         for index in range(initialLimit):
             assert scenes[index]['id'] == str(index + initialOffset)
+
 
 def test_GraphQueryIteratorAndLazyGraphQuery():
     totalCount = 1000
@@ -261,75 +273,75 @@ def test_GraphQueryIteratorAndLazyGraphQuery():
         # query with no fields
         queryResult = webstackclient.graphApi.ListEnvironments()
         assert queryResult == {
-            '__typename': 'ListEnvironmentsReturnValue'
+            '__typename': 'ListEnvironmentsReturnValue',
         }
- 
+
         # query with empty fields
         queryResult = webstackclient.graphApi.ListEnvironments(fields={})
         assert queryResult == {
-            '__typename': 'ListEnvironmentsReturnValue'
+            '__typename': 'ListEnvironmentsReturnValue',
         }
 
         # query __typename
         queryResult = webstackclient.graphApi.ListEnvironments(fields={'__typename': None})
         assert queryResult == {
-            '__typename': 'ListEnvironmentsReturnValue'
+            '__typename': 'ListEnvironmentsReturnValue',
         }
 
         # query __typename in subselection
-        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'__typename': None}}, options={'first': 1})
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'__typename': None}}, options={'first': 1})
         assert queryResult == {
             'environments': [
                 {'__typename': 'Environment'},
-            ]
+            ],
         }
-        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'__typename': None}}, options={'first': 2})
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'__typename': None}}, options={'first': 2})
         assert queryResult == {
             'environments': [
                 {'__typename': 'Environment'},
                 {'__typename': 'Environment'},
-            ]
+            ],
         }
 
         # with offset
-        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None, '__typename': None}}, options={'first': 1, 'offset': totalCount*2})
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None, '__typename': None}}, options={'first': 1, 'offset': totalCount * 2})
         assert queryResult == {
-            'environments': []
+            'environments': [],
         }
-        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None, '__typename': None}}, options={'first': 2, 'offset': 2})
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None, '__typename': None}}, options={'first': 2, 'offset': 2})
         assert queryResult == {
             'environments': [
                 {'id': '2', '__typename': 'Environment'},
-                {'id': '3','__typename': 'Environment'},
-            ]
+                {'id': '3', '__typename': 'Environment'},
+            ],
         }
 
         # without __typename
-        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None}}, options={'first': 1, 'offset': 0})
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}}, options={'first': 1, 'offset': 0})
         assert queryResult == {
             'environments': [
-                {'id': '0'}
-            ]
+                {'id': '0'},
+            ],
         }
-        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments':{'id': None}}, options={'first': 2, 'offset': 2})
+        queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}}, options={'first': 2, 'offset': 2})
         assert queryResult == {
             'environments': [
                 {'id': '2'},
                 {'id': '3'},
-            ]
+            ],
         }
 
         # query meta
         queryResult = webstackclient.graphApi.ListEnvironments(fields={'meta': {'totalCount': None}})
         assert queryResult == {
             'meta': {
-                'totalCount': totalCount
-            }
+                'totalCount': totalCount,
+            },
         }
 
+
 def test_LazyQueryStandardListOperations():
-    """test standard list operations
-    """
+    """test standard list operations"""
     totalCount = 1000
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
@@ -346,7 +358,7 @@ def test_LazyQueryStandardListOperations():
         assert scenes[-100] == allScenes[-100]
         hasIndexError = False
         try:
-            scenes[-totalCount-1]
+            scenes[-totalCount - 1]
         except IndexError:
             hasIndexError = True
         assert hasIndexError
@@ -429,7 +441,7 @@ def test_LazyQueryStandardListOperations():
         # test sort
         scenes = webstackclient.GetScenes()
         expectedScenes = copy.copy(allScenes)
-        if sys.version_info.major == 2: # python 2
+        if sys.version_info.major == 2:  # python 2
             scenes.sort(reverse=True)
             expectedScenes.sort(reverse=True)
             assert scenes == expectedScenes

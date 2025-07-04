@@ -21,8 +21,7 @@ from urllib3.connection import HTTPConnection
 
 
 class UnixSocketHTTPConnection(HTTPConnection):
-
-    _unixEndpoint = None # unix socket endpoint
+    _unixEndpoint = None  # unix socket endpoint
 
     def __init__(self, unixEndpoint, **kwargs):
         super(UnixSocketHTTPConnection, self).__init__(**kwargs)
@@ -37,8 +36,7 @@ class UnixSocketHTTPConnection(HTTPConnection):
 
 
 class UnixSocketConnectionPool(HTTPConnectionPool):
-
-    _unixEndpoint = None # unix socket endpoint
+    _unixEndpoint = None  # unix socket endpoint
 
     def __init__(self, unixEndpoint, maxSize=10):
         super(UnixSocketConnectionPool, self).__init__('127.0.0.1', maxsize=maxSize)
@@ -47,13 +45,13 @@ class UnixSocketConnectionPool(HTTPConnectionPool):
 
     def __str__(self):
         return '%s(unixEndpoint=%s)' % (type(self).__name__, self._unixEndpoint)
-    
+
     def get_unix_endpoint(self):
         return self._unixEndpoint
 
-class UnixSocketAdapter(HTTPAdapter):
 
-    _connectionPool = None # an instance of UnixSocketConnectionPool
+class UnixSocketAdapter(HTTPAdapter):
+    _connectionPool = None  # an instance of UnixSocketConnectionPool
 
     def __init__(self, unixEndpoint, **kwargs):
         super(UnixSocketAdapter, self).__init__(**kwargs)
@@ -68,11 +66,11 @@ class UnixSocketAdapter(HTTPAdapter):
         return self._connectionPool
 
     def get_connection_with_tls_context(self, request, verify, proxies=None, cert=None):
-        '''
+        """
         To support requests>=2.32.2 (Note that 2.32.0 and 2.32.1 are not supported)
 
         https://github.com/psf/requests/pull/6710
-        '''
+        """
         return self.get_connection(request.url, proxies=proxies)
 
     def get_unix_endpoint(self):
