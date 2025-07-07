@@ -11,7 +11,7 @@ import base64
 from email.utils import parsedate
 
 import six
-from typing import List, Tuple, Any, Dict # noqa: F401
+from typing import List, Tuple, Any, Dict  # noqa: F401
 
 # Mujin imports
 from . import WebstackClientError
@@ -25,6 +25,7 @@ from .webstackclientutils import UseLazyQuery
 
 # Logging
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -63,6 +64,7 @@ def GetUnicodeFromPrimaryKey(pk):
     """
     return uriutils.GetFilenameFromPrimaryKey(pk, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT)
 
+
 def GetPrimaryKeyFromURI(uri):
     """
     example:
@@ -84,12 +86,11 @@ def _FormatHTTPDate(dt):
 
 
 class WebstackClient(object):
-    """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL).
-    """
+    """Client for the Mujin Controller's web stack, using API v1 (REST) or API v2 (GraphQL)."""
 
     class ObjectsWrapper(list):
-        """Wraps response for list of objects. Provides extra meta data.
-        """
+        """Wraps response for list of objects. Provides extra meta data."""
+
         _meta = None  # Meta dict returned from server
 
         def __init__(self, data):
@@ -176,13 +177,11 @@ class WebstackClient(object):
         self._webclient.SetLocale(locale)
 
     def SetUserAgent(self, userAgent):
-        """Override user agent string sent on each HTTP request
-        """
+        """Override user agent string sent on each HTTP request"""
         self._webclient.SetUserAgent(userAgent)
 
     def SetAuthor(self, author):
-        """Override author header sent on each HTTP request
-        """
+        """Override author header sent on each HTTP request"""
         self._webclient.SetAuthor(author)
 
     @property
@@ -190,8 +189,7 @@ class WebstackClient(object):
         return webstackgraphclient.GraphClient(self._webclient)
 
     def RestartController(self):
-        """Restarts controller
-        """
+        """Restarts controller"""
         self._webclient.Request('POST', '/restartserver/', timeout=1)
         # No reason to check response since it's probably an error (server is restarting after all)
 
@@ -199,14 +197,12 @@ class WebstackClient(object):
         return True
 
     def Login(self, timeout=5):
-        """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
-        """
+        """Force webclient to login if it is not currently logged in. Useful for checking that the credential works."""
         self.Ping(timeout=timeout)
 
     def Ping(self, timeout=5):
-        """Sends a dummy HEAD request to api endpoint
-        """
-        response = self._webclient.Request('HEAD', u'/u/%s/' % self.controllerusername, timeout=timeout)
+        """Sends a dummy HEAD request to api endpoint"""
+        response = self._webclient.Request('HEAD', '/u/%s/' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to ping controller, status code is %d') % response.status_code, response=response)
         return response
@@ -220,7 +216,7 @@ class WebstackClient(object):
         serverString = response.headers.get('Server', '')
         if not serverString.startswith('mujinwebstack/'):
             return (0, 0, 0, 'unknown')
-        serverVersion = serverString[len('mujinwebstack/'):]
+        serverVersion = serverString[len('mujinwebstack/') :]
         serverVersionParts = serverVersion.split('+', 1)
         if len(serverVersionParts) == 1:
             # handle old format 1.2.3.commitHash
@@ -247,331 +243,318 @@ class WebstackClient(object):
     #
 
     def UploadSceneFile(self, f, timeout=5):
-        """Uploads a file managed by file handle f
-        """
+        """Uploads a file managed by file handle f"""
         return self.UploadFile(f, timeout=timeout)['filename']
 
     @UseLazyQuery
     def GetScenes(self, fields=None, offset=0, limit=0, timeout=5, **kwargs):
-        """List all available scene on controller
-        """
+        """List all available scene on controller"""
         params = {
             'offset': offset,
             'limit': limit,
         }
         params.update(kwargs)
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', 'scene/', fields=fields, timeout=timeout, params=params))
 
     def GetScene(self, pk, fields=None, timeout=5):
-        """Returns requested scene
-        """
-        return self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout)
+        """Returns requested scene"""
+        return self._webclient.APICall('GET', 'scene/%s/' % pk, fields=fields, timeout=timeout)
 
     def GetObject(self, pk, fields=None, timeout=5):
-        """Returns requested object
-        """
-        return self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout)
+        """Returns requested object"""
+        return self._webclient.APICall('GET', 'object/%s/' % pk, fields=fields, timeout=timeout)
 
     def SetObject(self, pk, objectdata, fields=None, timeout=5):
-        """Do partial update on object resource
-        """
-        return self._webclient.APICall('PUT', u'object/%s/' % pk, data=objectdata, fields=fields, timeout=timeout)
+        """Do partial update on object resource"""
+        return self._webclient.APICall('PUT', 'object/%s/' % pk, data=objectdata, fields=fields, timeout=timeout)
 
     def GetRobot(self, pk, fields=None, timeout=5):
-        """Returns requested robot
-        """
-        return self._webclient.APICall('GET', u'robot/%s/' % pk, fields=fields, timeout=timeout)
+        """Returns requested robot"""
+        return self._webclient.APICall('GET', 'robot/%s/' % pk, fields=fields, timeout=timeout)
 
     def SetRobot(self, pk, robotdata, fields=None, timeout=5):
-        """Do partial update on robot resource
-        """
-        return self._webclient.APICall('PUT', u'robot/%s/' % pk, data=robotdata, fields=fields, timeout=timeout)
+        """Do partial update on robot resource"""
+        return self._webclient.APICall('PUT', 'robot/%s/' % pk, data=robotdata, fields=fields, timeout=timeout)
 
     #
     # Scene related
     #
 
     def CreateScene(self, scenedata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'scene/', data=scenedata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'scene/', data=scenedata, fields=fields, timeout=timeout)
 
     def SetScene(self, scenepk, scenedata, fields=None, timeout=5):
-        return self._webclient.APICall('PUT', u'scene/%s/' % scenepk, data=scenedata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'scene/%s/' % scenepk, data=scenedata, fields=fields, timeout=timeout)
 
     def DeleteScene(self, scenepk, timeout=5):
-        return self._webclient.APICall('DELETE', u'scene/%s/' % scenepk, timeout=timeout)
+        return self._webclient.APICall('DELETE', 'scene/%s/' % scenepk, timeout=timeout)
 
     def DeleteAllScenes(self, timeout=5):
-        return self._webclient.APICall('DELETE', u'scene/', timeout=timeout)
+        return self._webclient.APICall('DELETE', 'scene/', timeout=timeout)
 
     #
     # InstObject related
     #
 
     def CreateSceneInstObject(self, scenepk, instobjectdata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'scene/%s/instobject/' % scenepk, data=instobjectdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'scene/%s/instobject/' % scenepk, data=instobjectdata, fields=fields, timeout=timeout)
 
     def GetSceneInstObjects(self, scenepk, fields=None, timeout=5):
-        """Returns the instance objects of the scene
-        """
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, params={'limit': 0}, timeout=timeout))
+        """Returns the instance objects of the scene"""
+        return self.ObjectsWrapper(self._webclient.APICall('GET', 'scene/%s/instobject/' % scenepk, fields=fields, params={'limit': 0}, timeout=timeout))
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, timeout=5):
-        """Returns the instance objects of the scene
-        """
-        return self._webclient.APICall('GET', u'scene/%s/instobject/%s' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
+        """Returns the instance objects of the scene"""
+        return self._webclient.APICall('GET', 'scene/%s/instobject/%s' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
 
     def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, fields=None, timeout=5):
         """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
-        return self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, fields=fields, timeout=timeout)
 
     def DeleteSceneInstObject(self, scenepk, instobjectpk, timeout=5):
-        return self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
 
     #
     # IKParam related
     #
 
     def CreateObjectIKParam(self, objectpk, ikparamdata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'object/%s/ikparam/' % objectpk, data=ikparamdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'object/%s/ikparam/' % objectpk, data=ikparamdata, fields=fields, timeout=timeout)
 
     def SetObjectIKParam(self, objectpk, ikparampk, ikparamdata, fields=None, timeout=5):
         """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
-        return self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, fields=fields, timeout=timeout)
 
     def DeleteObjectIKParam(self, objectpk, ikparampk, timeout=5):
-        return self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
 
     #
     # GraspSet related
     #
 
     def CreateObjectGraspSet(self, objectpk, graspsetdata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'object/%s/graspset/' % objectpk, data=graspsetdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'object/%s/graspset/' % objectpk, data=graspsetdata, fields=fields, timeout=timeout)
 
     def SetObjectGraspSet(self, objectpk, graspsetpk, graspsetdata, fields=None, timeout=5):
         """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
-        return self._webclient.APICall('PUT', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), data=graspsetdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'object/%s/graspset/%s/' % (objectpk, graspsetpk), data=graspsetdata, fields=fields, timeout=timeout)
 
     def DeleteObjectGraspSet(self, objectpk, graspsetpk, timeout=5):
-        return self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
 
     #
     # PositionConfiguration related
     #
 
     def CreateObjectPositionConfiguration(self, objectpk, positionConfigurationData, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'object/%s/positionConfiguration/' % objectpk, data=positionConfigurationData, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'object/%s/positionConfiguration/' % objectpk, data=positionConfigurationData, fields=fields, timeout=timeout)
 
     def SetObjectPositionConfiguration(self, objectpk, positionConfigurationPk, positionConfigurationData, fields=None, timeout=5):
-        return self._webclient.APICall('PUT', u'object/%s/positionConfiguration/%s/' % (objectpk, positionConfigurationPk), data=positionConfigurationData, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'object/%s/positionConfiguration/%s/' % (objectpk, positionConfigurationPk), data=positionConfigurationData, fields=fields, timeout=timeout)
 
     def DeleteObjectPositionConfiguration(self, objectpk, positionConfigurationPk, timeout=5):
-        return self._webclient.APICall('DELETE', u'object/%s/positionConfiguration/%s/' % (objectpk, positionConfigurationPk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'object/%s/positionConfiguration/%s/' % (objectpk, positionConfigurationPk), timeout=timeout)
 
     #
     # Link related
     #
 
     def CreateObjectLink(self, objectpk, linkdata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'object/%s/link/' % objectpk, data=linkdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'object/%s/link/' % objectpk, data=linkdata, fields=fields, timeout=timeout)
 
     def SetObjectLink(self, objectpk, linkpk, linkdata, fields=None, timeout=5):
         """Sets the instobject values via a WebAPI PUT call
 
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
-        return self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
 
     def GetObjectLinks(self, objectpk, fields=None, timeout=5):
-        """Returns the instance objects of the scene
-        """
-        return self._webclient.APICall('GET', u'object/%s/link/' % (objectpk), fields=fields, timeout=timeout)
+        """Returns the instance objects of the scene"""
+        return self._webclient.APICall('GET', 'object/%s/link/' % (objectpk), fields=fields, timeout=timeout)
 
     def GetObjectLink(self, objectpk, linkpk, fields=None, timeout=5):
-        """Returns the instance objects of the scene
-        """
-        return self._webclient.APICall('GET', u'object/%s/link/%s/' % (objectpk, linkpk), fields=fields, timeout=timeout)
+        """Returns the instance objects of the scene"""
+        return self._webclient.APICall('GET', 'object/%s/link/%s/' % (objectpk, linkpk), fields=fields, timeout=timeout)
 
     def DeleteObjectLink(self, objectpk, linkpk, timeout=5):
-        return self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
 
     #
     # Attachment related
     #
 
     def CreateObjectAttachment(self, objectpk, attachmentdata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'object/%s/attachment/' % objectpk, data=attachmentdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'object/%s/attachment/' % objectpk, data=attachmentdata, fields=fields, timeout=timeout)
 
     def SetObjectAttachment(self, objectpk, attachmentpk, attachmentdata, fields=None, timeout=5):
-        return self._webclient.APICall('PUT', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), data=attachmentdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'object/%s/attachment/%s/' % (objectpk, attachmentpk), data=attachmentdata, fields=fields, timeout=timeout)
 
     def DeleteObjectAttachment(self, objectpk, attachmentpk, timeout=5):
-        return self._webclient.APICall('DELETE', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'object/%s/attachment/%s/' % (objectpk, attachmentpk), timeout=timeout)
 
     #
     # Geometry related
     #
 
     def CreateObjectGeometry(self, objectpk, geometrydata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'object/%s/geometry/' % objectpk, data=geometrydata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'object/%s/geometry/' % objectpk, data=geometrydata, fields=fields, timeout=timeout)
 
     def SetObjectGeometry(self, objectpk, geometrypk, geometrydata, fields=None, timeout=5):
         """Sets the instobject values via a WebAPI PUT call
 
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
-        return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
 
     def GetObjectGeometryData(self, objectpk, geometrypk, mesh=False, fields=None, timeout=5):
-        """Returns the instance objects of the scene
-        """
+        """Returns the instance objects of the scene"""
         params = {}
         if mesh:
             params['mesh'] = '1'
-        return self._webclient.APICall('GET', u'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', 'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, fields=fields, timeout=timeout)
 
     def SetObjectGeometryMesh(self, objectpk, geometrypk, data, formathint='stl', unit='mm', timeout=5):
-        """Upload binary file content of a cad file to be set as the mesh for the geometry
-        """
-        assert (formathint == 'stl')  # for now, only support stl
+        """Upload binary file content of a cad file to be set as the mesh for the geometry"""
+        assert formathint == 'stl'  # for now, only support stl
 
         headers = {
             'Content-Type': 'application/sla',
         }
         params = {'unit': unit}
-        return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, data=data, headers=headers, timeout=timeout)
+        return self._webclient.APICall('PUT', 'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, data=data, headers=headers, timeout=timeout)
 
     def DeleteObjectGeometry(self, objectpk, geometrypk, timeout=5):
-        return self._webclient.APICall('DELETE', u'object/%s/geometry/%s/' % (objectpk, geometrypk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'object/%s/geometry/%s/' % (objectpk, geometrypk), timeout=timeout)
 
     def GetObjectGeometries(self, objectpk, mesh=False, fields=None, timeout=5):
         params = {}
         if mesh:
             params['mesh'] = '1'
-        return self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, params=params, fields=fields, timeout=timeout)['geometries']
+        return self._webclient.APICall('GET', 'object/%s/geometry/' % objectpk, params=params, fields=fields, timeout=timeout)['geometries']
 
     #
     # Object Tools related
     #
 
     def GetRobotTools(self, robotpk, fields=None, timeout=5):
-        return self._webclient.APICall('GET', u'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)['tools']
+        return self._webclient.APICall('GET', 'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)['tools']
 
     def GetRobotTool(self, robotpk, toolpk, fields=None, timeout=5):
-        return self._webclient.APICall('GET', u'robot/%s/tool/%s/' % (robotpk, toolpk), fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', 'robot/%s/tool/%s/' % (robotpk, toolpk), fields=fields, timeout=timeout)
 
     def CreateRobotTool(self, robotpk, tooldata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
 
     def SetRobotTool(self, robotpk, toolpk, tooldata, fields=None, timeout=5):
         """Sets the tool values via a WebAPI PUT call
         :param tooldata: key-value pairs of the data to modify on the tool
         """
-        return self._webclient.APICall('PUT', u'robot/%s/tool/%s/' % (robotpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'robot/%s/tool/%s/' % (robotpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
 
     def DeleteRobotTool(self, robotpk, toolpk, timeout=5):
-        return self._webclient.APICall('DELETE', u'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
 
     #
     # InstObject Tools related
     #
 
     def GetInstRobotTools(self, scenepk, instobjectpk, fields=None, timeout=5):
-        return self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)['tools']
+        return self._webclient.APICall('GET', 'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)['tools']
 
     def GetInstRobotTool(self, scenepk, instobjectpk, toolpk, fields=None, timeout=5):
-        return self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/%s' % (scenepk, instobjectpk, toolpk), fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', 'scene/%s/instobject/%s/tool/%s' % (scenepk, instobjectpk, toolpk), fields=fields, timeout=timeout)
 
     def CreateInstRobotTool(self, scenepk, instobjectpk, tooldata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), data=tooldata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), data=tooldata, fields=fields, timeout=timeout)
 
     def SetInstRobotTool(self, scenepk, instobjectpk, toolpk, tooldata, fields=None, timeout=5):
         """Sets the tool values via a WebAPI PUT call
         :param tooldata: key-value pairs of the data to modify on the tool
         """
-        return self._webclient.APICall('PUT', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
 
     def DeleteInstRobotTool(self, scenepk, instobjectpk, toolpk, timeout=5):
-        return self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), timeout=timeout)
 
     #
     # Attached sensors related
     #
 
     def CreateRobotAttachedSensor(self, robotpk, attachedsensordata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'robot/%s/attachedsensor/' % robotpk, data=attachedsensordata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'robot/%s/attachedsensor/' % robotpk, data=attachedsensordata, fields=fields, timeout=timeout)
 
     def GetRobotAttachedSensors(self, robotpk, timeout=5):
-        return self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % robotpk, timeout=timeout)['attachedsensors']
+        return self._webclient.APICall('GET', 'robot/%s/attachedsensor/' % robotpk, timeout=timeout)['attachedsensors']
 
     def SetRobotAttachedSensor(self, robotpk, attachedsensorpk, attachedsensordata, fields=None, timeout=5):
         """Sets the attachedsensor values via a WebAPI PUT call
 
         :param attachedsensordata: key-value pairs of the data to modify on the attachedsensor
         """
-        return self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
 
     def SetRobotAttachedActuator(self, robotpk, attachedactuatorpk, attachedacturtordata, fields=None, timeout=5):
         """Sets the attachedactuatorpk values via a WebAPI PUT call
 
         :param attachedacturtordata: key-value pairs of the data to modify on the attachedactuator
         """
-        return self._webclient.APICall('PUT', u'robot/%s/attachedactuator/%s/' % (robotpk, attachedactuatorpk), data=attachedacturtordata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'robot/%s/attachedactuator/%s/' % (robotpk, attachedactuatorpk), data=attachedacturtordata, fields=fields, timeout=timeout)
 
     def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, timeout=5):
-        return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
 
     #
     # Gripper info related
     #
 
     def CreateRobotGripperInfo(self, robotpk, gripperInfoData, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'robot/%s/gripperInfo/' % robotpk, data=gripperInfoData, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'robot/%s/gripperInfo/' % robotpk, data=gripperInfoData, fields=fields, timeout=timeout)
 
     def GetRobotGripperInfos(self, robotpk, timeout=5):
-        return self._webclient.APICall('GET', u'robot/%s/gripperInfo/' % robotpk, timeout=timeout)['gripperInfos']
+        return self._webclient.APICall('GET', 'robot/%s/gripperInfo/' % robotpk, timeout=timeout)['gripperInfos']
 
     def GetRobotGripperInfo(self, robotpk, gripperinfopk, timeout=5):
-        return self._webclient.APICall('GET', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+        return self._webclient.APICall('GET', 'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
 
     def SetRobotGripperInfo(self, robotpk, gripperinfopk, gripperInfoData, fields=None, timeout=5):
         """Sets the gripper values via a WebAPI PUT call
 
         :param gripperInfoData: key-value pairs of the data to modify on the gripper
         """
-        return self._webclient.APICall('PUT', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), data=gripperInfoData, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), data=gripperInfoData, fields=fields, timeout=timeout)
 
     def DeleteRobotGripperInfo(self, robotpk, gripperinfopk, timeout=5):
-        return self._webclient.APICall('DELETE', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
 
     #
     # Connected body related
     #
 
     def CreateRobotConnectedBody(self, robotpk, connectedBodyData, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'robot/%s/connectedBody/' % robotpk, data=connectedBodyData, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'robot/%s/connectedBody/' % robotpk, data=connectedBodyData, fields=fields, timeout=timeout)
 
     def GetRobotConnectedBodies(self, robotpk, timeout=5):
-        return self._webclient.APICall('GET', u'robot/%s/connectedBody/' % robotpk, timeout=timeout)['connectedBodies']
+        return self._webclient.APICall('GET', 'robot/%s/connectedBody/' % robotpk, timeout=timeout)['connectedBodies']
 
     def GetRobotConnectedBody(self, robotpk, connectedBodyPk, timeout=5):
-        return self._webclient.APICall('GET', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
+        return self._webclient.APICall('GET', 'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
 
     def SetRobotConnectedBody(self, robotpk, connectedBodyPk, connectedBodyData, fields=None, timeout=5):
         """Sets the connected body values via a WebAPI PUT call
 
         :param connectedBodyData: key-value pairs of the data to modify on the connected body
         """
-        return self._webclient.APICall('PUT', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), data=connectedBodyData, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', 'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), data=connectedBodyData, fields=fields, timeout=timeout)
 
     def DeleteRobotConnectedBody(self, robotpk, connectedBodyPk, timeout=5):
-        return self._webclient.APICall('DELETE', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
+        return self._webclient.APICall('DELETE', 'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
 
     #
     # Task related
@@ -585,19 +568,19 @@ class WebstackClient(object):
         }
         if tasktype:
             params['tasktype'] = tasktype
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', 'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params))
 
     def GetSceneTask(self, scenepk, taskpk, fields=None, timeout=5):
-        return self._webclient.APICall('GET', u'scene/%s/task/%s/' % (scenepk, taskpk), fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', 'scene/%s/task/%s/' % (scenepk, taskpk), fields=fields, timeout=timeout)
 
     def CreateSceneTask(self, scenepk, taskdata, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'scene/%s/task/' % scenepk, data=taskdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'scene/%s/task/' % scenepk, data=taskdata, fields=fields, timeout=timeout)
 
     def SetSceneTask(self, scenepk, taskpk, taskdata, fields=None, timeout=5):
-        self._webclient.APICall('PUT', u'scene/%s/task/%s/' % (scenepk, taskpk), data=taskdata, fields=fields, timeout=timeout)
+        self._webclient.APICall('PUT', 'scene/%s/task/%s/' % (scenepk, taskpk), data=taskdata, fields=fields, timeout=timeout)
 
     def DeleteSceneTask(self, scenepk, taskpk, timeout=5):
-        self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
+        self._webclient.APICall('DELETE', 'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
 
     def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, timeout=5):
         """
@@ -608,33 +591,33 @@ class WebstackClient(object):
             'target_pk': taskpk,
             'resource_type': 'task',
         }
-        return self._webclient.APICall('POST', u'job/', data=data, expectedStatusCode=200, timeout=timeout)
+        return self._webclient.APICall('POST', 'job/', data=data, expectedStatusCode=200, timeout=timeout)
 
     #
     # Result related
     #
 
     def GetResult(self, resultpk, fields=None, timeout=5):
-        return self._webclient.APICall('GET', u'planningresult/%s/' % resultpk, fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', 'planningresult/%s/' % resultpk, fields=fields, timeout=timeout)
 
     def GetBinpickingResult(self, resultpk, fields=None, timeout=5):
-        assert (UserWarning)
-        return self._webclient.APICall('GET', u'binpickingresult/%s' % resultpk, fields=fields, timeout=timeout)
+        assert UserWarning
+        return self._webclient.APICall('GET', 'binpickingresult/%s' % resultpk, fields=fields, timeout=timeout)
 
     def GetResultProgram(self, resultpk, programtype=None, format='dat', timeout=5):
         params = {'format': format}
         if programtype is not None and len(programtype) > 0:
             params['type'] = programtype
         # Custom http call because APICall currently only supports json
-        response = self._webclient.Request('GET', u'/api/v1/planningresult/%s/program/' % resultpk, params=params, timeout=timeout)
-        assert (response.status_code == 200)
+        response = self._webclient.Request('GET', '/api/v1/planningresult/%s/program/' % resultpk, params=params, timeout=timeout)
+        assert response.status_code == 200
         return response.content
 
     def SetResult(self, resultpk, resultdata, fields=None, timeout=5):
-        self._webclient.APICall('PUT', u'planningresult/%s/' % resultpk, data=resultdata, fields=fields, timeout=timeout)
+        self._webclient.APICall('PUT', 'planningresult/%s/' % resultpk, data=resultdata, fields=fields, timeout=timeout)
 
     def DeleteResult(self, resultpk, timeout=5):
-        self._webclient.APICall('DELETE', u'planningresult/%s/' % resultpk, timeout=timeout)
+        self._webclient.APICall('DELETE', 'planningresult/%s/' % resultpk, timeout=timeout)
 
     #
     # Job related
@@ -642,21 +625,27 @@ class WebstackClient(object):
 
     @UseLazyQuery
     def GetJobs(self, fields=None, offset=0, limit=0, timeout=5):
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
-            'offset': offset,
-            'limit': limit,
-        }))
+        return self.ObjectsWrapper(
+            self._webclient.APICall(
+                'GET',
+                'job/',
+                fields=fields,
+                timeout=timeout,
+                params={
+                    'offset': offset,
+                    'limit': limit,
+                },
+            ),
+        )
 
     def DeleteJob(self, jobpk, timeout=5):
-        """Cancels the job with the corresponding jobpk
-        """
-        self._webclient.APICall('DELETE', u'job/%s/' % jobpk, timeout=timeout)
+        """Cancels the job with the corresponding jobpk"""
+        self._webclient.APICall('DELETE', 'job/%s/' % jobpk, timeout=timeout)
 
     def DeleteJobs(self, timeout=5):
-        """Cancels all jobs
-        """
+        """Cancels all jobs"""
         # Cancel on the zmq configure socket first
-        self._webclient.APICall('DELETE', u'job/', timeout=timeout)
+        self._webclient.APICall('DELETE', 'job/', timeout=timeout)
 
     #
     # Cycle Log
@@ -666,28 +655,28 @@ class WebstackClient(object):
         # type: (List[Tuple[str, Any, Dict[str, bytes]]], int) -> Any
         files = []
         for logType, logEntry, attachments in logEntries:
-            files.append((u'logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
+            files.append(('logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
             if attachments is not None:
                 for attachmentName, attachmentData in six.iteritems(attachments):
-                    files.append((u'attachment', (attachmentName, attachmentData)))
-        return self._webclient.APICall('POST', u'logEntry', files=files, timeout=timeout, apiVersion='v2')
+                    files.append(('attachment', (attachmentName, attachmentData)))
+        return self._webclient.APICall('POST', 'logEntry', files=files, timeout=timeout, apiVersion='v2')
 
     #
     # Controller State
     #
 
     def GetControllerState(self, controllerId, fields=None, timeout=3):
-        return self._webclient.APICall('GET', u'controllerState/%s/' % controllerId, fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', 'controllerState/%s/' % controllerId, fields=fields, timeout=timeout)
 
     #
     # Geometry related
     #
 
     def GetObjectGeometry(self, objectpk, timeout=5):
-        """Return list of geometries (a dictionary with keys: positions, indices) of the given object
-        """
+        """Return list of geometries (a dictionary with keys: positions, indices) of the given object"""
         import numpy
-        response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
+
+        response = self._webclient.APICall('GET', 'object/%s/scenejs/' % objectpk, timeout=timeout)
         geometries = []
         for encodedGeometry in response['geometries']:
             geometry = {}
@@ -732,10 +721,7 @@ class WebstackClient(object):
         Returns:
             (dict) json response
         """
-        response = self._webclient.Request('POST', '/fileupload', files=[
-            ('files', (filename, f))
-            for filename, f in files
-        ], timeout=timeout)
+        response = self._webclient.Request('POST', '/fileupload', files=[('files', (filename, f)) for filename, f in files], timeout=timeout)
         if response.status_code in (200,):
             try:
                 return response.json()
@@ -771,9 +757,8 @@ class WebstackClient(object):
         raise WebstackClientError(response.content.decode('utf-8'), response=response)
 
     def FileExists(self, path, timeout=5):
-        """Check if a file exists on server
-        """
-        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
+        """Check if a file exists on server"""
+        response = self._webclient.Request('HEAD', '/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [200, 301, 404]:
             raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return response.status_code != 404
@@ -790,7 +775,7 @@ class WebstackClient(object):
             'resolveReferences': 'true' if resolveReferences else 'false',
         }
         filename = uriutils.Quote(filename) # quote '#bodyId' into '%23bodyId'
-        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), params=params, headers=headers, stream=True, timeout=timeout)
+        response = self._webclient.Request('GET', '/u/%s/%s' % (self.controllerusername, filename), params=params, headers=headers, stream=True, timeout=timeout)
         if ifmodifiedsince and response.status_code == 304:
             return response
         if response.status_code != 200:
@@ -825,7 +810,7 @@ class WebstackClient(object):
 
         :return: A dict containing "modified (datetime.datetime)" and "size (int)"
         """
-        path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
+        path = '/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
         if response.status_code not in [200]:
             raise WebstackClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
@@ -836,8 +821,7 @@ class WebstackClient(object):
         }
 
     def FlushCache(self, timeout=5):
-        """Flush pending changes in cache to disk
-        """
+        """Flush pending changes in cache to disk"""
         response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
@@ -851,7 +835,7 @@ class WebstackClient(object):
 
         :return: A streaming response
         """
-        response = self._webclient.Request('GET', u'/api/v2/blob/%s' % blobId, stream=True, timeout=timeout)
+        response = self._webclient.Request('GET', '/api/v2/blob/%s' % blobId, stream=True, timeout=timeout)
         if response.status_code == 404:
             raise WebstackClientError(_('Blob "%s" does not exist, status code is %d') % (blobId, response.status_code), response=response.content)
         if response.status_code == 204:
@@ -865,8 +849,7 @@ class WebstackClient(object):
     #
 
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
-        """Get the user log from the controller.
-        """
+        """Get the user log from the controller."""
         params = {
             'keyword': (keyword or '').strip(),
             'cursor': (cursor or '').strip(),
@@ -993,10 +976,18 @@ class WebstackClient(object):
         """
         Add multiple referenceobjectpks to the scene.
         """
-        response = self._webclient.Request('POST', '/referenceobjectpks/add/', data=json.dumps({
-            'scenepk': scenepk,
-            'referenceobjectpks': referenceobjectpks,
-        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        response = self._webclient.Request(
+            'POST',
+            '/referenceobjectpks/add/',
+            data=json.dumps(
+                {
+                    'scenepk': scenepk,
+                    'referenceobjectpks': referenceobjectpks,
+                },
+            ),
+            headers={'Content-Type': 'application/json'},
+            timeout=timeout,
+        )
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to add referenceobjectpks %r to scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
 
@@ -1007,10 +998,18 @@ class WebstackClient(object):
         """
         Remove multiple referenceobjectpks from the scene.
         """
-        response = self._webclient.Request('POST', '/referenceobjectpks/remove/', data=json.dumps({
-            'scenepk': scenepk,
-            'referenceobjectpks': referenceobjectpks,
-        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        response = self._webclient.Request(
+            'POST',
+            '/referenceobjectpks/remove/',
+            data=json.dumps(
+                {
+                    'scenepk': scenepk,
+                    'referenceobjectpks': referenceobjectpks,
+                },
+            ),
+            headers={'Content-Type': 'application/json'},
+            timeout=timeout,
+        )
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to remove referenceobjectpks %r from scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
 
@@ -1025,23 +1024,23 @@ class WebstackClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', 'itl/', fields=fields, timeout=timeout, params=params))
 
     def GetITLProgram(self, programName, fields=None, timeout=5):
         """Throws exception if program does not exist."""
-        return self._webclient.APICall('GET', u'itl/%s/' % programName, fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', 'itl/%s/' % programName, fields=fields, timeout=timeout)
 
     def CreateITLProgram(self, data, fields=None, timeout=5):
-        return self._webclient.APICall('POST', u'itl/', data=data, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', 'itl/', data=data, fields=fields, timeout=timeout)
 
     def SetITLProgram(self, programName, data, fields=None, timeout=5):
-        self._webclient.APICall('PUT', u'itl/%s/' % programName, data=data, fields=fields, timeout=timeout)
+        self._webclient.APICall('PUT', 'itl/%s/' % programName, data=data, fields=fields, timeout=timeout)
 
     def DeleteITLProgram(self, programName, timeout=5):
-        self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
+        self._webclient.APICall('DELETE', 'itl/%s/' % programName, timeout=timeout)
 
     def DeleteAllITLPrograms(self, timeout=5):
-        return self._webclient.APICall('DELETE', u'itl/', timeout=timeout)
+        return self._webclient.APICall('DELETE', 'itl/', timeout=timeout)
 
     #
     # Backup restore
@@ -1065,19 +1064,25 @@ class WebstackClient(object):
         :raises WebstackClientError: If request wasn't successful
         :return: A streaming response to the backup file
         """
-        response = self._webclient.Request('GET', '/backup/', stream=True, params={
-            'media': 'true' if savemedia else 'false',
-            'config': 'true' if saveconfig else 'false',
-            'webApps': 'true' if savewebapps else 'false',
-            'itl': 'true' if saveitl else 'false',
-            'detection': 'true' if savedetection else 'false',
-            'state': 'true' if savestate else 'false',
-            'calibration': 'true' if savecalibration else 'false',
-            'debug': 'true' if savedebug else 'false',
-            'eds': 'true' if saveeds else 'false',
-            'iodd': 'true' if saveiodd else 'false',
-            'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
-        }, timeout=timeout)
+        response = self._webclient.Request(
+            'GET',
+            '/backup/',
+            stream=True,
+            params={
+                'media': 'true' if savemedia else 'false',
+                'config': 'true' if saveconfig else 'false',
+                'webApps': 'true' if savewebapps else 'false',
+                'itl': 'true' if saveitl else 'false',
+                'detection': 'true' if savedetection else 'false',
+                'state': 'true' if savestate else 'false',
+                'calibration': 'true' if savecalibration else 'false',
+                'debug': 'true' if savedebug else 'false',
+                'eds': 'true' if saveeds else 'false',
+                'iodd': 'true' if saveiodd else 'false',
+                'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
+            },
+            timeout=timeout,
+        )
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
@@ -1096,14 +1101,20 @@ class WebstackClient(object):
         :raises WebstackClientError: If request wasn't successful
         :return: JSON response
         """
-        response = self._webclient.Request('POST', '/backup/', files={'file': file}, params={
-            'media': 'true' if restoremedia else 'false',
-            'config': 'true' if restoreconfig else 'false',
-            'webApps': 'true' if restorewebapps else 'false',
-            'itl': 'true' if restoreitl else 'false',
-            'eds': 'true' if restoreeds else 'false',
-            'iodd': 'true' if restoreiodd else 'false',
-        }, timeout=timeout)
+        response = self._webclient.Request(
+            'POST',
+            '/backup/',
+            files={'file': file},
+            params={
+                'media': 'true' if restoremedia else 'false',
+                'config': 'true' if restoreconfig else 'false',
+                'webApps': 'true' if restorewebapps else 'false',
+                'itl': 'true' if restoreitl else 'false',
+                'eds': 'true' if restoreeds else 'false',
+                'iodd': 'true' if restoreiodd else 'false',
+            },
+            timeout=timeout,
+        )
         if response.status_code in (200,):
             try:
                 return response.json()
@@ -1125,12 +1136,12 @@ class WebstackClient(object):
         """
         params = {}
         if startedAt:
-            params['startedAt'] = startedAt.isoformat(),
+            params['startedAt'] = (startedAt.isoformat(),)
         if endedAt:
-            params['endedAt'] = endedAt.isoformat(),
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout, params=params))
+            params['endedAt'] = (endedAt.isoformat(),)
+        return self.ObjectsWrapper(self._webclient.APICall('GET', 'debug/', timeout=timeout, params=params))
 
-    def DownloadDebugResource(self, debugresourcepk, downloadSizeLimit=100*1024*1024, startedAt=None, endedAt=None, timeout=10):
+    def DownloadDebugResource(self, debugresourcepk, downloadSizeLimit=100 * 1024 * 1024, startedAt=None, endedAt=None, timeout=10):
         """downloads contents of the given debug resource
 
         :param debugresourcepk: Exact name of the debug resource to download
@@ -1144,20 +1155,19 @@ class WebstackClient(object):
         # custom http call because APICall currently only supports json
         # params is used to store query parameters and passed to the request
         params = {
-            'sizeLimit' : downloadSizeLimit
+            'sizeLimit': downloadSizeLimit,
         }
         if startedAt:
-            params['startedAt'] = startedAt.isoformat(),
+            params['startedAt'] = (startedAt.isoformat(),)
         if endedAt:
-            params['endedAt'] = endedAt.isoformat(),
+            params['endedAt'] = (endedAt.isoformat(),)
         response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout, params=params)
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
 
     def GetSchema(self, schemaId, timeout=10):
-        """Look up json schema by schemaId
-        """
+        """Look up json schema by schemaId"""
         response = self._webclient.Request('GET', '/schema/%s/%s.json' % (self._userinfo['locale'], schemaId))
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)

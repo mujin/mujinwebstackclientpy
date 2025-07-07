@@ -1,8 +1,15 @@
 # Changelog
 
-## 0.9.11 (2025-07-03)
+## 0.9.12 (2025-07-07)
 
 - Support an optional bodyId parameter when downloading environment.
+
+## 0.9.11 (2025-07-04)
+
+- Re-generate graph client.
+- Don't add trailing whitespace in generated client.
+- Support default values parsed from the GraphQL schema.
+- Support deprecation warnings parsed from the GraphQL schema.
 
 ## 0.9.10 (2025-06-26)
 
