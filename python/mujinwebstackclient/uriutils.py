@@ -86,7 +86,7 @@ def _Unquote(primaryKey):
     return _EnsureUnicode(unquote(primaryKey))
 
 
-def _Quote(primaryKey):
+def Quote(primaryKey):
     assert isinstance(primaryKey, six.text_type)
     return _EnsureUTF8(quote(_EnsureUTF8(primaryKey), safe=''))
 
@@ -497,12 +497,12 @@ class MujinResourceIdentifier(object):
                 self._fragment = _EnsureUnicode(partTypeSegments[1])
         else:
             basePartType = partType
-        self._primaryKey = _Quote(basePartType + self._suffix)
+        self._primaryKey = Quote(basePartType + self._suffix)
 
     def _InitFromFilename(self, filename):
         if self._mujinPath and filename.startswith(self._mujinPath):
             filename = filename[len(self._mujinPath) :]
-        self._primaryKey = _Quote(filename)
+        self._primaryKey = Quote(filename)
 
     @property
     def scheme(self):
@@ -598,7 +598,7 @@ class MujinResourceIdentifier(object):
 
     @environmentId.setter
     def environmentId(self, value):
-        self._primaryKey = _Quote(_EnsureUnicode(value) + self._suffix)
+        self._primaryKey = Quote(_EnsureUnicode(value) + self._suffix)
 
     @property
     def filename(self):
