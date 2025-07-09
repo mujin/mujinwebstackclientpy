@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.12 (2025-07-07)
+
+- Support an optional bodyId parameter when downloading environment.
+
 ## 0.9.11 (2025-07-04)
 
 - Re-generate graph client.
