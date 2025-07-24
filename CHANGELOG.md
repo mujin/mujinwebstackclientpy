@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.13 (2025-07-24)
+
+- Update webstackgraphclient.py to support ForceSynchronizerPushToRemotes.
+
 ## 0.9.12 (2025-07-07)
 
 - Support an optional bodyId parameter when downloading environment.
