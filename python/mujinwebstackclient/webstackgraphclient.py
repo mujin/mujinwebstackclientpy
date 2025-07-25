@@ -11,8 +11,8 @@ from .webstackgraphclientutils import GraphClientBase
 from .webstackgraphclientutils import UseLazyGraphQuery
 from .controllerwebclientraw import Subscription
 
-
 class GraphQueries:
+
     def CommandBaseSystemOrchestrator(self, orchestratorId, fields=None, timeout=None):
         """
 
@@ -109,7 +109,8 @@ class GraphQueries:
         Returns:
             ConfigureRobotBridgesExQueries:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='ConfigureRobotBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesExQueries', fields=fields, timeout=timeout)
 
     def ConfigureRobotBridgesV2(self, fields=None, timeout=None):
@@ -122,7 +123,8 @@ class GraphQueries:
         Returns:
             ConfigureRobotBridgesV2Queries:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='ConfigureRobotBridgesV2', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesV2Queries', fields=fields, timeout=timeout)
 
     def ExistApplicationConfiguration(self, relativeConfigurationId, applicationId=None, resolveReferences=True, fields=None, timeout=None):
@@ -703,7 +705,8 @@ class GraphQueries:
         Returns:
             [String]: The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='GetHypervisorCapabilities', parameterNameTypeValues=parameterNameTypeValues, returnType='String', fields=fields, timeout=timeout)
 
     def GetHypervisorStatus(self, fields=None, timeout=None):
@@ -716,7 +719,8 @@ class GraphQueries:
         Returns:
             HypervisorStatus: Hypervisor status
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='GetHypervisorStatus', parameterNameTypeValues=parameterNameTypeValues, returnType='HypervisorStatus', fields=fields, timeout=timeout)
 
     def GetHypervisorVersion(self, fields=None, timeout=None):
@@ -729,7 +733,8 @@ class GraphQueries:
         Returns:
             str: The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='GetHypervisorVersion', parameterNameTypeValues=parameterNameTypeValues, returnType='String', fields=fields, timeout=timeout)
 
     def GetIKParameterization(self, bodyId, environmentId, ikParamId, resolveReferences=None, units=None, fields=None, timeout=None):
@@ -830,7 +835,7 @@ class GraphQueries:
 
         Returns:
             LogEntry: An entry in the logs. The current parent-children level relationship among log entry types:
-
+                    
                     ```
                     LogEntry
                     ├─ GenericLogEntry
@@ -1031,7 +1036,8 @@ class GraphQueries:
             ModelProcessorTaskState: Current status of the model processor.
         """
         warnings.warn('"GetModelProcessorTaskState" is deprecated. Use `GetWebStackState` instead.', DeprecationWarning, stacklevel=2)
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='GetModelProcessorTaskState', parameterNameTypeValues=parameterNameTypeValues, returnType='ModelProcessorTaskState', fields=fields, timeout=timeout)
 
     def GetOrchestratorMasterConfiguration(self, applicationId=None, resolveReferences=True, fields=None, timeout=None):
@@ -1150,7 +1156,8 @@ class GraphQueries:
         Returns:
             [String]: The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='GetProfileSelectionOrder', parameterNameTypeValues=parameterNameTypeValues, returnType='String', fields=fields, timeout=timeout)
 
     def GetProgram(self, programId, fields=None, timeout=None):
@@ -1483,7 +1490,8 @@ class GraphQueries:
         Returns:
             Any:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='GetUntypedHypervisorStatus', parameterNameTypeValues=parameterNameTypeValues, returnType='Any', fields=fields, timeout=timeout)
 
     def GetUntypedLogEntry(self, logEntryId, fields=None, timeout=None):
@@ -1638,7 +1646,8 @@ class GraphQueries:
         Returns:
             WebStackState: WebStackState contains published component states of WebStack.
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='GetWebStackState', parameterNameTypeValues=parameterNameTypeValues, returnType='WebStackState', fields=fields, timeout=timeout)
 
     def IsAttachedSensorMoveable(self, attachedSensorName, bodyName, environmentId, fields=None, timeout=None):
@@ -2949,7 +2958,8 @@ class GraphQueries:
         Returns:
             [HypervisorAvailableUpgrade]:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('query', operationName='QueryAvailableUpgrades', parameterNameTypeValues=parameterNameTypeValues, returnType='HypervisorAvailableUpgrade', fields=fields, timeout=timeout)
 
     def Telnet(self, host, port, data=None, fields=None, timeout=None):
@@ -3010,6 +3020,7 @@ class GraphQueries:
 
 
 class GraphMutations:
+
     def ActivateRuntimeImage(self, imageId, fields=None, timeout=None):
         """Activate an runtime image.
 
@@ -3130,7 +3141,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='CancelUpgrade', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def CommandBaseSystemOrchestrator(self, orchestratorId, fields=None, timeout=None):
@@ -3191,7 +3203,8 @@ class GraphMutations:
         Returns:
             CommandOrchestratorMasterMutations:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandOrchestratorMaster', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandOrchestratorMasterMutations', fields=fields, timeout=timeout)
 
     def CommandOrderCycleOrchestrator(self, orchestratorId, fields=None, timeout=None):
@@ -3402,7 +3415,8 @@ class GraphMutations:
         Returns:
             CommandSensorBridgesExMutations:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='CommandSensorBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='CommandSensorBridgesExMutations', fields=fields, timeout=timeout)
 
     def CommandTeachWorkerOrchestrator(self, orchestratorId, fields=None, timeout=None):
@@ -3527,7 +3541,8 @@ class GraphMutations:
         Returns:
             ConfigureRobotBridgesExMutations:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureRobotBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesExMutations', fields=fields, timeout=timeout)
 
     def ConfigureRobotBridgesV2(self, fields=None, timeout=None):
@@ -3540,7 +3555,8 @@ class GraphMutations:
         Returns:
             ConfigureRobotBridgesV2Mutations:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureRobotBridgesV2', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureRobotBridgesV2Mutations', fields=fields, timeout=timeout)
 
     def ConfigureSensorBridges(self, command, parameters=None, fields=None, timeout=None):
@@ -3575,7 +3591,8 @@ class GraphMutations:
         Returns:
             ConfigureSensorBridgesExMutations:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='ConfigureSensorBridgesEx', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigureSensorBridgesExMutations', fields=fields, timeout=timeout)
 
     def ConfigureUserInterface(self, command, parameters=None, fields=None, timeout=None):
@@ -5382,7 +5399,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='ForceSyncNetworkTime', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def ForceSynchronizerPullFromRemotes(self, fields=None, timeout=None):
@@ -5395,7 +5413,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='ForceSynchronizerPullFromRemotes', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def GetLatestDetectionResultImages(self, options=None, parameters=None, fields=None, timeout=None):
@@ -5426,7 +5445,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='Halt', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def IdentifyNetworkInterface(self, label=None, fields=None, timeout=None):
@@ -6278,9 +6298,7 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='ModifyProgramReference', parameterNameTypeValues=parameterNameTypeValues, returnType='ProgramReference', fields=fields, timeout=timeout)
 
-    def ModifyReferenceObjectPKs(
-        self, bodyId, environmentId, addDisabledReferenceObjectPks=None, addReferenceObjectPks=None, removeDisabledReferenceObjectPks=None, removeReferenceObjectPks=None, resolveReferences=None, units=None, fields=None, timeout=None
-    ):
+    def ModifyReferenceObjectPKs(self, bodyId, environmentId, addDisabledReferenceObjectPks=None, addReferenceObjectPks=None, removeDisabledReferenceObjectPks=None, removeReferenceObjectPks=None, resolveReferences=None, units=None, fields=None, timeout=None):
         """Modify reference object pks in a body.
 
         Args:
@@ -6403,7 +6421,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='PurgeUnusedRuntimeImages', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def Reboot(self, fields=None, timeout=None):
@@ -6416,7 +6435,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='Reboot', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def RemoveDiskDriveFromDiskArray(self, diskArray, diskDrive, fields=None, timeout=None):
@@ -6549,7 +6569,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='RestartPlanningServer', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def RestartRuntimeContainer(self, fields=None, timeout=None):
@@ -6562,7 +6583,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='RestartRuntimeContainer', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def ScanWirelessNetwork(self, fields=None, timeout=None):
@@ -6575,7 +6597,8 @@ class GraphMutations:
         Returns:
             Void:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSimpleGraphAPI('mutation', operationName='ScanWirelessNetwork', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
     def SetPendantBuzzerOn(self, address=None, on=None, fields=None, timeout=None):
@@ -6798,9 +6821,7 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='SyncConfigurationsToRemote', parameterNameTypeValues=parameterNameTypeValues, returnType='SyncConfigurationsToRemoteReturnValue', fields=fields, timeout=timeout)
 
-    def SyncEnvironments(
-        self, remoteUrl, addKeywords=None, downloadReferenceObjects=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None
-    ):
+    def SyncEnvironments(self, remoteUrl, addKeywords=None, downloadReferenceObjects=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None):
         """Sync environments from remote webstack.
 
 
@@ -6837,9 +6858,7 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='SyncEnvironments', parameterNameTypeValues=parameterNameTypeValues, returnType='SyncEnvironmentsFromRemoteReturnValue', fields=fields, timeout=timeout)
 
-    def SyncEnvironmentsFromRemote(
-        self, remoteUrl, addKeywords=None, downloadReferenceObjects=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None
-    ):
+    def SyncEnvironmentsFromRemote(self, remoteUrl, addKeywords=None, downloadReferenceObjects=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreDownloadFailures=None, remotePassword=None, remoteUsername=None, fields=None, timeout=None):
         """Sync environments from remote webstack.
 
         Args:
@@ -6871,9 +6890,7 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='SyncEnvironmentsFromRemote', parameterNameTypeValues=parameterNameTypeValues, returnType='SyncEnvironmentsFromRemoteReturnValue', fields=fields, timeout=timeout)
 
-    def SyncEnvironmentsToRemote(
-        self, remoteUrl, addKeywords=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreUploadFailures=None, remotePassword=None, remoteUsername=None, uploadReferenceObjects=None, fields=None, timeout=None
-    ):
+    def SyncEnvironmentsToRemote(self, remoteUrl, addKeywords=None, dynamicEnvironments=None, environmentIds=None, fileNamePatterns=None, ignoreUploadFailures=None, remotePassword=None, remoteUsername=None, uploadReferenceObjects=None, fields=None, timeout=None):
         """Sync environments to remote webstack.
 
         Args:
@@ -6927,6 +6944,7 @@ class GraphMutations:
 
 
 class GraphSubscriptions:
+
     def Unsubscribe(self, subscription: Subscription):
         """
         Cancel an actively running subscription instance.
@@ -7014,7 +7032,8 @@ class GraphSubscriptions:
         Returns:
             ConfigurationChange:
         """
-        parameterNameTypeValues = []
+        parameterNameTypeValues = [
+        ]
         return self._CallSubscribeGraphAPI(operationName='SubscribeConfigurationChange', parameterNameTypeValues=parameterNameTypeValues, returnType='ConfigurationChange', callbackFunction=callbackFunction, fields=fields)
 
     def SubscribeDiscoveredDevices(self, callbackFunction, interfaceLabels, deviceTypes=None, interval=None, fields=None):
@@ -7655,16 +7674,14 @@ class GraphSubscriptions:
 class GraphQueriesClient(GraphClientBase, GraphQueries):
     pass
 
-
 class GraphMutationsClient(GraphClientBase, GraphMutations):
     pass
-
 
 class GraphSubscriptionsClient(GraphClientBase, GraphSubscriptions):
     pass
 
-
 class GraphClient(GraphClientBase, GraphQueries, GraphMutations, GraphSubscriptions):
+
     @property
     def queries(self):
         return GraphQueriesClient(self._webclient)
@@ -7677,7 +7694,7 @@ class GraphClient(GraphClientBase, GraphQueries, GraphMutations, GraphSubscripti
     def subscriptions(self):
         return GraphSubscriptionsClient(self._webclient)
 
-
 #
 # DO NOT EDIT, THIS FILE WAS AUTO-GENERATED, SEE HEADER
 #
+
