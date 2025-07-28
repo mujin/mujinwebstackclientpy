@@ -5417,6 +5417,20 @@ class GraphMutations:
         ]
         return self._CallSimpleGraphAPI('mutation', operationName='ForceSynchronizerPullFromRemotes', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
 
+    def ForceSynchronizerPushToRemotes(self, fields=None, timeout=None):
+        """Force the synchronizer to push resources from remotes immediately based on WebStack configuration.
+
+        Args:
+            fields (list or dict, optional): Specifies a subset of fields to return.
+            timeout (float, optional): Number of seconds to wait for response.
+
+        Returns:
+            Void:
+        """
+        parameterNameTypeValues = [
+        ]
+        return self._CallSimpleGraphAPI('mutation', operationName='ForceSynchronizerPushToRemotes', parameterNameTypeValues=parameterNameTypeValues, returnType='Void', fields=fields, timeout=timeout)
+
     def GetLatestDetectionResultImages(self, options=None, parameters=None, fields=None, timeout=None):
         """Get latest detection result images with metadata.
 

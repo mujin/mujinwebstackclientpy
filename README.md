@@ -4,7 +4,6 @@
 
 This is an open-source client library communicating with the Mujin Controller WebAPI.
 
-
 ## Releases and Versioning
 
 - The latest stable build is managed by the **master** branch, please use it. It is tested on Linux with Python 3.9.
@@ -13,11 +12,9 @@ This is an open-source client library communicating with the Mujin Controller We
   
   - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
 
-
 ## Running on Linux
 
 Load mujinwebstackclient as a module in Python.
-
 
 ## Install on Linux
 
@@ -54,10 +51,12 @@ Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the conten
 
 ## Troubleshooting
 
-### Jhbuild fails due to flake8:
+### Jhbuild fails due to flake8
+
 If Jhbuild fails on building mujinwebstackclientpy due to a flake8 violation (most likely with a several hundred errors and warnings), this could be happening due to flake8 running a default configuration within a virtual environment.
 
 If this seems to be the case, you can delete the virtual environment.
+
 ```bash
 # delete the virtual environment
 rm -rf ./.ve
