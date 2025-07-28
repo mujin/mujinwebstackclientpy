@@ -2,7 +2,7 @@
 
 ## 0.9.13 (2025-07-24)
 
-- Update webstackgraphclient.py to support ForceSynchronizerPushToRemotes.
+- Re-generate graph api.
 
 ## 0.9.12 (2025-07-07)
 
