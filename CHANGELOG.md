@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.15 (2025-07-30)
+## 0.9.15 (2025-08-04)
 
 - Re-generate graph api.
 
