@@ -106,7 +106,11 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         if parameter['parameterName'] in builtinParameterNames:
             continue
         if parameter['parameterDefaultValue'] is not None:
-            operationParametersOptional.append('%s=%s' % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
+            parameterType = parameter['parameterType']
+            if parameterType == 'String':
+                operationParametersOptional.append('%s=\'%s\'' % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
+            else:
+                operationParametersOptional.append('%s=%s' % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
             continue
         if parameter['parameterNullable'] is True:
             operationParametersOptional.append('%s=None' % parameter['parameterName'])
