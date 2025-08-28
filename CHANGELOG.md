@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.17 (2025-08-29)
+
+- Add support for string default values in GraphQL APIs.
+- Re-generate GraphQL APIs.
+
 ## 0.9.16 (2025-08-18)
 
 - Re-generate graph api.
