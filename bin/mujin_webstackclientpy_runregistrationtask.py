@@ -9,6 +9,7 @@ from mujinwebstackclient.webstackclient import WebstackClient
 from mujinwebstackclient import uriutils
 
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -32,10 +33,10 @@ def _RunMain():
     # configure logging
     try:
         from mujincommon import ConfigureRootLogger
+
         ConfigureRootLogger(level=options.logLevel)
     except ImportError:
         logging.basicConfig(format='%(asctime)s %(name)s [%(levelname)s] [%(filename)s:%(lineno)s %(funcName)s] %(message)s', level=options.logLevel)
-
 
     taskType = 'registration'
     command = None
@@ -65,32 +66,39 @@ def _RunMain():
             webstackclient.DeleteSceneTask(options.scenepk, task['pk'])
 
     # create task
-    task = webstackclient.CreateSceneTask(options.scenepk, {
-        'tasktype': taskType,
-        'name': taskName,
-        'taskparameters': {
-            'command': command,
-            'fileStorageInfo': {
-                'type': 'ftp',
-                'username': options.ftpUsername,
-                'password': options.ftpPassword,
-                'host': options.ftpHost,
-                'port': options.ftpPort,
-                'remotePath': options.ftpPath,
+    task = webstackclient.CreateSceneTask(
+        options.scenepk,
+        {
+            'tasktype': taskType,
+            'name': taskName,
+            'taskparameters': {
+                'command': command,
+                'fileStorageInfo': {
+                    'type': 'ftp',
+                    'username': options.ftpUsername,
+                    'password': options.ftpPassword,
+                    'host': options.ftpHost,
+                    'port': options.ftpPort,
+                    'remotePath': options.ftpPath,
+                },
+                'remoteMasterFilePath': options.syncMasterFile,
             },
-            'remoteMasterFilePath': options.syncMasterFile,
-        }
-    })
+        },
+    )
     taskpk = task['pk']
     log.info('task created: %s: %s', taskpk, task['name'])
 
-
     # run task async
-    jobpk = webstackclient._webclient.APICall('POST', 'job/', data={
-        'scenepk': options.scenepk,
-        'target_pk': taskpk,
-        'resource_type': 'task',
-    }, expectedStatusCode=200)['jobpk']
+    jobpk = webstackclient._webclient.APICall(
+        'POST',
+        'job/',
+        data={
+            'scenepk': options.scenepk,
+            'target_pk': taskpk,
+            'resource_type': 'task',
+        },
+        expectedStatusCode=200,
+    )['jobpk']
     log.info('job started: %s', jobpk)
 
     # wait for job
@@ -113,7 +121,7 @@ def _RunMain():
         newProgress = (
             min(1.0, max(jobProgress[0] if jobProgress else 0.0, float(job['progress']))),
             job['status'],
-            job['status_text']
+            job['status_text'],
         )
         if newProgress != jobProgress:
             jobProgress = newProgress

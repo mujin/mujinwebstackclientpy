@@ -10,6 +10,7 @@ import subprocess
 from mujinwebstackclient.webstackclient import WebstackClient
 
 import logging
+
 log = logging.getLogger(__name__)
 
 
@@ -33,32 +34,67 @@ def _ShowDiffInOneLine(oldconfig, newconfig, parentPath=None, useColours=True):
 
     if isinstance(newconfig, list) and len(newconfig) != len(oldconfig):
         absolutePathStr = '.'.join(parentPath or [])
-        print('[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s) [size changed to %(newsize)d from %(oldsize)d]' % _MergeDicts({
-            'path': absolutePathStr, 'newvalue': newconfig, 'oldvalue': oldconfig, 'newsize': len(newconfig), 'oldsize': len(oldconfig)
-        }, colourCodes if useColours else colourCodesDummy))
+        print(
+            '[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s) [size changed to %(newsize)d from %(oldsize)d]'
+            % _MergeDicts(
+                {
+                    'path': absolutePathStr,
+                    'newvalue': newconfig,
+                    'oldvalue': oldconfig,
+                    'newsize': len(newconfig),
+                    'oldsize': len(oldconfig),
+                },
+                colourCodes if useColours else colourCodesDummy,
+            ),
+        )
         return
 
     for key in sorted(newconfig) if isinstance(newconfig, dict) else range(len(newconfig)):
-        absolutePathStr = '.'.join((parentPath or []) + [key if isinstance(newconfig, dict) else '[%d]'%key])
-        if (isinstance(newconfig, dict) and key not in oldconfig):
-            print('[%(cc_add)sADD%(cc_restore)s] %(cc_add)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s' % _MergeDicts({
-                'path': absolutePathStr, 'newvalue': newconfig[key]
-            }, colourCodes if useColours else colourCodesDummy))
+        absolutePathStr = '.'.join((parentPath or []) + [key if isinstance(newconfig, dict) else '[%d]' % key])
+        if isinstance(newconfig, dict) and key not in oldconfig:
+            print(
+                '[%(cc_add)sADD%(cc_restore)s] %(cc_add)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s'
+                % _MergeDicts(
+                    {
+                        'path': absolutePathStr,
+                        'newvalue': newconfig[key],
+                    },
+                    colourCodes if useColours else colourCodesDummy,
+                ),
+            )
 
-        elif type(oldconfig[key]) != type(newconfig[key]): # noqa: E721
+        elif type(oldconfig[key]) != type(newconfig[key]):  # noqa: E721
             # key exists in both confs, but types don't match
-            print('[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s) [type changed to %(newtype)s from %(oldtype)s]' % _MergeDicts({
-                'path': absolutePathStr, 'newvalue': newconfig[key], 'oldvalue': oldconfig[key], 'newtype': type(newconfig), 'oldtype': type(oldconfig)
-            }, colourCodes if useColours else colourCodesDummy))
+            print(
+                '[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s) [type changed to %(newtype)s from %(oldtype)s]'
+                % _MergeDicts(
+                    {
+                        'path': absolutePathStr,
+                        'newvalue': newconfig[key],
+                        'oldvalue': oldconfig[key],
+                        'newtype': type(newconfig),
+                        'oldtype': type(oldconfig),
+                    },
+                    colourCodes if useColours else colourCodesDummy,
+                ),
+            )
 
         else:
             # key exists in both confs with same type values
             if isinstance(newconfig[key], dict) or isinstance(newconfig[key], list):
-                _ShowDiffInOneLine(oldconfig[key], newconfig[key], parentPath=(parentPath or [])+[key if isinstance(newconfig, dict) else '[%d]'%key], useColours=useColours)
+                _ShowDiffInOneLine(oldconfig[key], newconfig[key], parentPath=(parentPath or []) + [key if isinstance(newconfig, dict) else '[%d]' % key], useColours=useColours)
             elif newconfig[key] != oldconfig[key]:
-                print('[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s)' % _MergeDicts({
-                    'path': absolutePathStr, 'newvalue': newconfig[key], 'oldvalue': oldconfig[key]
-                }, colourCodes if useColours else colourCodesDummy))
+                print(
+                    '[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s)'
+                    % _MergeDicts(
+                        {
+                            'path': absolutePathStr,
+                            'newvalue': newconfig[key],
+                            'oldvalue': oldconfig[key],
+                        },
+                        colourCodes if useColours else colourCodesDummy,
+                    ),
+                )
 
             else:
                 pass  # same value
@@ -66,9 +102,16 @@ def _ShowDiffInOneLine(oldconfig, newconfig, parentPath=None, useColours=True):
     if isinstance(newconfig, dict):
         for key in list(set(oldconfig.keys()) - set(newconfig.keys())):
             absolutePathStr = '.'.join((parentPath or []) + [key])
-            print('[%(cc_del)sDEL%(cc_restore)s] %(cc_del)s%(path)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s)' % _MergeDicts({
-                'path': absolutePathStr, 'oldvalue': oldconfig[key]
-            }, colourCodes if useColours else colourCodesDummy))
+            print(
+                '[%(cc_del)sDEL%(cc_restore)s] %(cc_del)s%(path)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s)'
+                % _MergeDicts(
+                    {
+                        'path': absolutePathStr,
+                        'oldvalue': oldconfig[key],
+                    },
+                    colourCodes if useColours else colourCodesDummy,
+                ),
+            )
 
 
 def _DiffConfig(oldconfig, newconfig, showInOneLine=False):
@@ -100,14 +143,14 @@ def _CopyValueOfPath(src, dest, path, parentPath=None):
         if isinstance(src, dict) and isinstance(dest, dict):
             for srcKey, srcValue in six.iteritems(src):
                 if srcKey in dest:
-                    _CopyValueOfPath(srcValue, dest[srcKey], path[1:], (parentPath or [])+[path[0]])
+                    _CopyValueOfPath(srcValue, dest[srcKey], path[1:], (parentPath or []) + [path[0]])
                 else:
                     log.warn('Key %s does not exist in destination conf: %s' % (srcKey, '.'.join(parentPath or ['(root)'])))
 
         elif isinstance(src, list) and isinstance(dest, list):
             for index in range(len(src)):
                 if len(dest) > index:
-                    _CopyValueOfPath(src[index], dest[index], path[1:], (parentPath or [])+[path[0]])
+                    _CopyValueOfPath(src[index], dest[index], path[1:], (parentPath or []) + [path[0]])
                 else:
                     log.warn('Index %d is out of range in destination conf: %s' % (index, '.'.join(parentPath or ['(root)'])))
                     break
@@ -133,12 +176,12 @@ def _CopyValueOfPath(src, dest, path, parentPath=None):
         if len(path) == 1:
             dest[currentPathElement] = copy.deepcopy(src[currentPathElement])
         else:
-            _CopyValueOfPath(src[currentPathElement], dest[currentPathElement], path[1:], (parentPath or [])+[path[0]])
+            _CopyValueOfPath(src[currentPathElement], dest[currentPathElement], path[1:], (parentPath or []) + [path[0]])
 
 
 def _ApplyTemplate(config, template, preservedpaths=None):
     newconfig = copy.deepcopy(template)
-    
+
     # preserve the following path in the original config
     if preservedpaths is None:
         # add some basics
@@ -155,20 +198,18 @@ def _ApplyTemplate(config, template, preservedpaths=None):
             'destContainerInfo',
             'destcontainername',
             'destcontainernames',
-            
             # temp settings
             'robotname',
             'robotspeed',
             'robotaccelmult',
             'robotlockmode',
-            
             # controller specific
             'sceneuri',
-            'robots', # TODO for now skipping this
-            'devices', # TODO for now skipping this
-            'calibrationParameters', # TODO for now skipping this
+            'robots',  # TODO for now skipping this
+            'devices',  # TODO for now skipping this
+            'calibrationParameters',  # TODO for now skipping this
         ]
-    
+
     # always preserve network settings!
     preservedpaths += [
         # network specific
@@ -176,9 +217,8 @@ def _ApplyTemplate(config, template, preservedpaths=None):
         'ntpServer',
         'ntpStratum',
     ]
-    
-    # others
 
+    # others
 
     for pathStr in set(preservedpaths):
         path = pathStr.split('.')
@@ -204,6 +244,7 @@ def _RunMain():
     # configure logging
     try:
         from mujincommon import ConfigureRootLogger
+
         ConfigureRootLogger(level=options.loglevel)
     except ImportError:
         logging.basicConfig(format='%(asctime)s %(name)s [%(levelname)s] [%(filename)s:%(lineno)s %(funcName)s] %(message)s', level=options.loglevel)

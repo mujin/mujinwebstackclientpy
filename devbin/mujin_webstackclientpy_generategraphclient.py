@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import os
-import graphql # require graphql-core pip package when generating python code
+import graphql  # require graphql-core pip package when generating python code
 
 import logging
+
 log = logging.getLogger(__name__)
 
 
 def _ConfigureLogging(level=None):
     try:
         import mujincommon
+
         mujincommon.ConfigureRootLogger(level=level)
     except ImportError:
         logging.basicConfig(format='%(levelname)s %(name)s: %(funcName)s, %(message)s', level=logging.DEBUG)
@@ -18,6 +20,7 @@ def _ConfigureLogging(level=None):
 
 def _ParseArguments():
     import argparse
+
     parser = argparse.ArgumentParser(description='Open a shell to use webstackclient')
     parser.add_argument('--loglevel', type=str, default=None, help='The python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL (default: %(default)s)')
     parser.add_argument('--url', type=str, default='http://127.0.0.1', help='URL of the controller (default: %(default)s)')
@@ -28,6 +31,7 @@ def _ParseArguments():
 
 def _FetchServerVersionAndSchema(url, username, password):
     from mujinwebstackclient.controllerwebclientraw import ControllerWebClientRaw
+
     webClient = ControllerWebClientRaw(url, username, password)
     response = webClient.Request('HEAD', '/')
     serverVersion = response.headers['Server'].split()[0]
@@ -35,20 +39,21 @@ def _FetchServerVersionAndSchema(url, username, password):
     schema = graphql.build_client_schema(webClient.CallGraphAPI(graphql.get_introspection_query(descriptions=True), {}))
     return serverVersion, schema
 
+
 def _DereferenceType(graphType):
     while hasattr(graphType, 'of_type'):
         graphType = graphType.of_type
     return graphType
 
-def _IndentNewlines(string, indent="    "*5):
-    """Indent new lines in a string. Used for multi-line descriptions.
-    """
-    return string.replace("\n", "\n"+indent)
+
+def _IndentNewlines(string, indent='    ' * 5):
+    """Indent new lines in a string. Used for multi-line descriptions."""
+    return string.replace('\n', '\n' + indent)
+
 
 def _FormatTypeForDocstring(typeName):
-    """Removes the exclamation mark and converts basic Golang types to Python types.
-    """
-    _typeName = str(typeName).replace("!", "")
+    """Removes the exclamation mark and converts basic Golang types to Python types."""
+    _typeName = str(typeName).replace('!', '')
     if _typeName == 'String':
         return 'str'
     elif _typeName == 'Int':
@@ -57,6 +62,7 @@ def _FormatTypeForDocstring(typeName):
         return 'bool'
     else:
         return _typeName
+
 
 def _DiscoverType(graphType):
     baseFieldType = _DereferenceType(graphType)
@@ -67,29 +73,36 @@ def _DiscoverType(graphType):
         'description': baseFieldType.description.strip(),
     }
 
+
 def _DiscoverMethods(queryOrMutationType):
     methods = []
     for operationName, field in queryOrMutationType.fields.items():
-        methods.append({
-            'operationName': operationName,
-            'parameters': sorted([
-                {
-                    'parameterName': argumentName,
-                    'parameterType': _DiscoverType(argument.type)['typeName'],
-                    'parameterDescription': argument.description,
-                    'parameterNullable': not isinstance(argument.type, graphql.GraphQLNonNull),
-                    'parameterDefaultValue': argument.default_value if argument.default_value != graphql.Undefined else None,
-                }
-                for argumentName, argument in field.args.items()
-            ], key=lambda x: (x['parameterNullable'], x['parameterName'])),
-            'description': field.description,
-            'deprecationReason': field.deprecation_reason,
-            'returnType': _DiscoverType(field.type),
-        })
+        methods.append(
+            {
+                'operationName': operationName,
+                'parameters': sorted(
+                    [
+                        {
+                            'parameterName': argumentName,
+                            'parameterType': _DiscoverType(argument.type)['typeName'],
+                            'parameterDescription': argument.description,
+                            'parameterNullable': not isinstance(argument.type, graphql.GraphQLNonNull),
+                            'parameterDefaultValue': argument.default_value if argument.default_value != graphql.Undefined else None,
+                        }
+                        for argumentName, argument in field.args.items()
+                    ],
+                    key=lambda x: (x['parameterNullable'], x['parameterName']),
+                ),
+                'description': field.description,
+                'deprecationReason': field.deprecation_reason,
+                'returnType': _DiscoverType(field.type),
+            },
+        )
     return methods
 
+
 def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, description, deprecationReason, returnType):
-    if queryOrMutationOrSubscription == 'query' and operationName.startswith("List"):
+    if queryOrMutationOrSubscription == 'query' and operationName.startswith('List'):
         print('    @UseLazyGraphQuery')
 
     builtinParameterNamesRequired = ()
@@ -108,7 +121,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         if parameter['parameterDefaultValue'] is not None:
             parameterType = parameter['parameterType']
             if parameterType == 'String':
-                operationParametersOptional.append('%s=\'%s\'' % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
+                operationParametersOptional.append("%s='%s'" % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
             else:
                 operationParametersOptional.append('%s=%s' % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
             continue
@@ -139,7 +152,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
     for parameter in parameters:
         if parameter['parameterName'] in builtinParameterNames:
             continue
-        isOptionalString = ", optional" if parameter['parameterNullable'] else ""
+        isOptionalString = ', optional' if parameter['parameterNullable'] else ''
         print('            %s (%s%s):' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString), end='')
         if parameter['parameterDescription']:
             print(' %s' % _IndentNewlines(parameter['parameterDescription']))
@@ -164,13 +177,16 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
     for parameter in parameters:
         if parameter['parameterName'] in builtinParameterNames:
             continue
-        print('            (\'%s\', \'%s\', %s),' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
+        print("            ('%s', '%s', %s)," % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
     print('        ]')
 
     if queryOrMutationOrSubscription in ('query', 'mutation'):
-        print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutationOrSubscription, operationName, returnType['baseTypeName']))
+        print(
+            "        return self._CallSimpleGraphAPI('%s', operationName='%s', parameterNameTypeValues=parameterNameTypeValues, returnType='%s', fields=fields, timeout=timeout)" % (queryOrMutationOrSubscription, operationName, returnType['baseTypeName']),
+        )
     elif queryOrMutationOrSubscription == 'subscription':
-        print('        return self._CallSubscribeGraphAPI(operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', callbackFunction=callbackFunction, fields=fields)' % (operationName, returnType['baseTypeName']))
+        print("        return self._CallSubscribeGraphAPI(operationName='%s', parameterNameTypeValues=parameterNameTypeValues, returnType='%s', callbackFunction=callbackFunction, fields=fields)" % (operationName, returnType['baseTypeName']))
+
 
 def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMethods):
     print('# -*- coding: utf-8 -*-')
@@ -254,5 +270,5 @@ def _Main():
     _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMethods)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     _Main()

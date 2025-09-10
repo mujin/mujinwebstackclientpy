@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2014 MUJIN Inc
 from distutils.core import setup
+
 try:
     from mujincommon.setuptools import Distribution
 except (ImportError, SyntaxError):
@@ -21,11 +22,14 @@ setup(
     data_files=[
         # using scripts= will cause the first line of the script being modified for python2 or python3
         # put the scripts in data_files will copy them as-is
-        ('bin', [
-            'bin/mujin_webstackclientpy_applyconfig.py',
-            'bin/mujin_webstackclientpy_runshell.py',
-            'bin/mujin_webstackclientpy_downloaddata.py',
-        ]),
+        (
+            'bin',
+            [
+                'bin/mujin_webstackclientpy_applyconfig.py',
+                'bin/mujin_webstackclientpy_runshell.py',
+                'bin/mujin_webstackclientpy_downloaddata.py',
+            ],
+        ),
     ],
     locale_dir='locale',
     license='Apache License, Version 2.0',
