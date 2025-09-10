@@ -21,6 +21,7 @@ def _ParseArguments():
     parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
     parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
     parser.add_argument('--timeout', type=float, default=600, help='Timeout in seconds (default: %(default)s)')
+    parser.add_argument('--sceneExtension', default=None, help='scene extension such as msgpack, json, yaml')
     return parser.parse_args()
 
 def _CreateWebstackClient(url, username, password):
@@ -34,7 +35,7 @@ def _CreateWebstackClient(url, username, password):
         controllerpassword=password,
     )
 
-def _GetScenes(webClient):
+def _GetScenes(webClient, userRequestedSceneExtension=None):
     from mujinwebstackclient import uriutils
 
     # get the conf file
@@ -46,6 +47,13 @@ def _GetScenes(webClient):
     sceneUri = config.get('sceneuri', '')
     if sceneUri != '':
         sceneExtension = os.path.splitext(sceneUri)[-1]
+
+        if userRequestedSceneExtension is not None:
+            if not userRequestedSceneExtension.startswith('.'):
+                userRequestedSceneExtension = '.' + userRequestedSceneExtension
+            sceneExtension = userRequestedSceneExtension
+            sceneUri = os.path.splitext(sceneUri)[0] + sceneExtension
+
         sceneList.append(uriutils.GetPrimaryKeyFromURI(sceneUri))
 
     # get target names from config
@@ -82,7 +90,7 @@ def _Main():
     _ConfigureLogging(options.loglevel)
 
     webClient = _CreateWebstackClient(options.url, options.username, options.password)
-    sceneList = _GetScenes(webClient)
+    sceneList = _GetScenes(webClient, options.sceneExtension)
     downloadDirectory = _DownloadBackup(webClient, sceneList, timeout=options.timeout)
     print(downloadDirectory) # other scripts can read stdout and learn the directory path
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.18 (2025-09-11)
+
+- Add option to specify scene extension to mujin_webstackclientpy_downloaddata.py
+
 ## 0.9.17 (2025-08-29)
 
 - Add support for string default values in GraphQL APIs.
