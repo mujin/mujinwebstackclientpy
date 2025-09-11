@@ -4,17 +4,22 @@
 import os
 
 import logging
+
 log = logging.getLogger(__name__)
+
 
 def _ConfigureLogging(level=None):
     try:
         import mujincommon
+
         mujincommon.ConfigureRootLogger(level=level)
     except ImportError:
         logging.basicConfig(format='%(levelname)s %(name)s: %(funcName)s, %(message)s', level=logging.DEBUG)
 
+
 def _ParseArguments():
     import argparse
+
     parser = argparse.ArgumentParser(description='Downloads all config files, currently used scene, and currently selected target env file from a controller')
     parser.add_argument('--loglevel', type=str, default=None, help='The python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL (default: %(default)s)')
     parser.add_argument('--url', type=str, default='http://127.0.0.1', help='URL of the controller (default: %(default)s)')
@@ -23,16 +28,18 @@ def _ParseArguments():
     parser.add_argument('--timeout', type=float, default=600, help='Timeout in seconds (default: %(default)s)')
     return parser.parse_args()
 
+
 def _CreateWebstackClient(url, username, password):
     from mujinwebstackclient.webstackclient import WebstackClient
 
     # create a webstack client for the controller
-    log.info('connecting to %s', url) 
+    log.info('connecting to %s', url)
     return WebstackClient(
         controllerurl=url,
         controllerusername=username,
         controllerpassword=password,
     )
+
 
 def _GetScenes(webClient):
     from mujinwebstackclient import uriutils
@@ -52,17 +59,18 @@ def _GetScenes(webClient):
     for targetname in config.get('selectedtargetnames', []):
         if not targetname.startswith('mujin:'):
             # use current scene's extension
-            targetname = 'mujin:/%s.mujin%s'%(targetname, sceneExtension)
+            targetname = 'mujin:/%s.mujin%s' % (targetname, sceneExtension)
         sceneList.append(uriutils.GetPrimaryKeyFromURI(targetname))
 
     return sceneList
+
 
 def _DownloadBackup(webClient, sceneList, timeout=600.0):
     import re
     import tarfile
 
     log.info('downloading scenes %s and all configs', sceneList)
-    response = webClient.Backup(      
+    response = webClient.Backup(
         saveconfig=True,
         backupscenepks=sceneList,
         timeout=timeout,
@@ -77,6 +85,7 @@ def _DownloadBackup(webClient, sceneList, timeout=600.0):
     log.info('download completed, data saved to: %s', downloadDirectory)
     return downloadDirectory
 
+
 def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
@@ -84,7 +93,8 @@ def _Main():
     webClient = _CreateWebstackClient(options.url, options.username, options.password)
     sceneList = _GetScenes(webClient)
     downloadDirectory = _DownloadBackup(webClient, sceneList, timeout=options.timeout)
-    print(downloadDirectory) # other scripts can read stdout and learn the directory path
+    print(downloadDirectory)  # other scripts can read stdout and learn the directory path
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     _Main()
