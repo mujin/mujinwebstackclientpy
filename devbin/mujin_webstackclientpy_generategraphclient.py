@@ -208,7 +208,10 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
             parameterList.append('%s: Optional[Any] = None' % parameterName)
 
     # determine return type
-    finalReturnType = _FormatTypeForAnnotation(returnType['typeName'], returnType['isNullable'])
+    if queryOrMutationOrSubscription == 'subscription':
+        finalReturnType = 'Subscription'
+    else:
+        finalReturnType = _FormatTypeForAnnotation(returnType['typeName'], returnType['isNullable'])
 
     # print method signature with type annotations
     if parameterList:
