@@ -100,6 +100,9 @@ def _FormatTypeForAnnotation(typeName, isNullable=False):
         pythonType = 'bool'
     elif _typeName == 'Float':
         pythonType = 'float'
+    elif _typeName == 'Void':
+        # Void functions return None in Python
+        return 'None'
     elif _typeName.startswith('[') and _typeName.endswith(']'):
         # handle list types like [String!] -> List[str]
         innerType = _typeName[1:-1].replace('!', '')
@@ -121,6 +124,7 @@ def _DiscoverType(graphType):
         'typeName': '%s' % graphType,
         'baseTypeName': '%s' % baseFieldType,
         'description': baseFieldType.description.strip(),
+        'isNullable': not isinstance(graphType, graphql.GraphQLNonNull),
     }
 
 
@@ -204,7 +208,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
             parameterList.append('%s: Optional[Any] = None' % parameterName)
 
     # determine return type
-    finalReturnType = _FormatTypeForAnnotation(returnType['typeName'], True)
+    finalReturnType = _FormatTypeForAnnotation(returnType['typeName'], returnType['isNullable'])
 
     # print method signature with type annotations
     if parameterList:

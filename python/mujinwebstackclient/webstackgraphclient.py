@@ -19,7 +19,7 @@ class GraphQueries:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -40,7 +40,7 @@ class GraphQueries:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -61,7 +61,7 @@ class GraphQueries:
         queueId: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -82,7 +82,7 @@ class GraphQueries:
         queueId: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -102,7 +102,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -119,7 +119,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -139,7 +139,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[bool]:
+    ) -> bool:
         """Check existence for a specific application configuration.
 
         Args:
@@ -166,7 +166,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[bool]]:
+    ) -> List[bool]:
         """Check existence for multiple application configuration.
 
         Args:
@@ -192,7 +192,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[bool]:
+    ) -> bool:
         """Check existence for a specific configuration.
 
         Args:
@@ -216,7 +216,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[bool]]:
+    ) -> List[bool]:
         """Check existence for multiple configuration.
 
         Args:
@@ -241,7 +241,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[bool]:
+    ) -> bool:
         """Check existence for a specific environment.
 
         Args:
@@ -268,7 +268,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[bool]]:
+    ) -> List[bool]:
         """Check existence for multiple environments.
 
         Args:
@@ -293,7 +293,7 @@ class GraphQueries:
         alarmStatus: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get the alarm definition by the alarm status.
 
         Args:
@@ -317,7 +317,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get appearance parameters in a body.
 
         Args:
@@ -346,7 +346,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular application configuration.
 
         Args:
@@ -375,7 +375,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular attached sensor on a robot.
 
         Args:
@@ -407,7 +407,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular body in an environment.
 
         Args:
@@ -437,7 +437,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a body parameters in a body.
 
         Args:
@@ -465,7 +465,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular configuration.
 
         Args:
@@ -490,7 +490,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular revision of a configuration.
 
         Args:
@@ -519,7 +519,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular connected body on a robot.
 
         Args:
@@ -549,7 +549,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get configurations for controller system.
 
         Args:
@@ -572,7 +572,7 @@ class GraphQueries:
         detectorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get detector module by detector id.
 
         Args:
@@ -593,7 +593,7 @@ class GraphQueries:
         deviceBridgeType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get device bridge module by device bridge type.
 
         Args:
@@ -614,7 +614,7 @@ class GraphQueries:
         electronicDataSheetId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a specific electronic data sheet.
 
         Args:
@@ -637,7 +637,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a specific environment.
 
         Args:
@@ -665,7 +665,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular revision of an environment.
 
         Args:
@@ -694,7 +694,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Get multiple environments.
 
         Args:
@@ -719,7 +719,7 @@ class GraphQueries:
         etherCatSubDeviceInformationId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a specific ethercat sub-device information.
 
         Args:
@@ -740,7 +740,7 @@ class GraphQueries:
         executorType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get executor module by executor id.
 
         Args:
@@ -764,7 +764,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get feedback history in a body.
 
         Args:
@@ -796,7 +796,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular geometry in a link.
 
         Args:
@@ -831,7 +831,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular grabbed object in a body.
 
         Args:
@@ -864,7 +864,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular grasp set in a body.
 
         Args:
@@ -893,7 +893,7 @@ class GraphQueries:
         gripperBridgeType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get gripper bridge module by gripper bridge type.
 
         Args:
@@ -918,7 +918,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular gripper info on a robot.
 
         Args:
@@ -952,7 +952,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular air channel of the gripper infos.
 
         Args:
@@ -982,7 +982,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         """Get capabilities supported by hypervisor.
 
         Args:
@@ -999,7 +999,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get status of hypervisor.
 
         Args:
@@ -1016,7 +1016,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[str]:
+    ) -> str:
         """Get version of hypervisor.
 
         Args:
@@ -1038,7 +1038,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular ikparam in a body.
 
         Args:
@@ -1067,7 +1067,7 @@ class GraphQueries:
         inputOutputDeviceDescriptionId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a specific input/output device description.
 
         Args:
@@ -1092,7 +1092,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular joint in a body.
 
         Args:
@@ -1125,7 +1125,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular link in a body.
 
         Args:
@@ -1154,7 +1154,7 @@ class GraphQueries:
         logEntryId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular log entry.
 
         Args:
@@ -1300,7 +1300,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular mesh.
 
         Args:
@@ -1330,7 +1330,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get model processor properties in a body.
 
         Args:
@@ -1360,7 +1360,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get model processor state in a body.
 
         Args:
@@ -1386,7 +1386,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get task state of model processor.
 
         Deprecated:
@@ -1409,7 +1409,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get configurations for orchestrator master.
 
         Args:
@@ -1432,7 +1432,7 @@ class GraphQueries:
         orchestratorType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get orchestrator module by orchestrator type.
 
         Args:
@@ -1453,7 +1453,7 @@ class GraphQueries:
         address: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[str]:
+    ) -> str:
         """Get pendant heartbeat endpoint.
 
         Args:
@@ -1474,7 +1474,7 @@ class GraphQueries:
         pendantType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get pendant module by device type.
 
         Args:
@@ -1495,7 +1495,7 @@ class GraphQueries:
         address: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get state of pendant.
 
         Args:
@@ -1516,7 +1516,7 @@ class GraphQueries:
         address: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[str]:
+    ) -> str:
         """Get version of pendant.
 
         Args:
@@ -1541,7 +1541,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular position configuration in a body.
 
         Args:
@@ -1569,7 +1569,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         """Get profile selection order.
 
         Args:
@@ -1587,7 +1587,7 @@ class GraphQueries:
         programId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a specific program.
 
         Args:
@@ -1609,7 +1609,7 @@ class GraphQueries:
         referenceId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Get all program files at a particular reference.
 
         Args:
@@ -1632,7 +1632,7 @@ class GraphQueries:
         objectId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get single program object.
 
         Args:
@@ -1654,7 +1654,7 @@ class GraphQueries:
         referenceId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a specific program reference.
 
         Args:
@@ -1677,7 +1677,7 @@ class GraphQueries:
         providerBridgeType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get provider bridge module by provider bridge type.
 
         Args:
@@ -1698,7 +1698,7 @@ class GraphQueries:
         robotBridgeType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get robot bridge module by robot bridge type.
 
         Args:
@@ -1720,7 +1720,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get configurations for robotbridges.
 
         Args:
@@ -1746,7 +1746,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a robot motion parameters in a body.
 
         Args:
@@ -1773,7 +1773,7 @@ class GraphQueries:
         sensorBridgeType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get sensor bridge module by sensor bridge type.
 
         Args:
@@ -1795,7 +1795,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get configurations for sensorbridges.
 
         Args:
@@ -1820,7 +1820,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get signal map.
 
         Args:
@@ -1849,7 +1849,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a particular tool on a robot.
 
         Args:
@@ -2129,7 +2129,7 @@ class GraphQueries:
         visionTaskType: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get vision task module by vision task type.
 
         Args:
@@ -2150,7 +2150,7 @@ class GraphQueries:
         webAppId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get a specific web app.
 
         Args:
@@ -2171,7 +2171,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get configurations for WebStack.
 
         Args:
@@ -2191,7 +2191,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Get published component states of WebStack.
 
         Args:
@@ -2211,7 +2211,7 @@ class GraphQueries:
         environmentId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[bool]:
+    ) -> bool:
         """Check and see if attached sensor is moveable on a robot
 
         Args:
@@ -2238,7 +2238,7 @@ class GraphQueries:
         sensorLinkName: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[bool]:
+    ) -> bool:
         """Check and see if sensor link is moveable on a robot
 
         Args:
@@ -2264,7 +2264,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List all alarm definitions.
 
         Args:
@@ -2288,7 +2288,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """For a given list of log entry ids, find all the ancestor log entries. (parent and grand parent and so on)
 
         Deprecated:
@@ -2320,7 +2320,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """For a given list of log entry ids, find all the ancestor log entries. (parent and grand parent and so on)
 
         Args:
@@ -2348,7 +2348,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List application available configurations using aggregation options.
 
         Args:
@@ -2378,7 +2378,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List attached sensors defined on a robot.
 
         Args:
@@ -2411,7 +2411,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List bodies in an environment.
 
         Args:
@@ -2441,7 +2441,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List log entries that do not have child log entry.
 
         Args:
@@ -2469,7 +2469,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """list revisions of a configuration.
 
         Args:
@@ -2496,7 +2496,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available configurations.
 
         Deprecated:
@@ -2525,7 +2525,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available configurations using aggregation options.
 
         Args:
@@ -2553,7 +2553,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List connected bodies defined on a robot.
 
         Args:
@@ -2585,7 +2585,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """For a given list of log entry ids, find all the descendant log entries. (children and grand children and so on)
 
         Deprecated:
@@ -2617,7 +2617,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """For a given list of log entry ids, find all the descendant log entries. (children and grand children and so on)
 
         Args:
@@ -2643,7 +2643,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List detector modules.
 
         Args:
@@ -2665,7 +2665,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List device bridge modules.
 
         Args:
@@ -2687,7 +2687,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available electronic data sheets.
 
         Args:
@@ -2712,7 +2712,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List revisions of an environment.
 
         Args:
@@ -2742,7 +2742,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List all environments.
 
         Deprecated:
@@ -2774,7 +2774,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List environments with aggregations.
 
         Args:
@@ -2800,7 +2800,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available ethercat sub-device informations.
 
         Args:
@@ -2822,7 +2822,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List executor modules.
 
         Args:
@@ -2849,7 +2849,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List geometries in a link.
 
         Args:
@@ -2885,7 +2885,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List grabbed objects in a body.
 
         Args:
@@ -2919,7 +2919,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List grasp sets in a body.
 
         Args:
@@ -2949,7 +2949,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List gripper bridge modules.
 
         Args:
@@ -2976,7 +2976,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List air channels defined in a gripper info.
 
         Args:
@@ -3012,7 +3012,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List gripper infos defined on a robot.
 
         Args:
@@ -3042,7 +3042,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List user groups.
 
         Args:
@@ -3068,7 +3068,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List ikparams in a body.
 
         Args:
@@ -3098,7 +3098,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available input/output device descriptions.
 
         Args:
@@ -3124,7 +3124,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List joints in a body.
 
         Args:
@@ -3158,7 +3158,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List links in a body.
 
         Args:
@@ -3189,7 +3189,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available log entries.
 
         Deprecated:
@@ -3218,7 +3218,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available log entries with new aggregation options.
 
         Args:
@@ -3243,7 +3243,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available log entries with new aggregation options.
 
         Deprecated:
@@ -3272,7 +3272,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available modules.
 
         Args:
@@ -3297,7 +3297,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List log entries that are not referenced by any other log entry.
 
         Deprecated:
@@ -3326,7 +3326,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List log entries that are not referencing any other log entry.
 
         Deprecated:
@@ -3354,7 +3354,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List orchestrator modules.
 
         Args:
@@ -3377,7 +3377,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List log entries that do not have parent log entry.
 
         Args:
@@ -3401,7 +3401,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List pendant modules.
 
         Args:
@@ -3427,7 +3427,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List position configurations in a body.
 
         Args:
@@ -3457,7 +3457,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List all programs.
 
         Args:
@@ -3479,7 +3479,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List provider bridge modules.
 
         Args:
@@ -3504,7 +3504,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Given the application id and a list of configuration ids, list all the configurations they reference to.
 
         Args:
@@ -3535,7 +3535,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Given a list of configuration ids, list all the configurations they reference to.
 
         Args:
@@ -3565,7 +3565,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List particular log entries and their parents.
 
         Deprecated:
@@ -3598,7 +3598,7 @@ class GraphQueries:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Given a list of configuration ids, list all the configurations that are referencing them.
 
         Args:
@@ -3628,7 +3628,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List particular log entries and their children.
 
         Deprecated:
@@ -3658,7 +3658,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List robot bridge modules.
 
         Args:
@@ -3680,7 +3680,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List group roles.
 
         Args:
@@ -3702,7 +3702,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List sensor bridge modules.
 
         Args:
@@ -3728,7 +3728,7 @@ class GraphQueries:
         statTypes: Optional[List[str]] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Lists all or specific types of statistics entries for a given time interval.
 
         Deprecated:
@@ -3768,7 +3768,7 @@ class GraphQueries:
         statTypes: Optional[List[Any]] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Lists all or specific types of statistics entries for a given time interval, with the new aggregation option.
 
         Args:
@@ -3806,7 +3806,7 @@ class GraphQueries:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List tools defined on a robot.
 
         Args:
@@ -3837,7 +3837,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available log entries without typing.
 
         Args:
@@ -3866,7 +3866,7 @@ class GraphQueries:
         statTypes: Optional[List[Any]] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List available stat entries without typing.
 
         Args:
@@ -3898,7 +3898,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List users of the system.
 
         Args:
@@ -3920,7 +3920,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List vision task modules.
 
         Args:
@@ -3942,7 +3942,7 @@ class GraphQueries:
         options: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """List all web apps.
 
         Args:
@@ -3965,7 +3965,7 @@ class GraphQueries:
         ttl: Optional[int] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Ping a remote host.
 
         Args:
@@ -3989,7 +3989,7 @@ class GraphQueries:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Query available upgrade images for this controller.
 
         Args:
@@ -4009,7 +4009,7 @@ class GraphQueries:
         data: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Telnet to a remote host using TCP.
 
         Args:
@@ -4035,7 +4035,7 @@ class GraphQueries:
         limit: int,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Traverse program commit objects starting from the given commit.
 
         Args:
@@ -4059,7 +4059,7 @@ class GraphQueries:
         objectId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Traverse program tree objects starting from the given commit or tree.
 
         Args:
@@ -4084,7 +4084,7 @@ class GraphMutations:
         imageId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Activate an runtime image.
 
         Args:
@@ -4106,7 +4106,7 @@ class GraphMutations:
         diskDrive: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Add a disk drive to a disk array.
 
         Args:
@@ -4130,7 +4130,7 @@ class GraphMutations:
         roleId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Add a permission to a group.
 
         Args:
@@ -4154,7 +4154,7 @@ class GraphMutations:
         roleId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Add a role to a group.
 
         Args:
@@ -4178,7 +4178,7 @@ class GraphMutations:
         userId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Add a user to a group.
 
         Args:
@@ -4204,7 +4204,7 @@ class GraphMutations:
         pulse: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Beep the pendant buzzer.
 
         Args:
@@ -4230,7 +4230,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Cancel ongoing upgrade.
 
         Args:
@@ -4248,7 +4248,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4269,7 +4269,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4290,7 +4290,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4310,7 +4310,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4328,7 +4328,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4349,7 +4349,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4370,7 +4370,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4424,7 +4424,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4445,7 +4445,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4497,7 +4497,7 @@ class GraphMutations:
         queueId: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4518,7 +4518,7 @@ class GraphMutations:
         queueId: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4539,7 +4539,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4587,7 +4587,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4605,7 +4605,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4681,7 +4681,7 @@ class GraphMutations:
         slaverequestid: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4702,7 +4702,7 @@ class GraphMutations:
         orchestratorId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4750,7 +4750,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4767,7 +4767,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4812,7 +4812,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4885,7 +4885,7 @@ class GraphMutations:
         slaverequestid: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -4908,7 +4908,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         """Copy all configurations that belong to an application, returns the list of modified relative configuration ids.
 
         Args:
@@ -4968,7 +4968,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing attached sensor on a robot to a new one.
 
         Args:
@@ -5003,7 +5003,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing body in an environment to a new one.
 
         Args:
@@ -5064,7 +5064,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing connected body on a robot to a new one.
 
         Args:
@@ -5098,7 +5098,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing environment to a new one.
 
         Args:
@@ -5131,7 +5131,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing geometry in a link to a new one.
 
         Args:
@@ -5169,7 +5169,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing grabbed object in a body to a new one.
 
         Args:
@@ -5205,7 +5205,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing grasp set in a body to a new one.
 
         Args:
@@ -5241,7 +5241,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing gripper info on a robot to a new one.
 
         Args:
@@ -5278,7 +5278,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing air channel on a robot to a new one.
 
         Args:
@@ -5316,7 +5316,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing ikparam in a body to a new one.
 
         Args:
@@ -5352,7 +5352,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing link in a body to a new one.
 
         Args:
@@ -5390,7 +5390,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing link and joint in a body.
 
         Args:
@@ -5430,7 +5430,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing position configuration in a body to a new one.
 
         Args:
@@ -5463,7 +5463,7 @@ class GraphMutations:
         commitOptions: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy a program. Copy is done by forking the git repository.
 
         Args:
@@ -5490,7 +5490,7 @@ class GraphMutations:
         referenceId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy a program reference.
 
         Args:
@@ -5518,7 +5518,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy signal map and return copied signal map.
 
         Args:
@@ -5550,7 +5550,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Copy an existing tool on a robot to a new one.
 
         Args:
@@ -5612,7 +5612,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new appearance parameters in a body.
 
         Args:
@@ -5645,7 +5645,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new attached sensor on a robot.
 
         Args:
@@ -5677,7 +5677,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new body in an environment.
 
         Args:
@@ -5708,7 +5708,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new body parameters in a body.
 
         Args:
@@ -5741,7 +5741,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new connected body on a robot.
 
         Args:
@@ -5772,7 +5772,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new environment.
 
         Args:
@@ -5801,7 +5801,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new feedback history in a body.
 
         Args:
@@ -5835,7 +5835,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new geometry in a link.
 
         Args:
@@ -5870,7 +5870,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new grabbed object in a body.
 
         Args:
@@ -5903,7 +5903,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new grasp set in a body.
 
         Args:
@@ -5936,7 +5936,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new gripper info on a robot.
 
         Args:
@@ -5970,7 +5970,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new air channel on a robot.
 
         Args:
@@ -6001,7 +6001,7 @@ class GraphMutations:
         group: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new group.
 
         Args:
@@ -6027,7 +6027,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new ikparam in a body.
 
         Args:
@@ -6060,7 +6060,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a top-level link in a body.
 
         Args:
@@ -6095,7 +6095,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new link and joint in a body.
 
         Args:
@@ -6132,7 +6132,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new model processor properties in a body.
 
         Args:
@@ -6165,7 +6165,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new position configuration in a body.
 
         Args:
@@ -6195,7 +6195,7 @@ class GraphMutations:
         commitOptions: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a program.
 
         Args:
@@ -6219,7 +6219,7 @@ class GraphMutations:
         reference: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a program reference.
 
         Args:
@@ -6246,7 +6246,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new robot motion parameters in a body.
 
         Args:
@@ -6275,7 +6275,7 @@ class GraphMutations:
         role: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new role.
 
         Args:
@@ -6301,7 +6301,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new tool on a robot.
 
         Args:
@@ -6330,7 +6330,7 @@ class GraphMutations:
         user: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Create a new user.
 
         Args:
@@ -6352,7 +6352,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         """Delete all configurations belong to an application, returns the list of deleted relative configuration ids.
 
         Args:
@@ -6378,7 +6378,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a appearance parameters in a body.
 
         Args:
@@ -6407,7 +6407,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete application configuration.
 
         Args:
@@ -6436,7 +6436,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a attached sensor from a robot.
 
         Args:
@@ -6468,7 +6468,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a body in an environment.
 
         Args:
@@ -6498,7 +6498,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a body parameters in a body.
 
         Args:
@@ -6526,7 +6526,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete configuration.
 
         Args:
@@ -6550,7 +6550,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete configurations.
 
         Args:
@@ -6577,7 +6577,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a connected body from a robot.
 
         Args:
@@ -6606,7 +6606,7 @@ class GraphMutations:
         electronicDataSheetId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete an electronic data sheet.
 
         Args:
@@ -6629,7 +6629,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete an environment.
 
         Args:
@@ -6656,7 +6656,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete multiple environments.
 
         Args:
@@ -6681,7 +6681,7 @@ class GraphMutations:
         etherCatSubDeviceInformationId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete an ethercat sub-device information.
 
         Args:
@@ -6705,7 +6705,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a feedback history in a body.
 
         Args:
@@ -6737,7 +6737,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a geometry in a link.
 
         Args:
@@ -6772,7 +6772,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a grabbed object in a body.
 
         Args:
@@ -6805,7 +6805,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a grasp set in a body.
 
         Args:
@@ -6838,7 +6838,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a gripper info from a robot.
 
         Args:
@@ -6872,7 +6872,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete an air channel from a robot.
 
         Args:
@@ -6903,7 +6903,7 @@ class GraphMutations:
         groupId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a group.
 
         Args:
@@ -6928,7 +6928,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a ikparam in a body.
 
         Args:
@@ -6957,7 +6957,7 @@ class GraphMutations:
         inputOutputDeviceDescriptionId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete an input/output device description.
 
         Args:
@@ -6982,7 +6982,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a top-level link in a body.
 
         Args:
@@ -7015,7 +7015,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Delete a link and its joint in a body.
 
         Args:
@@ -7047,7 +7047,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a model processor properties in a body.
 
         Args:
@@ -7078,7 +7078,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a position configuration in a body.
 
         Args:
@@ -7107,7 +7107,7 @@ class GraphMutations:
         programId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a program.
 
         Args:
@@ -7129,7 +7129,7 @@ class GraphMutations:
         referenceId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a program reference.
 
         Args:
@@ -7156,7 +7156,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete an existing readable interface in a body.
 
         Args:
@@ -7188,7 +7188,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a robot motion parameters in a body.
 
         Args:
@@ -7215,7 +7215,7 @@ class GraphMutations:
         roleId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a role.
 
         Args:
@@ -7240,7 +7240,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a tool from a robot.
 
         Args:
@@ -7269,7 +7269,7 @@ class GraphMutations:
         userId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a user.
 
         Args:
@@ -7290,7 +7290,7 @@ class GraphMutations:
         webAppId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete a web app.
 
         Args:
@@ -7312,7 +7312,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Delete web app configuration.
 
         Args:
@@ -7341,7 +7341,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Extract a body from an environment as a new single body environment.
 
         Args:
@@ -7373,7 +7373,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Force sync network time.
 
         Args:
@@ -7390,7 +7390,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Force the synchronizer to pull resources from remotes immediately based on WebStack configuration.
 
         Args:
@@ -7407,7 +7407,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Force the synchronizer to push resources from remotes immediately based on WebStack configuration.
 
         Args:
@@ -7426,7 +7426,7 @@ class GraphMutations:
         parameters: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Get latest detection result images with metadata.
 
         Args:
@@ -7448,7 +7448,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Power off controller.
 
         Args:
@@ -7466,7 +7466,7 @@ class GraphMutations:
         label: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Blink the LED on the LAN port.
 
         Args:
@@ -7488,7 +7488,7 @@ class GraphMutations:
         password: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Returns a JWT token for the given username and password.
 
         Args:
@@ -7514,7 +7514,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Merge changes into a particular application configuration.
 
         Args:
@@ -7543,7 +7543,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Merge changes into a particular configuration.
 
         Args:
@@ -7570,7 +7570,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Update configuration by merging a partial configuration into it.
 
         Args:
@@ -7598,7 +7598,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Merge partial environment to an existing environment.
 
         Args:
@@ -7628,7 +7628,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Merge partial environments to existing environments.
 
         Args:
@@ -7657,7 +7657,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Update configuration by merging a partial configuration into it.
 
         Args:
@@ -7685,7 +7685,7 @@ class GraphMutations:
         commitOptions: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Merge changes to files into a program at a particular reference.
 
         Args:
@@ -7714,7 +7714,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Update configuration by merging a partial configuration into it.
 
         Args:
@@ -7741,7 +7741,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Update configuration by merging a partial configuration into it.
 
         Args:
@@ -7769,7 +7769,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = True,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Update signal map by merging a partial signal map into it.
 
         Args:
@@ -7881,7 +7881,7 @@ class GraphMutations:
         resolveReferences: Optional[bool] = False,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Update configuration by merging a partial configuration into it.
 
         Args:
@@ -7908,7 +7908,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing appearance parameters in a body.
 
         Args:
@@ -7942,7 +7942,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing attached sensor on a robot.
 
         Args:
@@ -7977,7 +7977,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing body in an environment.
 
         Args:
@@ -8010,7 +8010,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing body parameters in a body.
 
         Args:
@@ -8044,7 +8044,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing connected body on a robot.
 
         Args:
@@ -8076,7 +8076,7 @@ class GraphMutations:
         electronicDataSheetId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing electronic data sheet.
 
         Args:
@@ -8102,7 +8102,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing environment.
 
         Args:
@@ -8130,7 +8130,7 @@ class GraphMutations:
         etherCatSubDeviceInformationId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing ethercat sub-device information.
 
         Args:
@@ -8157,7 +8157,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing feedback history in a body.
 
         Args:
@@ -8192,7 +8192,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing geometry in a link.
 
         Args:
@@ -8230,7 +8230,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing grabbed object in a body.
 
         Args:
@@ -8266,7 +8266,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing grasp set in a body.
 
         Args:
@@ -8302,7 +8302,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing gripper info on a robot.
 
         Args:
@@ -8339,7 +8339,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing air channel on a robot.
 
         Args:
@@ -8372,7 +8372,7 @@ class GraphMutations:
         group: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing group.
 
         Args:
@@ -8399,7 +8399,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing ikparam in a body.
 
         Args:
@@ -8431,7 +8431,7 @@ class GraphMutations:
         inputOutputDeviceDescriptionId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing input/output device description.
 
         Args:
@@ -8459,7 +8459,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing joint in a body.
 
         Args:
@@ -8495,7 +8495,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing link in a body.
 
         Args:
@@ -8530,7 +8530,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing model processor properties in a body.
 
         Args:
@@ -8564,7 +8564,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing position configuration in a body.
 
         Args:
@@ -8597,7 +8597,7 @@ class GraphMutations:
         commitOptions: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify a program.
 
         Args:
@@ -8624,7 +8624,7 @@ class GraphMutations:
         referenceId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify a program reference.
 
         Args:
@@ -8656,7 +8656,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify reference object pks in a body.
 
         Args:
@@ -8695,7 +8695,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing robot motion parameters in a body.
 
         Args:
@@ -8724,7 +8724,7 @@ class GraphMutations:
         role: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing role.
 
         Args:
@@ -8751,7 +8751,7 @@ class GraphMutations:
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing tool on a robot.
 
         Args:
@@ -8782,7 +8782,7 @@ class GraphMutations:
         user: Any,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Modify an existing user.
 
         Args:
@@ -8802,7 +8802,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Purge unused runtime images
 
         Args:
@@ -8819,7 +8819,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Reboot controller.
 
         Args:
@@ -8838,7 +8838,7 @@ class GraphMutations:
         diskDrive: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Remove a disk drive from a disk array.
 
         Args:
@@ -8861,7 +8861,7 @@ class GraphMutations:
         address: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Remove a pendant from the system.
 
         Args:
@@ -8883,7 +8883,7 @@ class GraphMutations:
         roleId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Remove a permission from a group.
 
         Args:
@@ -8907,7 +8907,7 @@ class GraphMutations:
         roleId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Remove a role from a group.
 
         Args:
@@ -8930,7 +8930,7 @@ class GraphMutations:
         imageId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Remove an runtime image, if it is not in use.
 
         Args:
@@ -8952,7 +8952,7 @@ class GraphMutations:
         userId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Remove a user from a group.
 
         Args:
@@ -8975,7 +8975,7 @@ class GraphMutations:
         userId: str,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Remove a user's password.
 
         Args:
@@ -8995,7 +8995,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Send command to restart planning server.
 
         Args:
@@ -9012,7 +9012,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Restart current runtime container.
 
         Args:
@@ -9029,7 +9029,7 @@ class GraphMutations:
         self,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Trigger scanning of wireless network. The scanned result will appear in hypervisor status.
 
         Args:
@@ -9048,7 +9048,7 @@ class GraphMutations:
         on: Optional[bool] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Turn on/off pendant buzzer.
 
         Args:
@@ -9072,7 +9072,7 @@ class GraphMutations:
         displayBrightness: Optional[int] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Set pendant display brightness.
 
         Args:
@@ -9096,7 +9096,7 @@ class GraphMutations:
         on: Optional[bool] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Turn on/off pendant display.
 
         Args:
@@ -9120,7 +9120,7 @@ class GraphMutations:
         address: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Set pendant display's TTY.
 
         Args:
@@ -9145,7 +9145,7 @@ class GraphMutations:
         address: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Set pendant touchscreen modes.
 
         Args:
@@ -9260,7 +9260,7 @@ class GraphMutations:
         parameters: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[List[Any]]:
+    ) -> List[Any]:
         """Snap images using sensorbridges and return image metadata.
 
         Args:
@@ -9285,7 +9285,7 @@ class GraphMutations:
         remoteUsername: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Sync configurations from remote webstack.
 
         Args:
@@ -9318,7 +9318,7 @@ class GraphMutations:
         remoteUsername: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Sync configurations to remote webstack.
 
         Args:
@@ -9355,7 +9355,7 @@ class GraphMutations:
         remoteUsername: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Sync environments from remote webstack.
 
         Deprecated:
@@ -9404,7 +9404,7 @@ class GraphMutations:
         remoteUsername: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Sync environments from remote webstack.
 
         Args:
@@ -9449,7 +9449,7 @@ class GraphMutations:
         uploadReferenceObjects: Optional[bool] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Sync environments to remote webstack.
 
         Args:
@@ -9488,7 +9488,7 @@ class GraphMutations:
         url: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
         timeout: Optional[float] = None,
-    ) -> Optional[Any]:
+    ) -> None:
         """Upgrade controller with upgrade image.
 
         Args:
@@ -9524,7 +9524,7 @@ class GraphSubscriptions:
         callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None],
         applicationId: Optional[str] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9550,7 +9550,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9578,7 +9578,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9604,7 +9604,7 @@ class GraphSubscriptions:
         self,
         callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None],
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9628,7 +9628,7 @@ class GraphSubscriptions:
         deviceTypes: Optional[List[str]] = None,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Subscribe to the devices discovered on an interface.
 
         Args:
@@ -9657,7 +9657,7 @@ class GraphSubscriptions:
         callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None],
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9683,7 +9683,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9710,7 +9710,7 @@ class GraphSubscriptions:
         callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None],
         logTypes: Optional[List[Any]] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Subscribe to log entry changes.
 
         Args:
@@ -9735,7 +9735,7 @@ class GraphSubscriptions:
         callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None],
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9761,7 +9761,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9789,7 +9789,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9817,7 +9817,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9844,7 +9844,7 @@ class GraphSubscriptions:
         callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None],
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9870,7 +9870,7 @@ class GraphSubscriptions:
         interval: Optional[str] = '5s',
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9898,7 +9898,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9928,7 +9928,7 @@ class GraphSubscriptions:
         interval: Optional[str] = None,
         tail: Optional[int] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[List[str]]:
+    ) -> List[str]:
         """Subscribe to program log lines.
 
         Args:
@@ -9962,7 +9962,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -9990,7 +9990,7 @@ class GraphSubscriptions:
         interval: Optional[str] = '5s',
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Subscribe to the main environment in robotbridges. Upon subscription start, the currently tracked environment will be sent immediately.
 
         Args:
@@ -10018,7 +10018,7 @@ class GraphSubscriptions:
         interval: Optional[str] = '5s',
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -10046,7 +10046,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -10074,7 +10074,7 @@ class GraphSubscriptions:
         interval: Optional[str] = '5s',
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -10102,7 +10102,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -10323,7 +10323,7 @@ class GraphSubscriptions:
         interval: Optional[str] = '5s',
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -10351,7 +10351,7 @@ class GraphSubscriptions:
         interval: Optional[str] = '5s',
         units: Optional[Any] = None,
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -10379,7 +10379,7 @@ class GraphSubscriptions:
         orchestratorId: str,
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """
 
         Args:
@@ -10406,7 +10406,7 @@ class GraphSubscriptions:
         callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None],
         interval: Optional[str] = '5s',
         fields: Optional[Union[List[str], Dict[str, Any]]] = None,
-    ) -> Optional[Any]:
+    ) -> Any:
         """Subscribe to published component states of WebStack.
 
         Args:
