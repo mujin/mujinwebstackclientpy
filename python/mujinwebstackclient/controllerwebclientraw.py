@@ -241,7 +241,14 @@ class ControllerWebClientRaw(object):
         else:
             self._headers.pop('User-Agent', None)
 
-    def Request(self, method: str, path: str, timeout: float = 5, headers: Optional[Dict[str, str]] = None, **kwargs: Any) -> requests.Response:
+    def Request(
+        self,
+        method: str,
+        path: str,
+        timeout: float = 5,
+        headers: Optional[Dict[str, str]] = None,
+        **kwargs: Any,
+    ) -> requests.Response:
         if timeout < 1e-6:
             raise WebstackClientError(_('Timeout value (%s sec) is too small') % timeout)
 
@@ -350,7 +357,13 @@ class ControllerWebClientRaw(object):
 
         return content
 
-    def CallGraphAPI(self, query: str, variables: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None, timeout: float = 5.0) -> Dict[str, Any]:
+    def CallGraphAPI(
+        self,
+        query: str,
+        variables: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: float = 5.0,
+    ) -> Dict[str, Any]:
         # prepare the headers
         if headers is None:
             headers = {}

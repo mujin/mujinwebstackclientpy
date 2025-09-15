@@ -109,7 +109,7 @@ def _FormatTypeForAnnotation(typeName, isNullable=False):
         innerPythonType = _FormatTypeForAnnotation(innerType, False)
         pythonType = 'List[%s]' % innerPythonType
     else:
-        # For complex types, use Any
+        # for complex types, use Any
         pythonType = 'Any'
     # wrap in Optional if nullable
     if isNullable:
