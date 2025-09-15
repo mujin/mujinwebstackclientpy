@@ -183,19 +183,20 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         if parameter['parameterName'] in builtinParameterNames:
             continue
 
-        parameterType = _FormatTypeForAnnotation(parameter['parameterType'], parameter['parameterNullable'])
-
         if parameter['parameterDefaultValue'] is not None:
-            # parameter has default value
+            # parameter has default value - don't wrap in Optional
+            parameterType = _FormatTypeForAnnotation(parameter['parameterType'], False)
             if parameter['parameterType'] == 'String':
                 parameterList.append("%s: %s = '%s'" % (parameter['parameterName'], parameterType, str(parameter['parameterDefaultValue'])))
             else:
                 parameterList.append('%s: %s = %s' % (parameter['parameterName'], parameterType, str(parameter['parameterDefaultValue'])))
         elif parameter['parameterNullable'] is True:
-            # parameter is optional
+            # parameter is optional - wrap in Optional
+            parameterType = _FormatTypeForAnnotation(parameter['parameterType'], True)
             parameterList.append('%s: %s = None' % (parameter['parameterName'], parameterType))
         else:
-            # parameter is required
+            # parameter is required - don't wrap in Optional
+            parameterType = _FormatTypeForAnnotation(parameter['parameterType'], False)
             parameterList.append('%s: %s' % (parameter['parameterName'], parameterType))
 
     # add builtin optional parameters
