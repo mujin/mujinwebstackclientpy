@@ -46,9 +46,34 @@ def _DereferenceType(graphType):
     return graphType
 
 
+def _CleanDocstring(docstring):
+    """Clean up docstring formatting to match ruff standards."""
+    if not docstring:
+        return docstring
+    # split into lines and strip trailing whitespace
+    lines = [line.rstrip() for line in docstring.split('\n')]
+    # remove leading empty lines
+    while lines and not lines[0]:
+        lines.pop(0)
+    # remove trailing empty lines
+    while lines and not lines[-1]:
+        lines.pop()
+    # collapse multiple consecutive empty lines into single empty lines
+    resultLines = []
+    isPreviousEmpty = False
+    for line in lines:
+        if line:
+            resultLines.append(line)
+            isPreviousEmpty = False
+        elif not isPreviousEmpty:
+            resultLines.append('')
+            isPreviousEmpty = True
+    return '\n'.join(resultLines)
+
+
 def _IndentNewlines(string, indent='    ' * 5):
     """Indent new lines in a string. Used for multi-line descriptions."""
-    return string.replace('\n', '\n' + indent)
+    return _CleanDocstring(string).replace('\n', '\n' + indent)
 
 
 def _FormatTypeForDocstring(typeName):
@@ -64,6 +89,34 @@ def _FormatTypeForDocstring(typeName):
         return _typeName
 
 
+def _FormatTypeForAnnotation(typeName, isNullable=False):
+    """Converts GraphQL types to Python type annotations."""
+    _typeName = str(typeName).replace('!', '')
+    if _typeName == 'String':
+        pythonType = 'str'
+    elif _typeName == 'Int':
+        pythonType = 'int'
+    elif _typeName == 'Boolean':
+        pythonType = 'bool'
+    elif _typeName == 'Float':
+        pythonType = 'float'
+    elif _typeName == 'Void':
+        # Void functions return None in Python
+        return 'None'
+    elif _typeName.startswith('[') and _typeName.endswith(']'):
+        # handle list types like [String!] -> List[str]
+        innerType = _typeName[1:-1].replace('!', '')
+        innerPythonType = _FormatTypeForAnnotation(innerType, False)
+        pythonType = 'List[%s]' % innerPythonType
+    else:
+        # for complex types, use Any
+        pythonType = 'Any'
+    # wrap in Optional if nullable
+    if isNullable:
+        pythonType = 'Optional[%s]' % pythonType
+    return pythonType
+
+
 def _DiscoverType(graphType):
     baseFieldType = _DereferenceType(graphType)
     baseFieldTypeName = '%s' % baseFieldType
@@ -71,6 +124,7 @@ def _DiscoverType(graphType):
         'typeName': '%s' % graphType,
         'baseTypeName': '%s' % baseFieldType,
         'description': baseFieldType.description.strip(),
+        'isNullable': not isinstance(graphType, graphql.GraphQLNonNull),
     }
 
 
@@ -113,28 +167,66 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         builtinParameterNamesRequired = ('callbackFunction',)
         builtinParameterNamesOptional = ('fields',)
     builtinParameterNames = builtinParameterNamesRequired + builtinParameterNamesOptional
-    operationParametersRequired = []
-    operationParametersOptional = []
+
+    # build parameter list with type annotations
+    parameterList = []
+
+    # add builtin required parameters
+    for parameterName in builtinParameterNamesRequired:
+        if parameterName == 'callbackFunction':
+            parameterList.append('callbackFunction: Callable[[Optional[Any], Optional[Dict[str, Any]]], None]')
+        else:
+            parameterList.append(parameterName)
+
+    # add operation parameters (required and optional)
     for parameter in parameters:
         if parameter['parameterName'] in builtinParameterNames:
             continue
-        if parameter['parameterDefaultValue'] is not None:
-            parameterType = parameter['parameterType']
-            if parameterType == 'String':
-                operationParametersOptional.append("%s='%s'" % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
-            else:
-                operationParametersOptional.append('%s=%s' % (parameter['parameterName'], str(parameter['parameterDefaultValue'])))
-            continue
-        if parameter['parameterNullable'] is True:
-            operationParametersOptional.append('%s=None' % parameter['parameterName'])
-            continue
-        operationParametersRequired.append('%s' % parameter['parameterName'])
 
-    fullParameterList = list(builtinParameterNamesRequired) + operationParametersRequired + operationParametersOptional + ['%s=None' % name for name in builtinParameterNamesOptional]
-    print('    def %s(self, %s):' % (operationName, ', '.join(fullParameterList)))
+        if parameter['parameterDefaultValue'] is not None:
+            # parameter has default value - don't wrap in Optional
+            parameterType = _FormatTypeForAnnotation(parameter['parameterType'], False)
+            if parameter['parameterType'] == 'String':
+                parameterList.append("%s: %s = '%s'" % (parameter['parameterName'], parameterType, str(parameter['parameterDefaultValue'])))
+            else:
+                parameterList.append('%s: %s = %s' % (parameter['parameterName'], parameterType, str(parameter['parameterDefaultValue'])))
+        elif parameter['parameterNullable'] is True:
+            # parameter is optional - wrap in Optional
+            parameterType = _FormatTypeForAnnotation(parameter['parameterType'], True)
+            parameterList.append('%s: %s = None' % (parameter['parameterName'], parameterType))
+        else:
+            # parameter is required - don't wrap in Optional
+            parameterType = _FormatTypeForAnnotation(parameter['parameterType'], False)
+            parameterList.append('%s: %s' % (parameter['parameterName'], parameterType))
+
+    # add builtin optional parameters
+    for parameterName in builtinParameterNamesOptional:
+        if parameterName == 'fields':
+            parameterList.append('fields: Optional[Union[List[str], Dict[str, Any]]] = None')
+        elif parameterName == 'timeout':
+            parameterList.append('timeout: Optional[float] = None')
+        else:
+            parameterList.append('%s: Optional[Any] = None' % parameterName)
+
+    # determine return type
+    if queryOrMutationOrSubscription == 'subscription':
+        finalReturnType = 'Subscription'
+    else:
+        finalReturnType = _FormatTypeForAnnotation(returnType['typeName'], returnType['isNullable'])
+
+    # print method signature with type annotations
+    if parameterList:
+        print('    def %s(' % operationName)
+        print('        self,')
+        for param in parameterList[:-1]:
+            print('        %s,' % param)
+        print('        %s,' % parameterList[-1])  # last parameter gets trailing comma
+        print('    ) -> %s:' % finalReturnType)
+    else:
+        print('    def %s(self) -> %s:' % (operationName, finalReturnType))
 
     if description:
-        print('        """%s' % description)
+        print('        """%s' % _CleanDocstring(description))
     else:
         print('        """')
     print('')
@@ -155,7 +247,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
         isOptionalString = ', optional' if parameter['parameterNullable'] else ''
         print('            %s (%s%s):' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString), end='')
         if parameter['parameterDescription']:
-            print(' %s' % _IndentNewlines(parameter['parameterDescription']))
+            print(' %s' % _IndentNewlines(_CleanDocstring(parameter['parameterDescription'])))
         else:
             print('')
     print('            fields (list or dict, optional): Specifies a subset of fields to return.')
@@ -165,7 +257,7 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
     print('        Returns:')
     print('            %s:' % (_FormatTypeForDocstring(returnType['typeName'])), end='')
     if returnType['description']:
-        print(' %s' % _IndentNewlines(returnType['description']))
+        print(' %s' % _IndentNewlines(_CleanDocstring(returnType['description'])))
     else:
         print('')
     print('        """')
@@ -173,19 +265,25 @@ def _PrintMethod(queryOrMutationOrSubscription, operationName, parameters, descr
     if deprecationReason:
         print('        warnings.warn(\'"%s" is deprecated. %s\', DeprecationWarning, stacklevel=2)' % (operationName, deprecationReason))
 
-    print('        parameterNameTypeValues = [')
-    for parameter in parameters:
-        if parameter['parameterName'] in builtinParameterNames:
-            continue
-        print("            ('%s', '%s', %s)," % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
-    print('        ]')
+    # check if there are any parameters to add
+    if any(param['parameterName'] not in builtinParameterNames for param in parameters):
+        print('        parameterNameTypeValues: List[Tuple[str, str, Any]] = [')
+        for parameter in parameters:
+            if parameter['parameterName'] in builtinParameterNames:
+                continue
+            print("            ('%s', '%s', %s)," % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
+        print('        ]')
+    else:
+        print('        parameterNameTypeValues: List[Tuple[str, str, Any]] = []')
 
     if queryOrMutationOrSubscription in ('query', 'mutation'):
         print(
             "        return self._CallSimpleGraphAPI('%s', operationName='%s', parameterNameTypeValues=parameterNameTypeValues, returnType='%s', fields=fields, timeout=timeout)" % (queryOrMutationOrSubscription, operationName, returnType['baseTypeName']),
         )
     elif queryOrMutationOrSubscription == 'subscription':
-        print("        return self._CallSubscribeGraphAPI(operationName='%s', parameterNameTypeValues=parameterNameTypeValues, returnType='%s', callbackFunction=callbackFunction, fields=fields)" % (operationName, returnType['baseTypeName']))
+        print(
+            "        return self._CallSubscribeGraphAPI(operationName='%s', parameterNameTypeValues=parameterNameTypeValues, returnType='%s', callbackFunction=callbackFunction, fields=fields)" % (operationName, returnType['baseTypeName']),
+        )
 
 
 def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMethods):
@@ -197,26 +295,25 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMetho
     print('#')
     print('')
     print('import warnings')
+    print('from typing import Any, Dict, List, Optional, Union, Callable, Tuple')
     print('')
     print('from .webstackgraphclientutils import GraphClientBase')
     print('from .webstackgraphclientutils import UseLazyGraphQuery')
     print('from .controllerwebclientraw import Subscription')
     print('')
-    print('class GraphQueries:')
     print('')
+    print('class GraphQueries:')
     for queryMethod in queryMethods:
         _PrintMethod('query', **queryMethod)
         print('')
     print('')
     print('class GraphMutations:')
-    print('')
     for mutationMethod in mutationMethods:
         _PrintMethod('mutation', **mutationMethod)
         print('')
     print('')
     print('class GraphSubscriptions:')
-    print('')
-    print('    def Unsubscribe(self, subscription: Subscription):')
+    print('    def Unsubscribe(self, subscription: Subscription) -> None:')
     print('        """')
     print('        Cancel an actively running subscription instance.')
     print('')
@@ -232,30 +329,32 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods, subscriptionMetho
     print('class GraphQueriesClient(GraphClientBase, GraphQueries):')
     print('    pass')
     print('')
+    print('')
     print('class GraphMutationsClient(GraphClientBase, GraphMutations):')
     print('    pass')
+    print('')
     print('')
     print('class GraphSubscriptionsClient(GraphClientBase, GraphSubscriptions):')
     print('    pass')
     print('')
-    print('class GraphClient(GraphClientBase, GraphQueries, GraphMutations, GraphSubscriptions):')
     print('')
+    print('class GraphClient(GraphClientBase, GraphQueries, GraphMutations, GraphSubscriptions):')
     print('    @property')
-    print('    def queries(self):')
+    print('    def queries(self) -> GraphQueriesClient:')
     print('        return GraphQueriesClient(self._webclient)')
     print('')
     print('    @property')
-    print('    def mutations(self):')
+    print('    def mutations(self) -> GraphMutationsClient:')
     print('        return GraphMutationsClient(self._webclient)')
     print('')
     print('    @property')
-    print('    def subscriptions(self):')
+    print('    def subscriptions(self) -> GraphSubscriptionsClient:')
     print('        return GraphSubscriptionsClient(self._webclient)')
+    print('')
     print('')
     print('#')
     print('# DO NOT EDIT, THIS FILE WAS AUTO-GENERATED, SEE HEADER')
     print('#')
-    print('')
 
 
 def _Main():

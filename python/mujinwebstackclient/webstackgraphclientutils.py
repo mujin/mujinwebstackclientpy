@@ -5,12 +5,12 @@ import logging
 import copy
 from . import webstackclientutils
 from . import controllerwebclientraw
-from typing import Optional, Callable
+from typing import Optional, Callable, List, Tuple, Union, Dict, Any
 
 log = logging.getLogger(__name__)
 
 
-def _IsScalarType(typeName):
+def _IsScalarType(typeName: str) -> bool:
     return typeName in (
         # the followings are part of graphql spec
         'Int',
@@ -26,7 +26,7 @@ def _IsScalarType(typeName):
     )
 
 
-def _StringifyQueryFields(fields):
+def _StringifyQueryFields(fields: Union[List[str], Dict[str, Any]]) -> str:
     selectedFields = []
     if isinstance(fields, dict):
         for fieldName, subFields in fields.items():
@@ -44,10 +44,18 @@ def _StringifyQueryFields(fields):
 class GraphClientBase(object):
     _webclient = None  # an instance of ControllerWebClientRaw
 
-    def __init__(self, webclient):
+    def __init__(self, webclient: controllerwebclientraw.ControllerWebClientRaw) -> None:
         self._webclient = webclient
 
-    def _CallSimpleGraphAPI(self, queryOrMutation, operationName, parameterNameTypeValues, returnType, fields=None, timeout=None):
+    def _CallSimpleGraphAPI(
+        self,
+        queryOrMutation: str,
+        operationName: str,
+        parameterNameTypeValues: List[Tuple[str, str, Any]],
+        returnType: str,
+        fields: Optional[Union[List[str], Dict[str, Any]]] = None,
+        timeout: Optional[float] = None,
+    ) -> Any:
         """
 
         Args:
@@ -61,7 +69,7 @@ class GraphClientBase(object):
         if timeout is None:
             timeout = 5.0
         query = self._GenerateQuery(queryOrMutation, operationName, parameterNameTypeValues, returnType, fields)
-        variables = {}
+        variables: Dict[str, Any] = {}
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
         if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
@@ -71,7 +79,14 @@ class GraphClientBase(object):
             log.verbose('got response from graph query: %r', data)
         return data.get(operationName)
 
-    def _CallSubscribeGraphAPI(self, operationName: str, parameterNameTypeValues: list, returnType: str, callbackFunction: Callable[[Optional[str], Optional[dict]], None], fields: Optional[list[str]] = None) -> controllerwebclientraw.Subscription:
+    def _CallSubscribeGraphAPI(
+        self,
+        operationName: str,
+        parameterNameTypeValues: List[Tuple[str, str, Any]],
+        returnType: str,
+        callbackFunction: Callable[[Optional[str], Optional[dict]], None],
+        fields: Optional[Union[List[str], Dict[str, Any]]] = None,
+    ) -> controllerwebclientraw.Subscription:
         """
         API for the webstack client to use for subscription.
 
@@ -86,7 +101,7 @@ class GraphClientBase(object):
             controllerwebclientraw.Subscription: the subscription object that the operation subscribes to.
         """
         query = self._GenerateQuery('subscription', operationName, parameterNameTypeValues, returnType, fields)
-        variables = {}
+        variables: Dict[str, Any] = {}
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
         if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
@@ -94,7 +109,14 @@ class GraphClientBase(object):
         subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
         return subscription
 
-    def _GenerateQuery(self, queryOrMutationOrSubscription: str, operationName: str, parameterNameTypeValues: list, returnType: str, fields: Optional[list[str]] = None) -> str:
+    def _GenerateQuery(
+        self,
+        queryOrMutationOrSubscription: str,
+        operationName: str,
+        parameterNameTypeValues: List[Tuple[str, str, Any]],
+        returnType: str,
+        fields: Optional[Union[List[str], Dict[str, Any]]] = None,
+    ) -> str:
         """
         Function to generate query for the webstack client to use.
 
@@ -105,22 +127,22 @@ class GraphClientBase(object):
             returnType (string): name of the return type, used to construct query fields
             fields (list[string]): list of fieldName to filter for
         """
-        queryFields = ''
+        queryFields: str = ''
         if _IsScalarType(returnType):
             queryFields = ''  # scalar types cannot have subfield queries
         elif not fields:
             queryFields = '{ __typename }'  # query the __typename field if caller didn't want anything back
         else:
             queryFields = _StringifyQueryFields(fields)
-        queryParameters = ', '.join(['$%s: %s' % (parameterName, parameterType) for parameterName, parameterType, parameterValue in parameterNameTypeValues])
+        queryParameters: str = ', '.join(['$%s: %s' % (parameterName, parameterType) for parameterName, parameterType, parameterValue in parameterNameTypeValues])
         if queryParameters:
             queryParameters = '(%s)' % queryParameters
-        queryArguments = ', '.join(['%s: $%s' % (parameterName, parameterName) for parameterName, parameterType, parameterValue in parameterNameTypeValues])
+        queryArguments: str = ', '.join(['%s: $%s' % (parameterName, parameterName) for parameterName, parameterType, parameterValue in parameterNameTypeValues])
         if queryArguments:
             if queryFields:
                 queryFields = ' %s' % queryFields
             queryArguments = '(%s)' % queryArguments
-        query = '%(queryOrMutationOrSubscription)s %(operationName)s%(queryParameters)s {\n    %(operationName)s%(queryArguments)s%(queryFields)s\n}' % {
+        query: str = '%(queryOrMutationOrSubscription)s %(operationName)s%(queryParameters)s {\n    %(operationName)s%(queryArguments)s%(queryFields)s\n}' % {
             'queryOrMutationOrSubscription': queryOrMutationOrSubscription,
             'operationName': operationName,
             'queryParameters': queryParameters,

@@ -23,7 +23,7 @@ import copy
 import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict, Any, Union, List
 from urllib.parse import urlparse
 
 import websockets.asyncio
@@ -157,7 +157,7 @@ class ControllerWebClientRaw(object):
     _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
     _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
 
-    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
+    def __init__(self, baseurl: str, username: str, password: str, locale: Optional[str] = None, author: Optional[str] = None, userAgent: Optional[str] = None, additionalHeaders: Optional[Dict[str, str]] = None, unixEndpoint: Optional[str] = None) -> None:
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -241,7 +241,14 @@ class ControllerWebClientRaw(object):
         else:
             self._headers.pop('User-Agent', None)
 
-    def Request(self, method, path, timeout=5, headers=None, **kwargs):
+    def Request(
+        self,
+        method: str,
+        path: str,
+        timeout: float = 5,
+        headers: Optional[Dict[str, str]] = None,
+        **kwargs: Any,
+    ) -> requests.Response:
         if timeout < 1e-6:
             raise WebstackClientError(_('Timeout value (%s sec) is too small') % timeout)
 
@@ -263,7 +270,19 @@ class ControllerWebClientRaw(object):
         return response
 
     # Python port of the javascript API Call function
-    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, files=None, timeout=5, apiVersion='v1'):
+    def APICall(
+        self,
+        method: str,
+        path: str = '',
+        params: Optional[Dict[str, Any]] = None,
+        fields: Optional[Union[List[str], Dict[str, Any]]] = None,
+        data: Optional[Union[str, Dict[str, Any]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        expectedStatusCode: Optional[int] = None,
+        files: Optional[Dict[str, Any]] = None,
+        timeout: float = 5,
+        apiVersion: str = 'v1',
+    ) -> Any:
         path = '/api/%s/%s' % (apiVersion, path.lstrip('/'))
         if apiVersion == 'v1' and not path.endswith('/'):
             path += '/'
@@ -302,7 +321,7 @@ class ControllerWebClientRaw(object):
 
         # Try to parse response
         raw = response.content.decode('utf-8', 'replace').strip()
-        content = None
+        content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
             try:
                 content = json.loads(raw)
@@ -338,7 +357,13 @@ class ControllerWebClientRaw(object):
 
         return content
 
-    def CallGraphAPI(self, query, variables=None, headers=None, timeout=5.0):
+    def CallGraphAPI(
+        self,
+        query: str,
+        variables: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: float = 5.0,
+    ) -> Dict[str, Any]:
         # prepare the headers
         if headers is None:
             headers = {}
@@ -368,7 +393,7 @@ class ControllerWebClientRaw(object):
             raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)
 
         # decode the response content
-        content = None
+        content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
             try:
                 content = json.loads(raw)
@@ -377,8 +402,8 @@ class ControllerWebClientRaw(object):
 
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
-            message = content['errors'][0].get('message', raw)
-            errorCode = None
+            message: str = content['errors'][0].get('message', raw)
+            errorCode: Optional[str] = None
             if 'extensions' in content['errors'][0]:
                 errorCode = content['errors'][0]['extensions'].get('errorCode', None)
             raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response, errorCode=errorCode)
