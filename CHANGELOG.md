@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.9.18 (2025-09-11)
+## 0.9.18 (2025-09-19)
 
 - Add option to specify scene extension to mujin_webstackclientpy_downloaddata.py
+
+## 0.9.18 (2025-09-11)
+
+- Re-generate graph api.
 
 ## 0.9.17 (2025-08-29)
 
