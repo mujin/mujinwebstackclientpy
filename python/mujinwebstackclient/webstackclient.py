@@ -652,7 +652,7 @@ class WebstackClient(object):
     #
 
     def CreateLogEntries(self, logEntries, timeout=5):
-        # type: (List[Tuple[str, Any, Dict[str, bytes]]], int) -> Any
+        # type: (List[Tuple[str, Any, Dict[str, bytes]]], float) -> Any
         files = []
         for logType, logEntry, attachments in logEntries:
             files.append(('logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
