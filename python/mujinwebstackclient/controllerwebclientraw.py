@@ -20,6 +20,7 @@ import threading
 import traceback
 import uuid
 import copy
+import threading
 import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
@@ -157,6 +158,8 @@ class ControllerWebClientRaw(object):
     _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
     _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
 
+    _threadName: Optional[str] = None
+
     def __init__(self, baseurl: str, username: str, password: str, locale: Optional[str] = None, author: Optional[str] = None, userAgent: Optional[str] = None, additionalHeaders: Optional[Dict[str, str]] = None, unixEndpoint: Optional[str] = None) -> None:
         self._baseurl = baseurl
         self._username = username
@@ -200,6 +203,12 @@ class ControllerWebClientRaw(object):
 
         # Set user agent header
         self.SetUserAgent(userAgent)
+
+        if os.getenv("MUJIN_WEBSTACK_CLIENT_WARN_ON_MULTIPLE_CALLERS") == "true":
+            self._threadName = threading.current_thread().getName()
+            log.info(
+                "Initialized webstack client with warning on calls from different threads enabled. This may degrade performance. Set MUJIN_WEBSTACK_CLIENT_WARN_ON_MULTIPLE_CALLERS to 'false' to disable this if performance is too poor."
+            )
 
     def __del__(self):
         self.Destroy()
@@ -261,6 +270,12 @@ class ControllerWebClientRaw(object):
         if 'allow_redirects' not in kwargs:
             # by default, disallow redirect since DELETE with redirection is too dangerous
             kwargs['allow_redirects'] = method in ('GET',)
+
+        if self._threadName is not None:
+            currentName = threading.current_thread().getName()
+            if currentName != self._threadName:
+                log.warning("The webstack client has been called across multiple threads! Was %s, now %s.", self._threadName, currentName)
+                self._threadName = currentName
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
