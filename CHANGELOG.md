@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.19 (2025-09-25)
+
+### Changes
+
+- Add `backupSceneFormat` option to the backup API.
+
 ## 0.9.18 (2025-09-11)
 
 - Re-generate graph api.
