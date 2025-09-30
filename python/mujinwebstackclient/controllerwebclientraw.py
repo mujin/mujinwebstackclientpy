@@ -20,7 +20,6 @@ import threading
 import traceback
 import uuid
 import copy
-import threading
 import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
