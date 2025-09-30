@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.20 (2025-09-30)
+
+### Changes
+
+- Warn callers when they use the webstack client from different threads.
+
 ## 0.9.19 (2025-09-25)
 
 ### Changes
