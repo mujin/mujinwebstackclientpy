@@ -159,7 +159,18 @@ class ControllerWebClientRaw(object):
 
     _threadName: Optional[str] = None
 
-    def __init__(self, baseurl: str, username: str, password: str, locale: Optional[str] = None, author: Optional[str] = None, userAgent: Optional[str] = None, additionalHeaders: Optional[Dict[str, str]] = None, unixEndpoint: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        baseurl: str,
+        username: str,
+        password: str,
+        locale: Optional[str] = None,
+        author: Optional[str] = None,
+        userAgent: Optional[str] = None,
+        additionalHeaders: Optional[Dict[str, str]] = None,
+        unixEndpoint: Optional[str] = None,
+        warnOnUseFromDifferentThreads: bool = False,
+    ) -> None:
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -203,7 +214,7 @@ class ControllerWebClientRaw(object):
         # Set user agent header
         self.SetUserAgent(userAgent)
 
-        if os.getenv("MUJIN_WEBSTACK_CLIENT_WARN_ON_MULTIPLE_CALLERS") == "true":
+        if warnOnUseFromDifferentThreads:
             self._threadName = threading.current_thread().getName()
             log.info(
                 "Initialized webstack client with warning on calls from different threads enabled. This may degrade performance. Set MUJIN_WEBSTACK_CLIENT_WARN_ON_MULTIPLE_CALLERS to 'false' to disable this if performance is too poor."

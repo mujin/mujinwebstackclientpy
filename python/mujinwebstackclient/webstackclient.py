@@ -119,7 +119,17 @@ class WebstackClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, userAgent=None, additionalHeaders=None, unixEndpoint=None):
+    def __init__(
+        self,
+        controllerurl='http://127.0.0.1',
+        controllerusername='',
+        controllerpassword='',
+        author=None,
+        userAgent=None,
+        additionalHeaders=None,
+        unixEndpoint=None,
+        warnOnUseFromDifferentThreads: bool = False,
+    ):
         """Logs into the Mujin controller.
 
         Args:
@@ -129,6 +139,8 @@ class WebstackClient(object):
             userAgent (str): User agent to be sent on each request
             additionalHeaders (dict): Additional HTTP headers to be included in requests
             unixEndpoint (str): Unix socket endpoint for communicating with HTTP server over unix socket
+            warnOnUseFromDifferentThreads (bool): Whether to warn callers if the client is used from different threads.
+                Defaults to not warning since checking the thread name on each call may significantly degrade performance.
         """
 
         # Parse controllerurl
@@ -155,7 +167,16 @@ class WebstackClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerwebclientraw.ControllerWebClientRaw(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, userAgent=userAgent, additionalHeaders=additionalHeaders, unixEndpoint=unixEndpoint)
+        self._webclient = controllerwebclientraw.ControllerWebClientRaw(
+            self.controllerurl,
+            self.controllerusername,
+            self.controllerpassword,
+            author=author,
+            userAgent=userAgent,
+            additionalHeaders=additionalHeaders,
+            unixEndpoint=unixEndpoint,
+            warnOnUseFromDifferentThreads=warnOnUseFromDifferentThreads,
+        )
 
     def __del__(self):
         self.Destroy()
