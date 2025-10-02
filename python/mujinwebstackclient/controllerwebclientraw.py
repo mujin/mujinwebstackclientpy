@@ -157,7 +157,7 @@ class ControllerWebClientRaw(object):
     _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
     _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
 
-    _threadName: Optional[str] = None
+    _threadName: Optional[str] = None  # The last thread this client was used in if we're warning on calls from different threads.
 
     def __init__(
         self,
