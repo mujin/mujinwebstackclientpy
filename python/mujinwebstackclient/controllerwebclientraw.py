@@ -217,7 +217,7 @@ class ControllerWebClientRaw(object):
         if warnOnUseFromDifferentThreads:
             self._threadName = threading.current_thread().getName()
             log.info(
-                "Initialized webstack client with warning on calls from different threads enabled. This may degrade performance. Set MUJIN_WEBSTACK_CLIENT_WARN_ON_MULTIPLE_CALLERS to 'false' to disable this if performance is too poor."
+                "Initialized webstack client with warning on calls from different threads enabled. This may degrade performance. Set warnOnUseFromDifferentThreads to 'False' to disable this if performance is too poor."
             )
 
     def __del__(self):
@@ -284,7 +284,11 @@ class ControllerWebClientRaw(object):
         if self._threadName is not None:
             currentName = threading.current_thread().getName()
             if currentName != self._threadName:
-                log.warning("The webstack client has been called across multiple threads! Was %s, now %s.", self._threadName, currentName)
+                log.warning(
+                    "The webstack client has been called across multiple threads! Was \"%s\", now \"%s\".",
+                    self._threadName,
+                    currentName,
+                )
                 self._threadName = currentName
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
