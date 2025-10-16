@@ -217,7 +217,7 @@ class ControllerWebClientRaw(object):
         if warnOnUseFromDifferentThreads:
             self._threadName = threading.current_thread().getName()
             log.info(
-                "Initialized webstack client with warning on calls from different threads enabled. This may degrade performance. Set warnOnUseFromDifferentThreads to 'False' to disable this if performance is too poor."
+                "Initialized webstack client with warning on calls from different threads enabled. This may degrade performance. Set warnOnUseFromDifferentThreads to 'False' to disable this if performance is too poor.",
             )
 
     def __del__(self):
@@ -285,7 +285,7 @@ class ControllerWebClientRaw(object):
             currentName = threading.current_thread().getName()
             if currentName != self._threadName:
                 log.warning(
-                    "The webstack client has been called across multiple threads! Was \"%s\", now \"%s\".",
+                    'The webstack client has been called across multiple threads! Was "%s", now "%s".',
                     self._threadName,
                     currentName,
                 )
