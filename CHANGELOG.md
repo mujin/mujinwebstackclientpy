@@ -1,10 +1,13 @@
 # Changelog
 
-## 0.9.20 (2025-09-30)
+## 0.9.21 (2025-10-16)
 
 ### Changes
 
 - Warn callers when they use the webstack client from different threads.
+## 0.9.20 (2025-10-10)
+
+- Re-generate graph api.
 
 ## 0.9.19 (2025-09-25)
 
