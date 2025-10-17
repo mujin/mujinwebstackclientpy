@@ -2,6 +2,8 @@
 
 ## 0.9.20 (2025-10-10)
 
+### Changes
+
 - Re-generate graph api.
 
 ## 0.9.19 (2025-09-25)
@@ -12,34 +14,50 @@
 
 ## 0.9.18 (2025-09-11)
 
+### Changes
+
 - Re-generate graph api.
 
 ## 0.9.17 (2025-08-29)
+
+### Changes
 
 - Add support for string default values in GraphQL APIs.
 - Re-generate GraphQL APIs.
 
 ## 0.9.16 (2025-08-18)
 
+### Changes
+
 - Re-generate graph api.
 
 ## 0.9.15 (2025-08-04)
+
+### Changes
 
 - Re-generate graph api.
 
 ## 0.9.14 (2025-07-28)
 
+### Changes
+
 - Re-generate graph api.
 
 ## 0.9.13 (2025-07-24)
+
+### Changes
 
 - Re-generate graph api.
 
 ## 0.9.12 (2025-07-07)
 
+### Changes
+
 - Support an optional bodyId parameter when downloading environment.
 
 ## 0.9.11 (2025-07-04)
+
+### Changes
 
 - Re-generate graph client.
 - Don't add trailing whitespace in generated client.
@@ -47,6 +65,8 @@
 - Support deprecation warnings parsed from the GraphQL schema.
 
 ## 0.9.10 (2025-06-26)
+
+### Changes
 
 - Raise WebStack client errors with a copy of the response content instead of the implicit iterator to allow caller to deserialize the content as many times as needed.
 
