@@ -1164,7 +1164,7 @@ class GraphQueries:
 
         Returns:
             LogEntry: An entry in the logs. The current parent-children level relationship among log entry types:
-                    
+
                     ```
                     LogEntry
                     ├─ GenericLogEntry
