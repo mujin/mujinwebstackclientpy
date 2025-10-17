@@ -157,7 +157,20 @@ class ControllerWebClientRaw(object):
     _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
     _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
 
-    def __init__(self, baseurl: str, username: str, password: str, locale: Optional[str] = None, author: Optional[str] = None, userAgent: Optional[str] = None, additionalHeaders: Optional[Dict[str, str]] = None, unixEndpoint: Optional[str] = None) -> None:
+    _threadName: Optional[str] = None  # The last thread this client was used in if we're warning on calls from different threads.
+
+    def __init__(
+        self,
+        baseurl: str,
+        username: str,
+        password: str,
+        locale: Optional[str] = None,
+        author: Optional[str] = None,
+        userAgent: Optional[str] = None,
+        additionalHeaders: Optional[Dict[str, str]] = None,
+        unixEndpoint: Optional[str] = None,
+        warnOnUseFromDifferentThreads: bool = False,
+    ) -> None:
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -200,6 +213,11 @@ class ControllerWebClientRaw(object):
 
         # Set user agent header
         self.SetUserAgent(userAgent)
+
+        if warnOnUseFromDifferentThreads:
+            self._threadName = threading.current_thread().name
+            log.info('initialized client with warning on calls from different threads enabled and this may degrade performance')
+            log.info('set "warnOnUseFromDifferentThreads" to "False" to disable this if performance is poor')
 
     def __del__(self):
         self.Destroy()
@@ -261,6 +279,12 @@ class ControllerWebClientRaw(object):
         if 'allow_redirects' not in kwargs:
             # by default, disallow redirect since DELETE with redirection is too dangerous
             kwargs['allow_redirects'] = method in ('GET',)
+
+        if self._threadName is not None:
+            currentName = threading.current_thread().name
+            if currentName != self._threadName:
+                log.warning('client has been called across multiple threads, was "%s", now "%s"', self._threadName, currentName)
+                self._threadName = currentName
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
