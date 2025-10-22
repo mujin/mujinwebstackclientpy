@@ -112,7 +112,7 @@ class WebstackClient(object):
     _webclient = None
     _userinfo = None  # A dict storing user info, like locale
 
-    controllerurl = ''  # URl to controller
+    controllerurl = ''  # URL to controller
     controllerusername = ''  # Username to login with
     controllerpassword = ''  # Password to login with
 
