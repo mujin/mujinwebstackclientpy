@@ -280,7 +280,7 @@ class ControllerWebClientRaw(object):
 
         if 'allow_redirects' not in kwargs:
             # by default, disallow redirect since DELETE with redirection is too dangerous
-            kwargs['allow_redirects'] = method in ('GET',)
+            kwargs['allow_redirects'] = method in ('HEAD', 'GET', 'POST')
 
         if self._threadName is not None:
             currentName = threading.current_thread().name
