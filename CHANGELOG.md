@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.23 (2025-10-24)
+
+### Changes
+
+- Handle TLS verification checks for the websocket connection based on the `tlsSkipVerify` option.
+- Handle HTTP to HTTPS upgrades in websocket initialization.
+
 ## 0.9.22 (2025-10-23)
 
 ### Changes

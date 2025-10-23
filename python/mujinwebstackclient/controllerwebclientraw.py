@@ -15,6 +15,7 @@
 import asyncio
 import base64
 import os
+import ssl
 import requests
 import threading
 import traceback
@@ -461,12 +462,26 @@ class ControllerWebClientRaw(object):
         authorization = self._session.auth.GetAuthorizationHeader()
 
         # URL to http GraphQL endpoint on Mujin controller
-        graphEndpoint = '%s/api/v2/graphql' % self._baseurl
-        parsedUrl = urlparse(graphEndpoint)
+        path = '/api/v2/graphql'
+        try:
+            # make a test call to check for http to https upgrades, if there is any
+            response = self.Request('HEAD', path)
+            parsedUrl = urlparse(response.url)
+        except Exception as e:
+            log.exception('failed to query graphql endpoint: %s', e)
+            # fall back to original URL
+            parsedUrl = urlparse(self._baseurl + path)
+
         # parse url and handle different scheme
+        sslContext = None
         webSocketScheme = ''
         if parsedUrl.scheme == 'https':
             webSocketScheme = 'wss'
+            # re-use the current requests session settings for validating TLS certificates
+            if self._session.verify:
+                sslContext = ssl.create_default_context()
+            else:
+                sslContext = ssl._create_unverified_context()
         elif parsedUrl.scheme == 'http':
             webSocketScheme = 'ws'
         uri = '%s://%s%s' % (webSocketScheme, parsedUrl.netloc, parsedUrl.path)
@@ -485,12 +500,14 @@ class ControllerWebClientRaw(object):
                 uri=uri,
                 subprotocols=subprotocols,
                 additional_headers=headers,
+                ssl=sslContext,
             )
         else:
             self._webSocket = await websockets.connect(
                 uri=uri,
                 subprotocols=subprotocols,
                 additional_headers=headers,
+                ssl=sslContext,
             )
 
         await self._webSocket.send(
