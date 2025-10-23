@@ -112,7 +112,7 @@ class WebstackClient(object):
     _webclient = None
     _userinfo = None  # A dict storing user info, like locale
 
-    controllerurl = ''  # URl to controller
+    controllerurl = ''  # URL to controller
     controllerusername = ''  # Username to login with
     controllerpassword = ''  # Password to login with
 
@@ -128,6 +128,7 @@ class WebstackClient(object):
         userAgent=None,
         additionalHeaders=None,
         unixEndpoint=None,
+        tlsSkipVerify: bool = True,
         warnOnUseFromDifferentThreads: bool = False,
     ):
         """Logs into the Mujin controller.
@@ -139,6 +140,7 @@ class WebstackClient(object):
             userAgent (str): User agent to be sent on each request
             additionalHeaders (dict): Additional HTTP headers to be included in requests
             unixEndpoint (str): Unix socket endpoint for communicating with HTTP server over unix socket
+            tlsSkipVerify (bool): Whether to skip TLS verification
             warnOnUseFromDifferentThreads (bool): Whether to warn callers if the client is used from different threads.
                 Defaults to not warning since checking the thread name on each call may significantly degrade performance.
         """
@@ -175,6 +177,7 @@ class WebstackClient(object):
             userAgent=userAgent,
             additionalHeaders=additionalHeaders,
             unixEndpoint=unixEndpoint,
+            tlsSkipVerify=tlsSkipVerify,
             warnOnUseFromDifferentThreads=warnOnUseFromDifferentThreads,
         )
 

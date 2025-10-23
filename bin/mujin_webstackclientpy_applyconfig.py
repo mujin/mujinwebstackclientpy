@@ -239,6 +239,7 @@ def _RunMain():
     parser.add_argument('--force', action='store_true', dest='force', default=False, help='apply without confirmation [default=%(default)s]')
     parser.add_argument('--dryrun', action='store_true', dest='dryrun', default=False, help='shows differences and quit [default=%(default)s]')
     parser.add_argument('--oneline', action='store_true', dest='oneline', default=False, help='shows each difference in one line [default=%(default)s]')
+    parser.add_argument('--tlsSkipVerify', type=bool, default=True, help='Whether to skip TLS verification (default: %(default)s)')
     options = parser.parse_args()
 
     # configure logging
@@ -265,7 +266,7 @@ def _RunMain():
 
     # construct client
     if options.controller:
-        webstackclient = WebstackClient('http://%s' % options.controller, options.username, options.password)
+        webstackclient = WebstackClient('http://%s' % options.controller, options.username, options.password, tlsSkipVerify=options.tlsSkipVerify)
         webstackclient.Ping()
         config = webstackclient.GetConfig()
         target = webstackclient.controllerIp

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.22 (2025-10-23)
+
+### Changes
+
+- Add an option for skipping TLS verification.
+- Allow redirects for HEAD and POST requests.
+
 ## 0.9.21 (2025-10-16)
 
 ### Changes

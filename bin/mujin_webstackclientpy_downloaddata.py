@@ -27,6 +27,7 @@ def _ParseArguments():
     parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
     parser.add_argument('--backupSceneFormat', type=str, default=None, help='The scene format to use in backup files, one of "msgpack", "json", or "yaml" (default: %(default)s)')
     parser.add_argument('--timeout', type=float, default=600, help='Timeout in seconds (default: %(default)s)')
+    parser.add_argument('--tlsSkipVerify', type=bool, default=True, help='Whether to skip TLS verification (default: %(default)s)')
     return parser.parse_args()
 
 
@@ -92,7 +93,7 @@ def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
 
-    webClient = _CreateWebstackClient(options.url, options.username, options.password)
+    webClient = _CreateWebstackClient(options.url, options.username, options.password, tlsSkipVerify=options.tlsSkipVerify)
     sceneList = _GetScenes(webClient)
     downloadDirectory = _DownloadBackup(webClient, sceneList, options.backupSceneFormat, timeout=options.timeout)
     print(downloadDirectory)  # other scripts can read stdout and learn the directory path

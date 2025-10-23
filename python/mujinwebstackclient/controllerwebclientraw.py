@@ -169,6 +169,7 @@ class ControllerWebClientRaw(object):
         userAgent: Optional[str] = None,
         additionalHeaders: Optional[Dict[str, str]] = None,
         unixEndpoint: Optional[str] = None,
+        tlsSkipVerify: bool = False,
         warnOnUseFromDifferentThreads: bool = False,
     ) -> None:
         self._baseurl = baseurl
@@ -182,6 +183,7 @@ class ControllerWebClientRaw(object):
 
         # Create session
         self._session = requests.Session()
+        self._session.verify = not tlsSkipVerify
 
         # Use basic auth by default, use JWT if available
         self._session.auth = JSONWebTokenAuth(self._username, self._password)
@@ -278,7 +280,7 @@ class ControllerWebClientRaw(object):
 
         if 'allow_redirects' not in kwargs:
             # by default, disallow redirect since DELETE with redirection is too dangerous
-            kwargs['allow_redirects'] = method in ('GET',)
+            kwargs['allow_redirects'] = method in ('HEAD', 'GET', 'POST')
 
         if self._threadName is not None:
             currentName = threading.current_thread().name

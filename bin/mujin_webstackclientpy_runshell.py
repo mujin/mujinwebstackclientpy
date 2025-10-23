@@ -17,6 +17,7 @@ def _ParseArguments():
     parser.add_argument('--url', type=str, default='http://localhost', help='URL of the controller (default: %(default)s)')
     parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
     parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
+    parser.add_argument('--tlsSkipVerify', type=bool, default=True, help='Whether to skip TLS verification (default: %(default)s)')
     return parser.parse_args()
 
 
@@ -33,7 +34,7 @@ def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
 
-    self = WebstackClient(options.url, options.username, options.password)
+    self = WebstackClient(options.url, options.username, options.password, tlsSkipVerify=options.tlsSkipVerify)
 
     # launch interactive shell
     from IPython.terminal import embed
