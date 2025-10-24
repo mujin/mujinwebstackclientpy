@@ -31,7 +31,7 @@ def _ParseArguments():
     return parser.parse_args()
 
 
-def _CreateWebstackClient(url, username, password):
+def _CreateWebstackClient(url, username, password, tlsSkipVerify):
     from mujinwebstackclient.webstackclient import WebstackClient
 
     # create a webstack client for the controller
@@ -40,6 +40,7 @@ def _CreateWebstackClient(url, username, password):
         controllerurl=url,
         controllerusername=username,
         controllerpassword=password,
+        tlsSkipVerify=tlsSkipVerify,
     )
 
 

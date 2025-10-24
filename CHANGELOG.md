@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.24 (2025-10-24)
+
+### Bug fixes
+
+- Add the missing `tlsSkipVerify` argument to `_CreateWebstackClient` in `mujin_webstackclientpy_downloaddata.py`.
+
 ## 0.9.23 (2025-10-24)
 
 ### Changes
