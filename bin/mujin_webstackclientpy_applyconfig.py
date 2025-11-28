@@ -115,10 +115,10 @@ def _ShowDiffInOneLine(oldconfig, newconfig, parentPath=None, useColours=True):
 
 
 def _DiffConfig(oldconfig, newconfig, showInOneLine=False):
-    with tempfile.NamedTemporaryFile(prefix='old-config-', suffix='.json', bufsize=0) as oldfile:
-        with tempfile.NamedTemporaryFile(prefix='new-config-', suffix='.json', bufsize=0) as newfile:
-            oldfile.write(_PrettifyConfig(oldconfig))
-            newfile.write(_PrettifyConfig(newconfig))
+    with tempfile.NamedTemporaryFile(prefix='old-config-', suffix='.json') as oldfile:
+        with tempfile.NamedTemporaryFile(prefix='new-config-', suffix='.json') as newfile:
+            oldfile.write(_PrettifyConfig(oldconfig).encode('utf-8') )
+            newfile.write(_PrettifyConfig(newconfig).encode('utf-8') )
             if showInOneLine:
                 res = None
                 try:
