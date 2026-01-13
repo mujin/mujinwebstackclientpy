@@ -291,6 +291,14 @@ class ControllerWebClientRaw(object):
 
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
+        # if the response is 401 and JSON web token was used, it is possible that the token has expired
+        if response.status_code == 401 and isinstance(self._session.auth, JSONWebTokenAuth):
+            if self._session.auth._jsonWebToken is not None:
+                log.debug('request %s %s received unauthorized error, clearing cached json web token and retrying', method, url)
+                # clear the token and retry the request to fetch a new token via basic auth
+                self._session.auth._jsonWebToken = None
+                response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+
         # in verbose logging, log the caller
         if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
             log.verbose('request %s %s response %s took %.03f seconds:\n%s', method, url, response.status_code, response.elapsed.total_seconds(), '\n'.join([line.strip() for line in traceback.format_stack()[:-1]]))
