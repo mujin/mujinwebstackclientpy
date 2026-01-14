@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.27 (2026-01-14)
+
+### Changes
+
+- When a request response is 401 Unauthorized and a JSON Web Token was used for the request, clear the token and retry the request to fetch a new token via basic auth.
+
 ## 0.9.26 (2025-12-11)
 
 ### Changes
