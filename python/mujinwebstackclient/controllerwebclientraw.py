@@ -114,6 +114,7 @@ class BackgroundThread(object):
     def __init__(self):
         self._eventLoopReadyEvent = threading.Event()
         self._thread = threading.Thread(target=self._RunEventLoop)
+        self._thread.daemon = True # daemon thread; won't block the process from exiting
         self._thread.start()
         # block and wait for the signal to make sure the event loop is created and set in the _thread
         self._eventLoopReadyEvent.wait()
