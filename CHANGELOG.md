@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.28 (2026-01-15)
+
+### Changes
+
+- Mark the background thread as deamon so that it won't block the process from exiting.
+
 ## 0.9.27 (2026-01-14)
 
 ### Changes
