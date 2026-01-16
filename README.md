@@ -4,7 +4,6 @@
 
 This is an open-source client library communicating with the Mujin Controller WebAPI.
 
-
 ## Releases and Versioning
 
 - The latest stable build is managed by the **master** branch, please use it. It is tested on Linux with Python 3.9.
@@ -13,11 +12,9 @@ This is an open-source client library communicating with the Mujin Controller We
   
   - All versions with the same MAJOR.MINOR number have the same API and are ABI compatible.
 
-
 ## Running on Linux
 
 Load mujinwebstackclient as a module in Python.
-
 
 ## Install on Linux
 
@@ -31,7 +28,7 @@ Mujin Controller Python Client is Licensed under the Apache License, Version 2.0
 
 ## For developers
 
-### How to re-generate `controllergraphclient.py`
+### How to re-generate `webstackgraphclient.py`
 
 First, set up a virtualenv to install required pip packages:
 
@@ -46,18 +43,20 @@ virtualenv .ve
 ./.ve/bin/pip install .
 ```
 
-Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `controllergraphclient.py` file.
+Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `webstackgraphclient.py` file.
 
 ```bash
-./.ve/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/controllergraphclient.py
+./.ve/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
 ```
 
 ## Troubleshooting
 
-### Jhbuild fails due to flake8:
+### Jhbuild fails due to flake8
+
 If Jhbuild fails on building mujinwebstackclientpy due to a flake8 violation (most likely with a several hundred errors and warnings), this could be happening due to flake8 running a default configuration within a virtual environment.
 
 If this seems to be the case, you can delete the virtual environment.
+
 ```bash
 # delete the virtual environment
 rm -rf ./.ve

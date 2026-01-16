@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2014-2015 MUJIN Inc.
 
-from .version import __version__ # noqa: F401
+from .version import __version__  # noqa: F401
 
 import six
 from typing import Optional 
@@ -21,33 +21,41 @@ try:
     from mujincommon import GetMonotonicTime
 except ImportError:
     import time
+
     if hasattr(time, 'monotonic'):
+
         def GetMonotonicTime():
             return time.monotonic()
     else:
+
         def GetMonotonicTime():
             return time.time()
 
+
 import logging
+
 log = logging.getLogger(__name__)
 
 try:
     from mujincommon import i18n
+
     ugettext, ungettext = i18n.GetDomain('mujinwebstackclientpy').GetTranslationFunctions()
 except ImportError:
+
     def ugettext(message):
         return message
 
     def ungettext(singular, plural, n):
         return singular if n == 1 else plural
 
+
 _ = ugettext
 
 
 @six.python_2_unicode_compatible
 class ClientExceptionBase(Exception):
-    """client base exception
-    """
+    """client base exception"""
+
     _message = None  # the error message, should be unicode
     
     def __init__(self, message: Optional[str]='') -> None:
@@ -66,8 +74,8 @@ class ClientExceptionBase(Exception):
 class APIServerError(ClientExceptionBase):
     _message = None  # the error. should be unicode
     _errorcode = None  # the error code coming from the server
-    _detailInfoType = None # str, the detailed error type given errorcode
-    _detailInfo = None # dcit, the detailed info
+    _detailInfoType = None  # str, the detailed error type given errorcode
+    _detailInfo = None  # dcit, the detailed info
     _inputcommand = None  # the command sent to the server
     
     def __init__(self, message: str, errorcode: Optional[int]=None, inputcommand: Optional[str]=None, detailInfoType: Optional[str]=None, detailInfo: Optional[dict]=None) -> None:
@@ -81,42 +89,43 @@ class APIServerError(ClientExceptionBase):
     
     def __str__(self) -> str:
         if self._message is not None:
-            return _('API Server Error: %s')%self._message
-        
+            return _('API Server Error: %s') % self._message
+
         return _('API Server Error: Unknown')
-    
+
     def __repr__(self):
         return '<%s(message=%r, errorcode=%r, inputcommand=%r, detailInfoType=%r, detailInfo=%r)>' % (self.__class__.__name__, self._message, self._errorcode, self._inputcommand, self._detailInfoType, self._detailInfo)
-    
+
     @property
     def message(self) -> str:
         """The error message from server."""
         return self._message
-    
+
     @property
     def errorcode(self):
         """The error code from server. Could be None."""
         return self._errorcode
-    
+
     @property
     def stacktrace(self) -> str:
         """The stack trace for the error"""
         return ''
-    
+
     @property
     def inputcommand(self) -> Optional[str]:
         """The command that was sent to the server. Could be None."""
         return self._inputcommand
-    
+
     @property
     def detailInfoType(self) -> Optional[str]:
         """string for the detai info type"""
         return self._detailInfoType
-    
+
     @property
     def detailInfo(self):
         """string for the detai info type"""
         return self._detailInfo
+
 
 class TimeoutError(ClientExceptionBase):
     pass
@@ -143,20 +152,23 @@ class WebstackClientError(ClientExceptionBase):
 class URIError(ClientExceptionBase):
     pass
 
+
 class UserInterrupt(ClientExceptionBase):
     pass
 
+
 class ControllerGraphClientException(ClientExceptionBase):
+    _statusCode = None  # the HTTP status code
+    _content = None  # the body of the response (dict, JSON decoded)
+    _response = None  # the raw requests.Response object
+    _errorCode = None  # the error code from the server, can be 'not-found', 'conflict', etc.
 
-    _statusCode = None
-    _content = None
-    _response = None
-
-    def __init__(self, message='', statusCode=None, content=None, response=None):
+    def __init__(self, message='', statusCode=None, content=None, response=None, errorCode=None):
         super(ControllerGraphClientException, self).__init__(message)
         self._statusCode = statusCode
         self._content = content
         self._response = response
+        self._errorCode = errorCode
 
     @property
     def statusCode(self):
@@ -169,3 +181,7 @@ class ControllerGraphClientException(ClientExceptionBase):
     @property
     def response(self):
         return self._response
+
+    @property
+    def errorCode(self):
+        return self._errorCode

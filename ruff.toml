@@ -1,0 +1,10 @@
+# don't warp the code to satisfy the line length
+line-length = 256
+
+[format]
+quote-style = "single"
+indent-style = "space"
+
+[lint]
+# enforce trailing commas for extended structures
+select = ["COM812"]
