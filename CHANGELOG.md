@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.28 (2026-01-19)
+
+- Re-generate graph api.
+
 ## 0.9.27 (2026-01-14)
 
 ### Changes
