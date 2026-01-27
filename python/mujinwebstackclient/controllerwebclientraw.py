@@ -509,6 +509,8 @@ class ControllerWebClientRaw(object):
                 subprotocols=subprotocols,
                 additional_headers=headers,
                 ssl=sslContext,
+                # accept all frames sent by the controller
+                max_size=None,
             )
         else:
             self._webSocket = await websockets.connect(
@@ -516,6 +518,8 @@ class ControllerWebClientRaw(object):
                 subprotocols=subprotocols,
                 additional_headers=headers,
                 ssl=sslContext,
+                # accept all frames sent by the controller
+                max_size=None,
             )
 
         await self._webSocket.send(

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.29 (2026-01-27)
+
+- Remove the payload limit in controller subscription client.
+
 ## 0.9.28 (2026-01-19)
 
 - Re-generate graph api.
