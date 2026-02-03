@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.30 (2026-02-03)
+
+- Support backup and restore schedules.
+
 ## 0.9.29 (2026-01-27)
 
 - Remove the payload limit in controller subscription client.
