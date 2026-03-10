@@ -1070,7 +1070,24 @@ class WebstackClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, backupSceneFormat=None, savewebapps=True, saveitl=True, savedetection=False, savestate=True, savecalibration=False, savedebug=False, saveeds=True, saveiodd=True, saveschedule=True, archiveFormat=None, timeout=600):
+    def Backup(
+        self,
+        saveconfig=True,
+        savemedia=True,
+        backupscenepks=None,
+        backupSceneFormat=None,
+        savewebapps=True,
+        saveitl=True,
+        savedetection=False,
+        savestate=True,
+        savecalibration=False,
+        savedebug=False,
+        saveeds=True,
+        saveiodd=True,
+        saveschedule=True,
+        archiveFormat=None,
+        timeout=600,
+    ):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
@@ -1117,7 +1134,19 @@ class WebstackClient(object):
             raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
 
-    def Restore(self, file, restoreconfig=True, restoremedia=True, restorewebapps=True, restoreitl=True, restoreeds=True, restoreiodd=True, restoreschedule=True, archiveFormat=None, timeout=600):
+    def Restore(
+        self,
+        file,
+        restoreconfig=True,
+        restoremedia=True,
+        restorewebapps=True,
+        restoreitl=True,
+        restoreeds=True,
+        restoreiodd=True,
+        restoreschedule=True,
+        archiveFormat=None,
+        timeout=600,
+    ):
         """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
