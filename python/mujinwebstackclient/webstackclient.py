@@ -1085,7 +1085,7 @@ class WebstackClient(object):
         saveeds=True,
         saveiodd=True,
         saveschedule=True,
-        archiveFormat=None,
+        archiveFormat='tar.gz',
         timeout=600,
     ):
         """Downloads a backup file
@@ -1103,7 +1103,7 @@ class WebstackClient(object):
         :param saveschedule: Whether we want to include schedules in the backup, defaults to True
         :param backupscenepks: List of scenes to backup, defaults to None
         :param backupSceneFormat: The scene format to use in backup files, defaults to None
-        :param archiveFormat: The backup file archive format, supported values are tar.gz and zip, defaults to None
+        :param archiveFormat: The backup file archive format, supported values are tar.gz and zip, defaults to tar.gz
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: A streaming response to the backup file
