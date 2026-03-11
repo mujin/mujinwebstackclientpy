@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.31 (2026-03-05)
+
+- Support zip backup file archive format.
+
 ## 0.9.30 (2026-02-03)
 
 - Support backup and restore schedules.
