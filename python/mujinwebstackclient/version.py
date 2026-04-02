@@ -1,3 +1,3 @@
-__version__ = '0.9.31'
+__version__ = '0.9.32'
 
 # Do not forget to update CHANGELOG.md

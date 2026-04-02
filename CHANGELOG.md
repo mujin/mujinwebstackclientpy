@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.32 (2026-04-02)
+
+- Re-generate graph api.
+
 ## 0.9.31 (2026-03-05)
 
 - Support zip backup file archive format.
