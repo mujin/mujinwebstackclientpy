@@ -30,34 +30,6 @@ Mujin Controller Python Client is Licensed under the Apache License, Version 2.0
 
 ### How to re-generate `webstackgraphclient.py`
 
-First, set up a virtualenv to install required pip packages:
-
 ```bash
-# create a new virtualenv, you can also delete it afterwards
-virtualenv .venv
-
-# install required packages
-./.venv/bin/pip install six==1.16.0 requests==2.27.1 graphql-core==3.2.0 typing_extensions==4.2.0
-
-# install mujinwebstackclient
-./.venv/bin/pip install .
-```
-
-Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `webstackgraphclient.py` file.
-
-```bash
-./.venv/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
-```
-
-## Troubleshooting
-
-### Jhbuild fails due to flake8
-
-If Jhbuild fails on building mujinwebstackclientpy due to a flake8 violation (most likely with a several hundred errors and warnings), this could be happening due to flake8 running a default configuration within a virtual environment.
-
-If this seems to be the case, you can delete the virtual environment.
-
-```bash
-# delete the virtual environment
-rm -rf ./.venv
+PYTHONPATH=python uv run --with six==1.16.0 --with requests==2.27.1 --with graphql-core==3.2.0 --with typing_extensions==4.2.0 --with websockets==16.0 devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
 ```
