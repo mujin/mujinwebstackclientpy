@@ -34,19 +34,19 @@ First, set up a virtualenv to install required pip packages:
 
 ```bash
 # create a new virtualenv, you can also delete it afterwards
-virtualenv .ve
+virtualenv .venv
 
 # install required packages
-./.ve/bin/pip install six==1.16.0 requests==2.27.1 graphql-core==3.2.0 typing_extensions==4.2.0
+./.venv/bin/pip install six==1.16.0 requests==2.27.1 graphql-core==3.2.0 typing_extensions==4.2.0
 
 # install mujinwebstackclient
-./.ve/bin/pip install .
+./.venv/bin/pip install .
 ```
 
 Then, use `mujin_webstackclientpy_generategraphclient.py` to generate the content of the `webstackgraphclient.py` file.
 
 ```bash
-./.ve/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
+./.venv/bin/python devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
 ```
 
 ## Troubleshooting
@@ -59,5 +59,5 @@ If this seems to be the case, you can delete the virtual environment.
 
 ```bash
 # delete the virtual environment
-rm -rf ./.ve
+rm -rf ./.venv
 ```
