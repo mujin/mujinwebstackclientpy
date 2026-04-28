@@ -31,5 +31,5 @@ Mujin Controller Python Client is Licensed under the Apache License, Version 2.0
 ### How to re-generate `webstackgraphclient.py`
 
 ```bash
-PYTHONPATH=python uv run --with six==1.16.0 --with requests==2.27.1 --with graphql-core==3.2.0 --with typing_extensions==4.2.0 devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
+PYTHONPATH=python uv run --with six==1.16.0 --with requests==2.27.1 --with graphql-core==3.2.0 --with typing_extensions==4.2.0 --with websockets==16.0 devbin/mujin_webstackclientpy_generategraphclient.py --url http://controller123 > python/mujinwebstackclient/webstackgraphclient.py
 ```
