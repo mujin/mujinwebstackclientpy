@@ -7,9 +7,6 @@ try:
 except (ImportError, SyntaxError):
     from setuptools.dist import Distribution
 
-version = {}
-exec(open('python/mujinwebstackclient/version.py').read(), version)
-
 setup(
     distclass=Distribution,
     locale_dir='locale',
