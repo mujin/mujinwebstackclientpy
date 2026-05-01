@@ -6,7 +6,7 @@ dependencies = [
     "typing_extensions~=4.2",
     "websockets~=15.0",
 ]
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 
 [project.optional-dependencies]
 graphql = [
