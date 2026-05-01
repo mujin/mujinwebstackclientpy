@@ -1,9 +1,17 @@
 [project]
 name = "mujinwebstackclient"
 dependencies = [
-    "websockets==15.0.1",
+    "six~=1.16",
+    "requests~=2.32.2",
+    "typing_extensions~=4.2",
+    "websockets~=15.0",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+graphql = [
+    "graphql-core~=3.2.0",
+]
 
 [tool.setuptools]
 packages = ["mujinwebstackclient"]
