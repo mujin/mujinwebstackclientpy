@@ -1,0 +1,26 @@
+[project]
+name = "mujinwebstackclient"
+dependencies = [
+    "websockets==15.0.1",
+]
+dynamic = ["version"]
+
+[tool.setuptools]
+packages = ["mujinwebstackclient"]
+
+[tool.setuptools.package-dir]
+mujinwebstackclient = "python/mujinwebstackclient"
+
+[tool.setuptools.package-data]
+mujinwebstackclient = ["py.typed"]
+
+[tool.setuptools.data-files]
+bin = [
+    "bin/mujin_webstackclientpy_applyconfig.py",
+    "bin/mujin_webstackclientpy_runshell.py",
+    "bin/mujin_webstackclientpy_downloaddata.py",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "python.mujinwebstackclient.version.__version__"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
