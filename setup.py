@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2014 MUJIN Inc
-from distutils.core import setup
+from setuptools import setup
 
 try:
     from mujincommon.setuptools import Distribution
 except (ImportError, SyntaxError):
-    from distutils.dist import Distribution
+    from setuptools.dist import Distribution
 
 version = {}
 exec(open('python/mujinwebstackclient/version.py').read(), version)
