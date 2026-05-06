@@ -1084,7 +1084,13 @@ class WebstackClient(object):
         savedebug=False,
         saveeds=True,
         saveiodd=True,
-        saveschedule=True,
+        savecalendar=True,
+        logEntryTimeRange=None,
+        logEntryIds=None,
+        logTypes=None,
+        statEntryTimeRange=None,
+        statTypes=None,
+        statEntryIntervalType=None,
         archiveFormat='tar.gz',
         timeout=600,
     ):
@@ -1100,7 +1106,13 @@ class WebstackClient(object):
         :param savedebug: Whether we want to include debug files in the backup, defaults to False
         :param saveeds: Whether we want to include eds files in the backup, defaults to True
         :param saveiodd: Whether we want to include iodd files in the backup, defaults to True
-        :param saveschedule: Whether we want to include schedules in the backup, defaults to True
+        :param savecalendar: Whether we want to include the production calendar in the backup, defaults to True
+        :param logEntryTimeRange: Timestamp range for backing up log entries, defaults to None
+        :param logEntryIds: A list of log entry IDs for backing up log entries, defaults to None
+        :param logTypes: A list of log entry types for backing up log entries, defaults to None
+        :param statEntryTimeRange: Timestamp range for backing up stat entries, defaults to None
+        :param statTypes: A list of stat entry types for backing up stat entries, defaults to None
+        :param statEntryIntervalType: Stat entry interval types for backing up stat entries, defaults to None
         :param backupscenepks: List of scenes to backup, defaults to None
         :param backupSceneFormat: The scene format to use in backup files, defaults to None
         :param archiveFormat: The backup file archive format, supported values are tar.gz and zip, defaults to tar.gz
@@ -1123,7 +1135,13 @@ class WebstackClient(object):
                 'debug': 'true' if savedebug else 'false',
                 'eds': 'true' if saveeds else 'false',
                 'iodd': 'true' if saveiodd else 'false',
-                'schedule': 'true' if saveschedule else 'false',
+                'calendar': 'true' if savecalendar else 'false',
+                'logEntryTimeRange': logEntryTimeRange,
+                'logEntryIds': ','.join(logEntryIds) if logEntryIds else None,
+                'logTypes': ','.join(logTypes) if logTypes else None,
+                'statEntryTimeRange': statEntryTimeRange,
+                'statTypes': ','.join(statTypes) if statTypes else None,
+                'statEntryIntervalType': statEntryIntervalType,
                 'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
                 'backupSceneFormat': backupSceneFormat,
                 'archiveFormat': archiveFormat,
@@ -1143,7 +1161,7 @@ class WebstackClient(object):
         restoreitl=True,
         restoreeds=True,
         restoreiodd=True,
-        restoreschedule=True,
+        restorecalendar=True,
         archiveFormat=None,
         timeout=600,
     ):
@@ -1156,7 +1174,7 @@ class WebstackClient(object):
         :param restoreitl: Whether we want to restore the itl programs, defaults to True
         :param restoreeds: Whether we want to restore the eds files, defaults to True
         :param restoreiodd: Whether we want to restore the iodd files, defaults to True
-        :param restoreschedule: Whether we want to restore the schedules, defaults to True
+        :param restorecalendar: Whether we want to restore the production calendar, defaults to True
         :param archiveFormat: The backup file archive format, supported values are tar.gz and zip, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
@@ -1173,7 +1191,7 @@ class WebstackClient(object):
                 'itl': 'true' if restoreitl else 'false',
                 'eds': 'true' if restoreeds else 'false',
                 'iodd': 'true' if restoreiodd else 'false',
-                'schedule': 'true' if restoreschedule else 'false',
+                'calendar': 'true' if restorecalendar else 'false',
                 'archiveFormat': archiveFormat,
             },
             timeout=timeout,
