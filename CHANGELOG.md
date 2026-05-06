@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.33 (2026-05-06)
+
+- Support backup calendar, logs and stats.
+
 ## 0.9.32 (2026-04-02)
 
 - Re-generate graph api.
