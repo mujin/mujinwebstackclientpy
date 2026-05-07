@@ -6,7 +6,8 @@ dependencies = [
     "typing_extensions~=4.2",
     "websockets~=15.0",
 ]
-dynamic = ["version", "readme"]
+readme = "README.md"
+dynamic = ["version"]
 
 [project.optional-dependencies]
 graphql = [
@@ -31,4 +32,3 @@ bin = [
 
 [tool.setuptools.dynamic]
 version = {attr = "python.mujinwebstackclient.version.__version__"}
-readme = {file = ["README.md"], content-type = "text/markdown"}
