@@ -1074,8 +1074,6 @@ class WebstackClient(object):
         self,
         saveconfig=True,
         savemedia=True,
-        backupscenepks=None,
-        backupSceneFormat=None,
         savewebapps=True,
         saveitl=True,
         savedetection=False,
@@ -1085,13 +1083,15 @@ class WebstackClient(object):
         saveeds=True,
         saveiodd=True,
         savecalendar=True,
-        logEntryTimeRange=None,
-        logEntryIds=None,
-        logTypes=None,
-        statEntryTimeRange=None,
-        statTypes=None,
-        statEntryIntervalType=None,
-        archiveFormat='tar.gz',
+        logentrytimerange=None,
+        logentryids=None,
+        logtypes=None,
+        statentrytimerange=None,
+        stattypes=None,
+        statentryintervaltype=None,
+        backupscenepks=None,
+        backupSceneFormat=None,
+        archiveformat='tar.gz',
         timeout=600,
     ):
         """Downloads a backup file
@@ -1107,15 +1107,15 @@ class WebstackClient(object):
         :param saveeds: Whether we want to include eds files in the backup, defaults to True
         :param saveiodd: Whether we want to include iodd files in the backup, defaults to True
         :param savecalendar: Whether we want to include the production calendar in the backup, defaults to True
-        :param logEntryTimeRange: Timestamp range for backing up log entries, defaults to None
-        :param logEntryIds: A list of log entry IDs for backing up log entries, defaults to None
-        :param logTypes: A list of log entry types for backing up log entries, defaults to None
-        :param statEntryTimeRange: Timestamp range for backing up stat entries, defaults to None
-        :param statTypes: A list of stat entry types for backing up stat entries, defaults to None
-        :param statEntryIntervalType: Stat entry interval types for backing up stat entries, defaults to None
+        :param logentrytimerange: Timestamp range for backing up log entries, defaults to None
+        :param logentryids: A list of log entry IDs for backing up log entries, defaults to None
+        :param logtypes: A list of log entry types for backing up log entries, defaults to None
+        :param statentrytimerange: Timestamp range for backing up stat entries, defaults to None
+        :param stattypes: A list of stat entry types for backing up stat entries, defaults to None
+        :param statentryintervaltype: Stat entry interval types for backing up stat entries, defaults to None
         :param backupscenepks: List of scenes to backup, defaults to None
         :param backupSceneFormat: The scene format to use in backup files, defaults to None
-        :param archiveFormat: The backup file archive format, supported values are tar.gz and zip, defaults to tar.gz
+        :param archiveformat: The backup file archive format, supported values are tar.gz and zip, defaults to tar.gz
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: A streaming response to the backup file
@@ -1136,15 +1136,15 @@ class WebstackClient(object):
                 'eds': 'true' if saveeds else 'false',
                 'iodd': 'true' if saveiodd else 'false',
                 'calendar': 'true' if savecalendar else 'false',
-                'logEntryTimeRange': logEntryTimeRange,
-                'logEntryIds': ','.join(logEntryIds) if logEntryIds else None,
-                'logTypes': ','.join(logTypes) if logTypes else None,
-                'statEntryTimeRange': statEntryTimeRange,
-                'statTypes': ','.join(statTypes) if statTypes else None,
-                'statEntryIntervalType': statEntryIntervalType,
+                'logEntryTimeRange': logentrytimerange,
+                'logEntryIds': ','.join(logentryids) if logentryids else None,
+                'logTypes': ','.join(logtypes) if logtypes else None,
+                'statEntryTimeRange': statentrytimerange,
+                'statTypes': ','.join(stattypes) if stattypes else None,
+                'statEntryIntervalType': statentryintervaltype,
                 'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
                 'backupSceneFormat': backupSceneFormat,
-                'archiveFormat': archiveFormat,
+                'archiveFormat': archiveformat,
             },
             timeout=timeout,
         )
@@ -1162,7 +1162,7 @@ class WebstackClient(object):
         restoreeds=True,
         restoreiodd=True,
         restorecalendar=True,
-        archiveFormat=None,
+        archiveformat=None,
         timeout=600,
     ):
         """Uploads a previously downloaded backup file to restore
@@ -1175,7 +1175,7 @@ class WebstackClient(object):
         :param restoreeds: Whether we want to restore the eds files, defaults to True
         :param restoreiodd: Whether we want to restore the iodd files, defaults to True
         :param restorecalendar: Whether we want to restore the production calendar, defaults to True
-        :param archiveFormat: The backup file archive format, supported values are tar.gz and zip, defaults to None
+        :param archiveformat: The backup file archive format, supported values are tar.gz and zip, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
         :return: JSON response
@@ -1192,7 +1192,7 @@ class WebstackClient(object):
                 'eds': 'true' if restoreeds else 'false',
                 'iodd': 'true' if restoreiodd else 'false',
                 'calendar': 'true' if restorecalendar else 'false',
-                'archiveFormat': archiveFormat,
+                'archiveFormat': archiveformat,
             },
             timeout=timeout,
         )
