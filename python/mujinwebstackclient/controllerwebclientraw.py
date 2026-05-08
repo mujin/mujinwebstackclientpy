@@ -688,17 +688,3 @@ class ControllerWebClientRaw(object):
             # close the websocket connection if no more subscribers are left
             if len(self._subscriptions) == 0 and self._IsWebSocketConnectionOpen():
                 self._backgroundThread.RunCoroutine(self._CloseWebSocket())
-
-        with self._subscriptionLock:
-            # nothing to do if websocket is not established
-            if not self._IsWebSocketConnectionOpen():
-                return
-
-            # check if the subscription exists at all
-            if subscription.GetSubscriptionID() not in self._subscriptions:
-                return
-
-            # actually unsubscribe and wait until there is a result
-            future = self._backgroundThread.RunCoroutine(_Unsubscribe())
-        # Wait outside _subscriptionLock to avoid deadlocks with async unsubscribe handling
-        future.result(timeout=5.0)
