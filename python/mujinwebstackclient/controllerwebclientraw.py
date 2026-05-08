@@ -655,25 +655,39 @@ class ControllerWebClientRaw(object):
 
         async def _Unsubscribe():
             try:
-                # check if self._subscriptionIds has subscriptionId
-                if subscriptionId in self._subscriptions:
-                    await self._webSocket.send(
-                        json.dumps(
-                            {
-                                'id': subscriptionId,
-                                'type': 'stop',
-                            },
-                        ),
-                    )
-                    # remove subscription
-                    self._subscriptions.pop(subscriptionId, None)
-
-                # close the websocket connection if no more subscribers are left
-                if len(self._subscriptions) == 0:
-                    await self._CloseWebSocket()
+                await self._webSocket.send(
+                    json.dumps(
+                        {
+                            'id': subscriptionId,
+                            'type': 'stop',
+                        },
+                    ),
+                )
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to unsubscribe: %s') % (e)))
+
+        with self._subscriptionLock:
+            if not self._IsWebSocketConnectionOpen():
+                return
+            # check if self._subscriptionIds has subscriptionId
+            if subscriptionId not in self._subscriptions:
+                return
+            # request unsubscribe under lock
+            future = self._backgroundThread.RunCoroutine(_Unsubscribe())
+        try:
+            # wait for the async result outside the lock
+            future.result(timeout=5.0)
+        except Exception as e:
+            log.exception('timeout or error while unsubscribing: %s', e)
+
+        # Re-acquire lock to safely modify the dictionary and check for shutdown
+        with self._subscriptionLock:
+            self._subscriptions.pop(subscriptionId, None)
+
+            # close the websocket connection if no more subscribers are left
+            if len(self._subscriptions) == 0 and self._IsWebSocketConnectionOpen():
+                self._backgroundThread.RunCoroutine(self._CloseWebSocket())
 
         with self._subscriptionLock:
             # nothing to do if websocket is not established
