@@ -602,7 +602,7 @@ class ControllerWebClientRaw(object):
             subscription.GetSubscriptionCallbackFunction()(error=error, response=None)
         self._subscriptions.clear()
 
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None], variables: Optional[dict] = None, timeout: float = 5.0) -> Subscription:
         """Subscribes to changes on Mujin controller.
 
         Args:
@@ -638,14 +638,14 @@ class ControllerWebClientRaw(object):
         try:
             # Wait for the subscribe outside _subscriptionLock to avoid deadlocking
             # with websocket callbacks that may acquire the same lock while resolving
-            future.result(timeout=5.0)
+            future.result(timeout=timeout)
         except Exception as e:
             raise ControllerGraphClientException(f'Failed to subscribe within timeout: {e}')
         with self._subscriptionLock:
             self._subscriptions[subscriptionId] = subscription
         return subscription
 
-    def UnsubscribeGraphAPI(self, subscription: Subscription):
+    def UnsubscribeGraphAPI(self, subscription: Subscription, timeout: float = 5.0):
         """Unsubscribes to Mujin controller.
 
         Args:
@@ -677,7 +677,7 @@ class ControllerWebClientRaw(object):
             future = self._backgroundThread.RunCoroutine(_Unsubscribe())
         try:
             # wait for the async result outside the lock
-            future.result(timeout=5.0)
+            future.result(timeout=timeout)
         except Exception as e:
             log.exception('timeout or error while unsubscribing: %s', e)
 
