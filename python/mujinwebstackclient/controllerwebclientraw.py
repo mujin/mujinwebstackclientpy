@@ -634,10 +634,16 @@ class ControllerWebClientRaw(object):
             self._EnsureWebSocketConnection()
 
             # wait until the subscription is created
-            self._backgroundThread.RunCoroutine(_Subscribe()).result()
+            future = self._backgroundThread.RunCoroutine(_Subscribe())
+        try:
+            # Wait for the subscribe outside _subscriptionLock to avoid deadlocking
+            # with websocket callbacks that may acquire the same lock while resolving
+            future.result(timeout=5.0)
+        except Exception as e:
+            raise ControllerGraphClientException(f'Failed to subscribe within timeout: {e}')
+        with self._subscriptionLock:
             self._subscriptions[subscriptionId] = subscription
-
-            return subscription
+        return subscription
 
     def UnsubscribeGraphAPI(self, subscription: Subscription):
         """Unsubscribes to Mujin controller.
@@ -679,4 +685,6 @@ class ControllerWebClientRaw(object):
                 return
 
             # actually unsubscribe and wait until there is a result
-            self._backgroundThread.RunCoroutine(_Unsubscribe()).result()
+            future = self._backgroundThread.RunCoroutine(_Unsubscribe())
+        # Wait outside _subscriptionLock to avoid deadlocks with async unsubscribe handling
+        future.result(timeout=5.0)
