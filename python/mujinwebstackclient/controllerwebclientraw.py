@@ -636,7 +636,7 @@ class ControllerWebClientRaw(object):
             # wait until the subscription is created
             future = self._backgroundThread.RunCoroutine(_Subscribe())
         try:
-            # Wait for the subscribe outside _subscriptionLock to avoid deadlocking
+            # wait for the subscribe outside _subscriptionLock to avoid deadlocking
             # with websocket callbacks that may acquire the same lock while resolving
             future.result(timeout=timeout)
         except Exception as e:
@@ -668,6 +668,7 @@ class ControllerWebClientRaw(object):
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to unsubscribe: %s') % (e)))
 
         with self._subscriptionLock:
+            # nothing to do if websocket is not established
             if not self._IsWebSocketConnectionOpen():
                 return
             # check if self._subscriptionIds has subscriptionId
@@ -681,7 +682,7 @@ class ControllerWebClientRaw(object):
         except Exception as e:
             log.exception('timeout or error while unsubscribing: %s', e)
 
-        # Re-acquire lock to safely modify the dictionary and check for shutdown
+        # re-acquire lock to safely modify the dictionary and check for shutdown
         with self._subscriptionLock:
             self._subscriptions.pop(subscriptionId, None)
 
