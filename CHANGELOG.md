@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.34 (2026-05-12)
+
+- Support backup calendar, logs and stats.
+
+## 0.9.33 (2026-05-11)
+
+- Removed a deadlock that occurred when unsubscribing from an active subscription while a background thread attempted to acquire a subscription lock already held by the main subscribing thread.
+
 ## 0.9.32 (2026-04-02)
 
 - Re-generate graph api.
