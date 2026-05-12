@@ -15,6 +15,7 @@ graphql = [
 ]
 
 [tool.setuptools]
+include-package-data = false
 packages = ["mujinwebstackclient"]
 
 [tool.setuptools.package-dir]
