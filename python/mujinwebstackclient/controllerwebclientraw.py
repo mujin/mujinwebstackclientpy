@@ -602,7 +602,7 @@ class ControllerWebClientRaw(object):
             subscription.GetSubscriptionCallbackFunction()(error=error, response=None)
         self._subscriptions.clear()
 
-    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None], variables: Optional[dict] = None) -> Subscription:
+    def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None], variables: Optional[dict] = None, timeout: float = 5.0) -> Subscription:
         """Subscribes to changes on Mujin controller.
 
         Args:
@@ -634,12 +634,18 @@ class ControllerWebClientRaw(object):
             self._EnsureWebSocketConnection()
 
             # wait until the subscription is created
-            self._backgroundThread.RunCoroutine(_Subscribe()).result()
+            future = self._backgroundThread.RunCoroutine(_Subscribe())
+        try:
+            # wait for the subscribe outside _subscriptionLock to avoid deadlocking
+            # with websocket callbacks that may acquire the same lock while resolving
+            future.result(timeout=timeout)
+        except Exception as e:
+            raise ControllerGraphClientException(f'Failed to subscribe within timeout: {e}')
+        with self._subscriptionLock:
             self._subscriptions[subscriptionId] = subscription
+        return subscription
 
-            return subscription
-
-    def UnsubscribeGraphAPI(self, subscription: Subscription):
+    def UnsubscribeGraphAPI(self, subscription: Subscription, timeout: float = 5.0):
         """Unsubscribes to Mujin controller.
 
         Args:
@@ -649,22 +655,14 @@ class ControllerWebClientRaw(object):
 
         async def _Unsubscribe():
             try:
-                # check if self._subscriptionIds has subscriptionId
-                if subscriptionId in self._subscriptions:
-                    await self._webSocket.send(
-                        json.dumps(
-                            {
-                                'id': subscriptionId,
-                                'type': 'stop',
-                            },
-                        ),
-                    )
-                    # remove subscription
-                    self._subscriptions.pop(subscriptionId, None)
-
-                # close the websocket connection if no more subscribers are left
-                if len(self._subscriptions) == 0:
-                    await self._CloseWebSocket()
+                await self._webSocket.send(
+                    json.dumps(
+                        {
+                            'id': subscriptionId,
+                            'type': 'stop',
+                        },
+                    ),
+                )
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to unsubscribe: %s') % (e)))
@@ -673,10 +671,21 @@ class ControllerWebClientRaw(object):
             # nothing to do if websocket is not established
             if not self._IsWebSocketConnectionOpen():
                 return
-
-            # check if the subscription exists at all
-            if subscription.GetSubscriptionID() not in self._subscriptions:
+            # check if self._subscriptionIds has subscriptionId
+            if subscriptionId not in self._subscriptions:
                 return
+            # request unsubscribe under lock
+            future = self._backgroundThread.RunCoroutine(_Unsubscribe())
+        try:
+            # wait for the async result outside the lock
+            future.result(timeout=timeout)
+        except Exception as e:
+            log.exception('timeout or error while unsubscribing: %s', e)
 
-            # actually unsubscribe and wait until there is a result
-            self._backgroundThread.RunCoroutine(_Unsubscribe()).result()
+        # re-acquire lock to safely modify the dictionary and check for shutdown
+        with self._subscriptionLock:
+            self._subscriptions.pop(subscriptionId, None)
+
+            # close the websocket connection if no more subscribers are left
+            if len(self._subscriptions) == 0 and self._IsWebSocketConnectionOpen():
+                self._backgroundThread.RunCoroutine(self._CloseWebSocket())
