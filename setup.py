@@ -10,7 +10,6 @@ except (ImportError, SyntaxError):
 setup(
     distclass=Distribution,
     locale_dir='locale',
-    license='Apache License, Version 2.0',  # license must be kept in setup.py unless packaging>=24.2 is adopted
     # flake8 compliance configuration
     enable_flake8=True,  # Enable checks
     fail_on_flake=True,  # Fail builds when checks fail
