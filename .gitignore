@@ -20,6 +20,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+uv.lock
 
 # Installer logs
 pip-log.txt
@@ -56,4 +57,4 @@ docs/_build/
 
 # virtualenv
 /.ve
-
+/.venv
