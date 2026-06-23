@@ -336,22 +336,25 @@ class ControllerWebClientRaw(object):
         # if 'order_by' not in params:
         #     params['order_by'] = 'pk'
 
-        # set the default body data only if no files are given
-        if data is None and files is None:
-            data = {}
+        method = method.upper()
 
         if headers is None:
             headers = {}
 
+        # GET/HEAD must not carry a request body
+        # Some forwarding proxies (e.g. privoxy) hang when a GET arrives with a body,
+        # since python sends the body in a separate TCP segment that the proxy does not expect on GET
+        if data is None and files is None and method not in ('GET', 'HEAD'):
+            data = {}
+
         # Default to json content type if not using multipart/form-data
-        if 'Content-Type' not in headers and files is None:
+        if 'Content-Type' not in headers and files is None and data is not None:
             headers['Content-Type'] = 'application/json'
             data = json.dumps(data)
 
         if 'Accept' not in headers:
             headers['Accept'] = 'application/json'
 
-        method = method.upper()
         response = self.Request(method, path, params=params, data=data, files=files, headers=headers, timeout=timeout)
 
         # Try to parse response
