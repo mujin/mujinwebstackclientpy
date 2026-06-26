@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.35 (2026-06-26)
+
+- Do not send request body on GET/HEAD requests.
+
 ## 0.9.34 (2026-05-12)
 
 - Support backup calendar, logs and stats.
