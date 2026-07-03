@@ -1083,6 +1083,7 @@ class WebstackClient(object):
         saveeds=True,
         saveiodd=True,
         savecalendar=True,
+        savemonitoring=False,
         logentrytimerange=None,
         logentryids=None,
         logtypes=None,
@@ -1107,6 +1108,7 @@ class WebstackClient(object):
         :param saveeds: Whether we want to include eds files in the backup, defaults to True
         :param saveiodd: Whether we want to include iodd files in the backup, defaults to True
         :param savecalendar: Whether we want to include the production calendar in the backup, defaults to True
+        :param savemonitoring: Whether we want to include the grafana monitoring resources in the backup, defaults to False
         :param logentrytimerange: Timestamp range for backing up log entries, defaults to None
         :param logentryids: A list of log entry IDs for backing up log entries, defaults to None
         :param logtypes: A list of log entry types for backing up log entries, defaults to None
@@ -1136,6 +1138,7 @@ class WebstackClient(object):
                 'eds': 'true' if saveeds else 'false',
                 'iodd': 'true' if saveiodd else 'false',
                 'calendar': 'true' if savecalendar else 'false',
+                'monitoring': 'true' if savemonitoring else 'false',
                 'logEntryTimeRange': logentrytimerange,
                 'logEntryIds': ','.join(logentryids) if logentryids else None,
                 'logTypes': ','.join(logtypes) if logtypes else None,
@@ -1162,6 +1165,7 @@ class WebstackClient(object):
         restoreeds=True,
         restoreiodd=True,
         restorecalendar=True,
+        restoremonitoring=False,
         archiveformat=None,
         timeout=600,
     ):
@@ -1175,6 +1179,7 @@ class WebstackClient(object):
         :param restoreeds: Whether we want to restore the eds files, defaults to True
         :param restoreiodd: Whether we want to restore the iodd files, defaults to True
         :param restorecalendar: Whether we want to restore the production calendar, defaults to True
+        :param restoremonitoring: Whether we want to restore the grafana monitoring resources, defaults to False
         :param archiveformat: The backup file archive format, supported values are tar.gz and zip, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises WebstackClientError: If request wasn't successful
@@ -1192,6 +1197,7 @@ class WebstackClient(object):
                 'eds': 'true' if restoreeds else 'false',
                 'iodd': 'true' if restoreiodd else 'false',
                 'calendar': 'true' if restorecalendar else 'false',
+                'monitoring': 'true' if restoremonitoring else 'false',
                 'archiveFormat': archiveformat,
             },
             timeout=timeout,

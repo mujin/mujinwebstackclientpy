@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.35 (2026-07-03)
+
+- Support backup and restore grafana monitoring resources.
+
 ## 0.9.34 (2026-05-12)
 
 - Support backup calendar, logs and stats.
