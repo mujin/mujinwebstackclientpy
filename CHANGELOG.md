@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.37 (2026-07-07)
+
+- Support backup and restore accounts (users, groups, roles, permissions).
+
 ## 0.9.36 (2026-07-03)
 
 - Support backup and restore grafana monitoring resources.
