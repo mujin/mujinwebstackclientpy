@@ -6,11 +6,6 @@ from .version import __version__  # noqa: F401
 import six
 
 try:
-    import ujson as json  # noqa: F401
-except ImportError:
-    import json  # noqa: F401
-
-try:
     from urllib import parse as urlparse  # noqa: F401
 except ImportError:
     import urlparse  # noqa: F401

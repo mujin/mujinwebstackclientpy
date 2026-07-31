@@ -14,6 +14,7 @@
 
 import asyncio
 import base64
+import msgspec
 import os
 import ssl
 import requests
@@ -31,7 +32,6 @@ import websockets.asyncio
 import websockets.asyncio.client
 
 from . import _
-from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
 from .unixsocketadapter import UnixSocketAdapter
 
@@ -350,7 +350,7 @@ class ControllerWebClientRaw(object):
         # Default to json content type if not using multipart/form-data
         if 'Content-Type' not in headers and files is None and data is not None:
             headers['Content-Type'] = 'application/json'
-            data = json.dumps(data)
+            data = msgspec.json.encode(data)
 
         if 'Accept' not in headers:
             headers['Accept'] = 'application/json'
@@ -362,8 +362,8 @@ class ControllerWebClientRaw(object):
         content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
             try:
-                content = json.loads(raw)
-            except ValueError as e:
+                content = msgspec.json.decode(raw)
+            except msgspec.DecodeError as e:
                 log.exception('caught exception parsing json response: %s: %s', e, raw)
                 raise APIServerError(_('Unable to parse server response %d: %s') % (response.status_code, raw))
 
@@ -413,7 +413,7 @@ class ControllerWebClientRaw(object):
             'POST',
             '/api/v2/graphql',
             headers=headers,
-            data=json.dumps(
+            data=msgspec.json.encode(
                 {
                     'query': query,
                     'variables': variables or {},
@@ -434,8 +434,8 @@ class ControllerWebClientRaw(object):
         content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
             try:
-                content = json.loads(raw)
-            except ValueError as e:
+                content = msgspec.json.decode(raw)
+            except msgspec.DecodeError as e:
                 log.exception('caught exception parsing json response: %s: %s', e, raw)
 
         # raise any error returned
@@ -525,8 +525,10 @@ class ControllerWebClientRaw(object):
                 max_size=None,
             )
 
+        # text=True keeps this a text frame, as required by the graphql-ws subprotocol,
+        # since websockets would otherwise send the encoded bytes as a binary frame
         await self._webSocket.send(
-            json.dumps(
+            msgspec.json.encode(
                 {
                     'type': 'connection_init',
                     'payload': {
@@ -534,6 +536,7 @@ class ControllerWebClientRaw(object):
                     },
                 },
             ),
+            text=True,
         )
 
     async def _ListenToWebSocket(self):
@@ -547,8 +550,8 @@ class ControllerWebClientRaw(object):
                 content = None
                 if len(response) > 0:
                     try:
-                        content = json.loads(response)
-                    except ValueError as e:
+                        content = msgspec.json.decode(response)
+                    except msgspec.DecodeError as e:
                         log.exception('caught exception parsing json response: %s: %s', e, response)
 
                 # sanity checks
@@ -627,7 +630,7 @@ class ControllerWebClientRaw(object):
                 }
                 if variables:
                     message['payload']['variables'] = variables
-                await self._webSocket.send(json.dumps(message))
+                await self._webSocket.send(msgspec.json.encode(message), text=True)
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
@@ -659,12 +662,13 @@ class ControllerWebClientRaw(object):
         async def _Unsubscribe():
             try:
                 await self._webSocket.send(
-                    json.dumps(
+                    msgspec.json.encode(
                         {
                             'id': subscriptionId,
                             'type': 'stop',
                         },
                     ),
+                    text=True,
                 )
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
