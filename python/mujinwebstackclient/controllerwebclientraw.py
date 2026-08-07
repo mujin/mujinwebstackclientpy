@@ -193,7 +193,7 @@ class ControllerWebClientRaw(object):
         self._subscriptions = {}
         self._subscriptionLock = threading.Lock()
 
-        self._jsonEncoder = msgspec.json.Encoder(enc_hook=self._JsonEncodeHook)
+        self._jsonEncoder = msgspec.json.Encoder(enc_hook=self._JSONEncodeHook)
         self._jsonDecoder = msgspec.json.Decoder()
 
         # Create session
@@ -253,7 +253,7 @@ class ControllerWebClientRaw(object):
         self._isok = False
 
     @staticmethod
-    def _JsonEncodeHook(obj: Any) -> Any:
+    def _JSONEncodeHook(obj: Any) -> Any:
         # Convert numpy values to the native python objects that msgspec then re-encodes directly.
         # ujson only handles the numpy types that subclass a python builtin (float64, str_), and raises
         # OverflowError on the integer, boolean and narrow float types, so they cannot reach the fallback below.
@@ -267,16 +267,16 @@ class ControllerWebClientRaw(object):
         # Splice the encoded output via msgspec.Raw to avoid reprocessing the serialized result.
         return msgspec.Raw(ujson.dumps(obj).encode('utf-8'))
 
-    def EncodeJson(self, obj: Any) -> bytes:
+    def EncodeJSON(self, obj: Any) -> bytes:
         """Encodes an object into a JSON request body, tolerating types msgspec cannot serialize natively."""
         return self._jsonEncoder.encode(obj)
 
-    def DecodeJson(self, data: Union[str, bytes]) -> Any:
-        """Decodes a JSON response body, raising ValueError rather than leaking msgspec.DecodeError."""
+    def DecodeJSON(self, data: Union[str, bytes]) -> Any:
+        """Decodes a JSON response body, raising APIServerError rather than leaking msgspec.DecodeError."""
         try:
             return self._jsonDecoder.decode(data)
         except msgspec.DecodeError as e:
-            raise ValueError('Received invalid JSON string: %r' % data) from e
+            raise APIServerError(_('Unable to parse server response: %s') % data) from e
 
     def SetLocale(self, locale=None):
         locale = locale or os.environ.get('LANG', None)
