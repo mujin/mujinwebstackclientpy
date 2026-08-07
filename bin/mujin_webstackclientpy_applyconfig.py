@@ -19,7 +19,7 @@ def _PrettifyConfig(config):
     return msgspec.json.format(msgspec.json.encode(config, order='sorted'), indent=2).decode('utf-8') + '\n'
 
 
-def _MergeDicts(x, y):  # for python 2 compatibility
+def _MergeDicts(x, y):
     z = copy.deepcopy(x)
     z.update(y)
     return z

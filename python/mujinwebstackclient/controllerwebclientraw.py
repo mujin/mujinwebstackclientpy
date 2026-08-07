@@ -275,8 +275,10 @@ class ControllerWebClientRaw(object):
         """Decodes a JSON response body, raising APIServerError rather than leaking msgspec.DecodeError."""
         try:
             return self._jsonDecoder.decode(data)
-        except msgspec.DecodeError as e:
-            raise APIServerError(_('Unable to parse server response: %s') % data) from e
+        except msgspec.DecodeError as error:
+            raw = data.decode('utf-8', 'replace') if isinstance(data, bytes) else data
+            log.exception('caught exception parsing json response: %s: %s', error, raw)
+            raise APIServerError(_('Unable to parse server response: %s') % raw[:1000]) from error
 
     def SetLocale(self, locale=None):
         locale = locale or os.environ.get('LANG', None)
@@ -401,11 +403,7 @@ class ControllerWebClientRaw(object):
         raw = response.content.decode('utf-8', 'replace').strip()
         content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
-            try:
-                content = self._jsonDecoder.decode(raw)
-            except msgspec.DecodeError as e:
-                log.exception('caught exception parsing json response: %s: %s', e, raw)
-                raise APIServerError(_('Unable to parse server response %d: %s') % (response.status_code, raw))
+            content = self.DecodeJSON(raw)
 
         # First check error
         if content is not None and 'error_message' in content:
