@@ -21,6 +21,10 @@ must check that the server side accepts the new encoding.
 | `uuid.UUID` | object of every attribute, e.g. `{"bytes":..., "hex":..., "int":1, ...}` | canonical string, e.g. `"00000000-0000-0000-0000-000000000001"` |
 | `decimal.Decimal` | JSON number, e.g. `1.5` | string, e.g. `"1.5"` |
 | `enum.Enum` | object, e.g. `{"name":"RED","value":"red"}` | the member value, e.g. `"red"` |
+| `str` with non-ASCII characters | escaped code points, e.g. `"\u65e5\u672c"` | raw UTF-8 bytes, e.g. `"日本"` |
+
+Both forms are valid JSON, but `Content-Type: application/json` carries no charset, so servers
+must decode the body as UTF-8 (the RFC 8259 default).
 
 The non-finite floats are the most dangerous of these: a `NaN` that used to fail loudly at
 encode time is now silently sent as `null`.

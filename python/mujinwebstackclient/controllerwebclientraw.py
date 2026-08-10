@@ -392,7 +392,7 @@ class ControllerWebClientRaw(object):
         # Default to json content type if not using multipart/form-data
         if 'Content-Type' not in headers and files is None and data is not None:
             headers['Content-Type'] = 'application/json'
-            data = self._jsonEncoder.encode(data)
+            data = self.EncodeJSON(data)
 
         if 'Accept' not in headers:
             headers['Accept'] = 'application/json'
@@ -451,7 +451,7 @@ class ControllerWebClientRaw(object):
             'POST',
             '/api/v2/graphql',
             headers=headers,
-            data=self._jsonEncoder.encode(
+            data=self.EncodeJSON(
                 {
                     'query': query,
                     'variables': variables or {},
@@ -472,9 +472,9 @@ class ControllerWebClientRaw(object):
         content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
             try:
-                content = self._jsonDecoder.decode(raw)
-            except msgspec.DecodeError as e:
-                log.exception('caught exception parsing json response: %s: %s', e, raw)
+                content = self.DecodeJSON(raw)
+            except APIServerError:
+                pass
 
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
@@ -566,7 +566,7 @@ class ControllerWebClientRaw(object):
         # text=True keeps this a text frame, as required by the graphql-ws subprotocol,
         # since websockets would otherwise send the encoded bytes as a binary frame
         await self._webSocket.send(
-            self._jsonEncoder.encode(
+            self.EncodeJSON(
                 {
                     'type': 'connection_init',
                     'payload': {
@@ -588,9 +588,9 @@ class ControllerWebClientRaw(object):
                 content = None
                 if len(response) > 0:
                     try:
-                        content = self._jsonDecoder.decode(response)
-                    except msgspec.DecodeError as e:
-                        log.exception('caught exception parsing json response: %s: %s', e, response)
+                        content = self.DecodeJSON(response)
+                    except APIServerError:
+                        pass
 
                 # sanity checks
                 if content is None or 'type' not in content:
@@ -668,7 +668,7 @@ class ControllerWebClientRaw(object):
                 }
                 if variables:
                     message['payload']['variables'] = variables
-                await self._webSocket.send(self._jsonEncoder.encode(message), text=True)
+                await self._webSocket.send(self.EncodeJSON(message), text=True)
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
@@ -700,7 +700,7 @@ class ControllerWebClientRaw(object):
         async def _Unsubscribe():
             try:
                 await self._webSocket.send(
-                    self._jsonEncoder.encode(
+                    self.EncodeJSON(
                         {
                             'id': subscriptionId,
                             'type': 'stop',
