@@ -474,6 +474,8 @@ class ControllerWebClientRaw(object):
             try:
                 content = self.DecodeJSON(raw)
             except APIServerError:
+                # DecodeJSON already logged the failure, leave content as None so that the checks
+                # below report it as ControllerGraphClientException carrying the status code and response
                 pass
 
         # raise any error returned
@@ -590,6 +592,8 @@ class ControllerWebClientRaw(object):
                     try:
                         content = self.DecodeJSON(response)
                     except APIServerError:
+                        # DecodeJSON already logged the failure, leave content as None so that the sanity
+                        # check below raises and the outer handler stops all subscriptions with the error
                         pass
 
                 # sanity checks
