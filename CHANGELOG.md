@@ -1,9 +1,36 @@
 # Changelog
 
-## 0.9.38 (2026-07-31)
+## 1.0.0 (2026-07-31)
 
 - Use `msgspec` for all JSON encoding and decoding, with a `ujson` fallback for types `msgspec` cannot serialize natively (such as `numpy` scalars and arrays), matching `mujinzmqclientpy` and `mujinplanningserver`.
 - Removed the `json` re-export from the `mujinwebstackclient` package. Import `msgspec` directly instead.
+
+### Breaking changes
+
+`msgspec` serializes several types differently from `ujson`, so request bodies containing any
+of the following now go out on the wire in a different form. Callers that send these types
+must check that the server side accepts the new encoding.
+
+| Value | Previously (`ujson`) | Now (`msgspec`) |
+| --- | --- | --- |
+| `float('nan')`, `float('inf')`, `float('-inf')` | raised `OverflowError` | encoded as `null` |
+| `datetime.datetime`, `datetime.date` | integer Unix timestamp, e.g. `1767323045` | RFC 3339 string, e.g. `"2026-01-02T03:04:05Z"` |
+| `datetime.time`, `datetime.timedelta` | raised `OverflowError` | ISO 8601 string, e.g. `"01:02:03"`, `"PT90S"` |
+| `bytes` | string of escaped code points, e.g. `"\u0000\u0001abc"` | base64 string, e.g. `"AAFhYmM="` |
+| `bytearray` | array of integers, e.g. `[97,98,99]` | base64 string, e.g. `"YWJj"` |
+| `uuid.UUID` | object of every attribute, e.g. `{"bytes":..., "hex":..., "int":1, ...}` | canonical string, e.g. `"00000000-0000-0000-0000-000000000001"` |
+| `decimal.Decimal` | JSON number, e.g. `1.5` | string, e.g. `"1.5"` |
+| `enum.Enum` | object, e.g. `{"name":"RED","value":"red"}` | the member value, e.g. `"red"` |
+
+The non-finite floats are the most dangerous of these: a `NaN` that used to fail loudly at
+encode time is now silently sent as `null`.
+
+Types `msgspec` cannot serialize natively (arbitrary objects, `numpy` values) still go through
+`ujson`, so the old encoding continues to apply to anything nested inside them — a `datetime`
+held as an attribute of a plain object is still encoded as an integer timestamp.
+
+On the decoding side, a JSON number too large for a 64-bit float (e.g. `1e400`) now raises
+`APIServerError` instead of decoding to `float('inf')`.
 
 ## 0.9.37 (2026-07-07)
 
