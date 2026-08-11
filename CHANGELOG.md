@@ -2,7 +2,7 @@
 
 ## 1.0.0 (2026-07-31)
 
-- Use `msgspec` for all JSON encoding and decoding, with a `ujson` fallback for types `msgspec` cannot serialize natively (such as `numpy` scalars and arrays), matching `mujinzmqclientpy` and `mujinplanningserver`.
+- Use `msgspec` for all JSON encoding and decoding, with a `ujson` fallback for types `msgspec` cannot serialize natively (such as `numpy` scalars and arrays).
 - Removed the `json` re-export from the `mujinwebstackclient` package. Import `msgspec` directly instead.
 
 ### Breaking changes
