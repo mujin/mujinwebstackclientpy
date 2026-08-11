@@ -3,7 +3,7 @@
 
 import six
 import copy
-import json
+import msgspec
 import argparse
 import tempfile
 import subprocess
@@ -15,10 +15,11 @@ log = logging.getLogger(__name__)
 
 
 def _PrettifyConfig(config):
-    return json.dumps(config, ensure_ascii=False, indent=2, separators=(',', ': '), sort_keys=True) + '\n'
+    # msgspec only emits compact json, so indent it in a second pass
+    return msgspec.json.format(msgspec.json.encode(config, order='sorted'), indent=2).decode('utf-8') + '\n'
 
 
-def _MergeDicts(x, y):  # for python 2 compatibility
+def _MergeDicts(x, y):
     z = copy.deepcopy(x)
     z.update(y)
     return z
@@ -251,8 +252,8 @@ def _RunMain():
         logging.basicConfig(format='%(asctime)s %(name)s [%(levelname)s] [%(filename)s:%(lineno)s %(funcName)s] %(message)s', level=options.loglevel)
 
     # load template
-    with open(options.template, 'r') as f:
-        template = json.load(f)
+    with open(options.template, 'rb') as f:
+        template = msgspec.json.decode(f.read())
 
     # load preservelist
     preservedpaths = None
@@ -271,8 +272,8 @@ def _RunMain():
         config = webstackclient.GetConfig()
         target = webstackclient.controllerIp
     elif options.config:
-        with open(options.config, 'r') as f:
-            config = json.load(f)
+        with open(options.config, 'rb') as f:
+            config = msgspec.json.decode(f.read())
         target = options.config
     else:
         log.error('need to supply either --controller or --config to continue')

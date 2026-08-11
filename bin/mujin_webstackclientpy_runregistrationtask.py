@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
+import msgspec
 import time
 import datetime
 import argparse
@@ -149,9 +149,10 @@ def _RunMain():
     # write result
     if not options.outputFilename:
         options.outputFilename = '%s.json' % taskName
-    with open(options.outputFilename, 'w') as f:
-        json.dump(result, f, ensure_ascii=False, indent=2, separators=(',', ': '), sort_keys=True)
-        f.write('\n')
+    with open(options.outputFilename, 'wb') as f:
+        # msgspec only emits compact json, so indent it in a second pass
+        f.write(msgspec.json.format(msgspec.json.encode(result, order='sorted'), indent=2))
+        f.write(b'\n')
     log.info('result written to: %s', options.outputFilename)
 
 

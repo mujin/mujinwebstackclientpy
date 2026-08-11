@@ -14,11 +14,13 @@
 
 import asyncio
 import base64
+import msgspec
 import os
 import ssl
 import requests
 import threading
 import traceback
+import ujson
 import uuid
 import copy
 import websockets
@@ -30,8 +32,13 @@ from urllib.parse import urlparse
 import websockets.asyncio
 import websockets.asyncio.client
 
+# numpy is not a dependency of this client, but callers routinely pass numpy values in request bodies
+try:
+    import numpy
+except ImportError:
+    numpy = None
+
 from . import _
-from . import json
 from . import APIServerError, WebstackClientError, ControllerGraphClientException
 from .unixsocketadapter import UnixSocketAdapter
 
@@ -160,6 +167,10 @@ class ControllerWebClientRaw(object):
 
     _threadName: Optional[str] = None  # The last thread this client was used in if we're warning on calls from different threads.
 
+    # Cached JSON decode/encode contexts
+    _jsonEncoder: msgspec.json.Encoder
+    _jsonDecoder: msgspec.json.Decoder
+
     def __init__(
         self,
         baseurl: str,
@@ -181,6 +192,9 @@ class ControllerWebClientRaw(object):
 
         self._subscriptions = {}
         self._subscriptionLock = threading.Lock()
+
+        self._jsonEncoder = msgspec.json.Encoder(enc_hook=self._JSONEncodeHook)
+        self._jsonDecoder = msgspec.json.Decoder()
 
         # Create session
         self._session = requests.Session()
@@ -237,6 +251,34 @@ class ControllerWebClientRaw(object):
 
     def SetDestroy(self):
         self._isok = False
+
+    @staticmethod
+    def _JSONEncodeHook(obj: Any) -> Any:
+        # Convert numpy values to the native python objects that msgspec then re-encodes directly.
+        # ujson only handles the numpy types that subclass a python builtin (float64, str_), and raises
+        # OverflowError on the integer, boolean and narrow float types, so they cannot reach the fallback below.
+        if numpy is not None:
+            if isinstance(obj, numpy.ndarray):
+                return obj.tolist()
+            if isinstance(obj, numpy.generic):
+                return obj.item()
+
+        # For other types, fall back to the ujson behaviour (inferring serialization based on members).
+        # Splice the encoded output via msgspec.Raw to avoid reprocessing the serialized result.
+        return msgspec.Raw(ujson.dumps(obj).encode('utf-8'))
+
+    def EncodeJSON(self, obj: Any) -> bytes:
+        """Encodes an object into a JSON request body, tolerating types msgspec cannot serialize natively."""
+        return self._jsonEncoder.encode(obj)
+
+    def DecodeJSON(self, data: Union[str, bytes]) -> Any:
+        """Decodes a JSON response body, raising APIServerError rather than leaking msgspec.DecodeError."""
+        try:
+            return self._jsonDecoder.decode(data)
+        except msgspec.DecodeError as error:
+            raw = data.decode('utf-8', 'replace') if isinstance(data, bytes) else data
+            log.exception('caught exception parsing json response: %s: %s', error, raw)
+            raise APIServerError(_('Unable to parse server response: %s') % raw[:1000]) from error
 
     def SetLocale(self, locale=None):
         locale = locale or os.environ.get('LANG', None)
@@ -350,7 +392,7 @@ class ControllerWebClientRaw(object):
         # Default to json content type if not using multipart/form-data
         if 'Content-Type' not in headers and files is None and data is not None:
             headers['Content-Type'] = 'application/json'
-            data = json.dumps(data)
+            data = self.EncodeJSON(data)
 
         if 'Accept' not in headers:
             headers['Accept'] = 'application/json'
@@ -361,11 +403,7 @@ class ControllerWebClientRaw(object):
         raw = response.content.decode('utf-8', 'replace').strip()
         content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
-            try:
-                content = json.loads(raw)
-            except ValueError as e:
-                log.exception('caught exception parsing json response: %s: %s', e, raw)
-                raise APIServerError(_('Unable to parse server response %d: %s') % (response.status_code, raw))
+            content = self.DecodeJSON(raw)
 
         # First check error
         if content is not None and 'error_message' in content:
@@ -413,7 +451,7 @@ class ControllerWebClientRaw(object):
             'POST',
             '/api/v2/graphql',
             headers=headers,
-            data=json.dumps(
+            data=self.EncodeJSON(
                 {
                     'query': query,
                     'variables': variables or {},
@@ -434,9 +472,11 @@ class ControllerWebClientRaw(object):
         content: Optional[Dict[str, Any]] = None
         if len(raw) > 0:
             try:
-                content = json.loads(raw)
-            except ValueError as e:
-                log.exception('caught exception parsing json response: %s: %s', e, raw)
+                content = self.DecodeJSON(raw)
+            except APIServerError:
+                # DecodeJSON already logged the failure, leave content as None so that the checks
+                # below report it as ControllerGraphClientException carrying the status code and response
+                pass
 
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
@@ -525,8 +565,10 @@ class ControllerWebClientRaw(object):
                 max_size=None,
             )
 
+        # text=True keeps this a text frame, as required by the graphql-ws subprotocol,
+        # since websockets would otherwise send the encoded bytes as a binary frame
         await self._webSocket.send(
-            json.dumps(
+            self.EncodeJSON(
                 {
                     'type': 'connection_init',
                     'payload': {
@@ -534,6 +576,7 @@ class ControllerWebClientRaw(object):
                     },
                 },
             ),
+            text=True,
         )
 
     async def _ListenToWebSocket(self):
@@ -547,9 +590,11 @@ class ControllerWebClientRaw(object):
                 content = None
                 if len(response) > 0:
                     try:
-                        content = json.loads(response)
-                    except ValueError as e:
-                        log.exception('caught exception parsing json response: %s: %s', e, response)
+                        content = self.DecodeJSON(response)
+                    except APIServerError:
+                        # DecodeJSON already logged the failure, leave content as None so that the sanity
+                        # check below raises and the outer handler stops all subscriptions with the error
+                        pass
 
                 # sanity checks
                 if content is None or 'type' not in content:
@@ -627,7 +672,7 @@ class ControllerWebClientRaw(object):
                 }
                 if variables:
                     message['payload']['variables'] = variables
-                await self._webSocket.send(json.dumps(message))
+                await self._webSocket.send(self.EncodeJSON(message), text=True)
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
@@ -659,12 +704,13 @@ class ControllerWebClientRaw(object):
         async def _Unsubscribe():
             try:
                 await self._webSocket.send(
-                    json.dumps(
+                    self.EncodeJSON(
                         {
                             'id': subscriptionId,
                             'type': 'stop',
                         },
                     ),
+                    text=True,
                 )
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)

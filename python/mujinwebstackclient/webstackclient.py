@@ -17,7 +17,6 @@ from typing import List, Tuple, Any, Dict  # noqa: F401
 from . import WebstackClientError
 from . import controllerwebclientraw
 from . import ugettext as _
-from . import json
 from . import urlparse
 from . import uriutils
 from . import webstackgraphclient
@@ -679,7 +678,7 @@ class WebstackClient(object):
         # type: (List[Tuple[str, Any, Dict[str, bytes]]], float) -> Any
         files = []
         for logType, logEntry, attachments in logEntries:
-            files.append(('logEntry/%s' % logType, ('', json.dumps(logEntry), 'application/json')))
+            files.append(('logEntry/%s' % logType, ('', self._webclient.EncodeJSON(logEntry), 'application/json')))
             if attachments is not None:
                 for attachmentName, attachmentData in six.iteritems(attachments):
                     files.append(('attachment', (attachmentName, attachmentData)))
@@ -728,7 +727,7 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return response.json()
+                return self._webclient.DecodeJSON(response.content)
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
         raise WebstackClientError(response.content.decode('utf-8'), response=response)
@@ -748,7 +747,7 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/fileupload', files=[('files', (filename, f)) for filename, f in files], timeout=timeout)
         if response.status_code in (200,):
             try:
-                return response.json()
+                return self._webclient.DecodeJSON(response.content)
             except Exception as e:
                 log.exception('failed to upload files: %s', e)
         raise WebstackClientError(response.content.decode('utf-8'))
@@ -757,7 +756,7 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return response.json()['filename']
+                return self._webclient.DecodeJSON(response.content)['filename']
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
         raise WebstackClientError(response.content.decode('utf-8'), response=response)
@@ -766,7 +765,7 @@ class WebstackClient(object):
         response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return response.json()['filenames']
+                return self._webclient.DecodeJSON(response.content)['filenames']
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
         raise WebstackClientError(response.content.decode('utf-8'), response=response)
@@ -775,7 +774,7 @@ class WebstackClient(object):
         response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
         if response.status_code in (200, 404):
             try:
-                return response.json()
+                return self._webclient.DecodeJSON(response.content)
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
         raise WebstackClientError(response.content.decode('utf-8'), response=response)
@@ -886,7 +885,7 @@ class WebstackClient(object):
         response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
-        return response.json()
+        return self._webclient.DecodeJSON(response.content)
 
     def DownloadSignalLog(self, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
         """Get the signal log from the controller.
@@ -918,14 +917,14 @@ class WebstackClient(object):
         response = self._webclient.Request('GET', '/query/barcodes/', params={'barcodes': ','.join(barcodes)})
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code, response=response)
-        return response.json()
+        return self._webclient.DecodeJSON(response.content)
 
     #
     # Report stats to registration controller
     #
 
     def ReportStats(self, data, timeout=5):
-        response = self._webclient.Request('POST', '/stats/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        response = self._webclient.Request('POST', '/stats/', data=self._webclient.EncodeJSON(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to upload stats, status code is %d') % response.status_code, response=response)
 
@@ -945,7 +944,7 @@ class WebstackClient(object):
         response = self._webclient.Request('GET', path, timeout=timeout)
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code, response=response)
-        return response.json()
+        return self._webclient.DecodeJSON(response.content)
 
     def HeadConfig(self, filename, timeout=5):
         """Perform a HEAD operation on the given configuration filename to retrieve metadata.
@@ -971,7 +970,7 @@ class WebstackClient(object):
         path = '/config/'
         if filename:
             path = '/config/%s/' % filename
-        response = self._webclient.Request('PUT', path, data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        response = self._webclient.Request('PUT', path, data=self._webclient.EncodeJSON(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code not in (200, 202):
             raise WebstackClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code, response=response)
 
@@ -988,7 +987,7 @@ class WebstackClient(object):
         response = self._webclient.Request('GET', '/systeminfo/')
         if response.status_code != 200:
             raise WebstackClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code, response=response)
-        return response.json()
+        return self._webclient.DecodeJSON(response.content)
 
     #
     # Reference Object PKs.
@@ -1003,7 +1002,7 @@ class WebstackClient(object):
         response = self._webclient.Request(
             'POST',
             '/referenceobjectpks/add/',
-            data=json.dumps(
+            data=self._webclient.EncodeJSON(
                 {
                     'scenepk': scenepk,
                     'referenceobjectpks': referenceobjectpks,
@@ -1025,7 +1024,7 @@ class WebstackClient(object):
         response = self._webclient.Request(
             'POST',
             '/referenceobjectpks/remove/',
-            data=json.dumps(
+            data=self._webclient.EncodeJSON(
                 {
                     'scenepk': scenepk,
                     'referenceobjectpks': referenceobjectpks,
@@ -1210,7 +1209,7 @@ class WebstackClient(object):
         )
         if response.status_code in (200,):
             try:
-                return response.json()
+                return self._webclient.DecodeJSON(response.content)
             except Exception as e:
                 log.exception('failed to restore: %s', e)
         raise WebstackClientError(response.content.decode('utf-8'), response=response)
@@ -1264,4 +1263,4 @@ class WebstackClient(object):
         response = self._webclient.Request('GET', '/schema/%s/%s.json' % (self._userinfo['locale'], schemaId))
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response)
-        return response.json()
+        return self._webclient.DecodeJSON(response.content)
