@@ -678,6 +678,7 @@ class WebstackClient(object):
         # type: (List[Tuple[str, Any, Dict[str, bytes]]], float) -> Any
         files = []
         for logType, logEntry, attachments in logEntries:
+            assert isinstance(logType, str)
             files.append(('logEntry/%s' % logType, ('', self._webclient.EncodeJSON(logEntry), 'application/json')))
             if attachments is not None:
                 for attachmentName, attachmentData in six.iteritems(attachments):
