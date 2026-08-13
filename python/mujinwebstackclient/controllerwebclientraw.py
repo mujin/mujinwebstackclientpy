@@ -120,7 +120,8 @@ class BackgroundThread(object):
 
     def __init__(self):
         self._eventLoopReadyEvent = threading.Event()
-        self._thread = threading.Thread(target=self._RunEventLoop)
+        # Run the event loop as a daemon thread so it can't block interpreter shutdown
+        self._thread = threading.Thread(target=self._RunEventLoop, daemon=True)
         self._thread.start()
         # block and wait for the signal to make sure the event loop is created and set in the _thread
         self._eventLoopReadyEvent.wait()
@@ -163,6 +164,7 @@ class ControllerWebClientRaw(object):
     _webSocket: websockets.asyncio.client.ClientConnection = None  # WebSocket used to connect to WebStack for subscriptions
     _subscriptions: dict[str, Subscription]  # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
+    _connectionLock: threading.Lock  # Lock serializing websocket connection setup, never acquired from the event loop
     _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
 
     _threadName: Optional[str] = None  # The last thread this client was used in if we're warning on calls from different threads.
@@ -192,6 +194,7 @@ class ControllerWebClientRaw(object):
 
         self._subscriptions = {}
         self._subscriptionLock = threading.Lock()
+        self._connectionLock = threading.Lock()
 
         self._jsonEncoder = msgspec.json.Encoder(enc_hook=self._JSONEncodeHook)
         self._jsonDecoder = msgspec.json.Decoder()
@@ -244,7 +247,13 @@ class ControllerWebClientRaw(object):
         if self._backgroundThread is not None:
             # make sure to stop subscriptions and close the websocket first
             with self._subscriptionLock:
-                self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down')))).result()
+                future = self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down'))))
+                try:
+                    # Bonded so that an event loop waiting on the lock can't deadlock shutdown.
+                    # The tasks are cancelled when the thread is destroyed below.
+                    future.result(timeout=5.0)
+                except Exception as e:
+                    log.warning('failed to stop all subscriptions cleanly while shutting down: %s', e)
             # next destroy the thread
             self._backgroundThread.Destroy()
             self._backgroundThread = None
@@ -491,15 +500,23 @@ class ControllerWebClientRaw(object):
 
         return content['data']
 
-    def _EnsureWebSocketConnection(self):
-        if self._backgroundThread is None:
-            # create the background thread for async operations
-            self._backgroundThread = BackgroundThread()
-        if self._webSocket is None:
-            # wait until the connection is established
-            self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result()
-            # start listening without blocking
-            self._backgroundThread.RunCoroutine(self._ListenToWebSocket())
+    def _EnsureWebSocketConnection(self, timeout: float = 5.0):
+        """
+        Opens the WebSocket connection if it is not up yet.
+
+        Must not be called while holding _subscriptionLock.
+        Opening runs on the background event loop, which also takes _subscriptionLock if a subscription drops.
+        Waiting for the open under the lock deadlocks the two threads against each other.
+        """
+        with self._connectionLock:
+            if self._backgroundThread is None:
+                # Create the background thread for async operations
+                self._backgroundThread = BackgroundThread()
+            if self._webSocket is None:
+                # Wait for connect with a timeout so that if something gets stuck we throw instead of hang
+                self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result(timeout=timeout)
+                # Start listening without blocking
+                self._backgroundThread.RunCoroutine(self._ListenToWebSocket())
 
     def _IsWebSocketConnectionOpen(self):
         return self._webSocket is not None
@@ -677,10 +694,11 @@ class ControllerWebClientRaw(object):
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
 
-        with self._subscriptionLock:
-            # make sure the websocket connection is running
-            self._EnsureWebSocketConnection()
+        # Make sure the websocket connection is running.
+        # Done outside _subscriptionLock so the background event loop can take it on connect.
+        self._EnsureWebSocketConnection(timeout=timeout)
 
+        with self._subscriptionLock:
             # wait until the subscription is created
             future = self._backgroundThread.RunCoroutine(_Subscribe())
         try:
