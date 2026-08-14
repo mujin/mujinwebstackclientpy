@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 (2026-08-13)
+
+- Removed a deadlock that occurred when re-subscribing after a subscription dropped. `_EnsureWebSocketConnection` waited for the WebSocket to open while holding the subscription lock, which the background thread needs in order to report the dropped subscription, so neither thread could make progress. Connection setup now happens outside the subscription lock and is bounded by the subscribe timeout.
+- The event loop thread now runs as a daemon so that a stalled event loop cannot block interpreter shutdown, and `Destroy` no longer waits indefinitely for subscriptions to stop.
+
 ## 1.1.0 (2026-08-12)
 
 - `CreateLogEntries` now accepts a payload that is already encoded as JSON `bytes` and sends those bytes
