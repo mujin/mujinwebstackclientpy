@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import msgspec
 import pytest
 import requests_mock
 import random
 import sys
 import copy
 import graphql
+
+from unittest import mock
 
 from mujinwebstackclient.webstackclient import WebstackClient
 from mujinwebstackclient.webstackclientutils import QueryIterator, GetMaximumQueryLimit
@@ -489,3 +492,32 @@ def test_LazyQueryStandardListOperations():
         del scenes[start:end]
         del expectedScenes[start:end]
         assert scenes == expectedScenes
+
+
+def test_CreateLogEntriesAcceptsPreEncodedPayloads():
+    """A payload handed over as JSON bytes must reach the request body unchanged.
+
+    Callers that already serialized an entry, such as to validate it before uploading, rely on this to avoid
+    encoding a second copy of every payload they send.
+    """
+    webstackclient = WebstackClient.__new__(WebstackClient)
+    webstackclient._webclient = mock.Mock()
+    webstackclient._webclient.EncodeJSON.side_effect = msgspec.json.Encoder().encode
+
+    logEntry = {
+        'occurredAt': '2026-08-12T00:00:00Z',
+        'version': 1,
+        'soukoExecutionTask': {'taskId': 'aeon_cycleCount:C6E3KZP5K1LQMQL5', 'taskType': 'aeon_cycleCount'},
+    }
+
+    webstackclient.CreateLogEntries(logEntries=[('SoukoExecutionTask', logEntry, {})])
+    filesFromDict = webstackclient._webclient.APICall.call_args.kwargs['files']
+
+    webstackclient._webclient.reset_mock()
+    webstackclient.CreateLogEntries(logEntries=[('SoukoExecutionTask', msgspec.json.encode(logEntry), {})])
+    filesFromBytes = webstackclient._webclient.APICall.call_args.kwargs['files']
+
+    # Both forms put the same bytes on the wire, so a caller can switch to the encoded form freely.
+    assert filesFromBytes == filesFromDict
+    # The encoded payload went out as given rather than being run through the encoder again.
+    webstackclient._webclient.EncodeJSON.assert_not_called()

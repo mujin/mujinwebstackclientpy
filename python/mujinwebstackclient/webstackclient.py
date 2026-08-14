@@ -11,7 +11,7 @@ import base64
 from email.utils import parsedate
 
 import six
-from typing import List, Tuple, Any, Dict  # noqa: F401
+from typing import List, Tuple, Any, Dict, Union  # noqa: F401
 
 # Mujin imports
 from . import WebstackClientError
@@ -675,10 +675,17 @@ class WebstackClient(object):
     #
 
     def CreateLogEntries(self, logEntries, timeout=5):
-        # type: (List[Tuple[str, Any, Dict[str, bytes]]], float) -> Any
+        # type: (List[Tuple[str, Union[bytes, Any], Dict[str, bytes]]], float) -> Any
+        """Uploads log entries given as (log type, payload, attachments) tuples.
+
+        A payload may be passed as the JSON bytes of an already-encoded entry.
+        Callers may have already serialized it to e.g. ensure that it serializes correctly,
+        and if they have, it makes sense to re-use that already serialized data.
+        """
         files = []
         for logType, logEntry, attachments in logEntries:
-            files.append(('logEntry/%s' % logType, ('', self._webclient.EncodeJSON(logEntry), 'application/json')))
+            body = logEntry if isinstance(logEntry, bytes) else self._webclient.EncodeJSON(logEntry)
+            files.append(('logEntry/%s' % logType, ('', body, 'application/json')))
             if attachments is not None:
                 for attachmentName, attachmentData in six.iteritems(attachments):
                     files.append(('attachment', (attachmentName, attachmentData)))

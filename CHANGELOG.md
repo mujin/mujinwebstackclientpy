@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 (2026-08-12)
+
+- `CreateLogEntries` now accepts a payload that is already encoded as JSON `bytes` and sends those bytes
+  as the request body unchanged. Callers that serialize an entry for their own reasons, such as validating
+  it before upload, can pass the result through instead of encoding the same payload twice.
+
 ## 1.0.0 (2026-07-31)
 
 - Use `msgspec` for all JSON encoding and decoding, with a `ujson` fallback for types `msgspec` cannot serialize natively (such as `numpy` scalars and arrays).
