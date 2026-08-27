@@ -26,8 +26,10 @@ import copy
 import websockets
 from requests import auth as requests_auth
 from requests import adapters as requests_adapters
-from typing import Optional, Callable, Dict, Any, Union, List
+from typing import Optional, Callable, Dict, Any, Union, List, Tuple
 from urllib.parse import urlparse
+from urllib3.fields import RequestField
+from urllib3.filepost import choose_boundary
 
 import websockets.asyncio
 import websockets.asyncio.client
@@ -46,6 +48,64 @@ import logging
 
 logging.getLogger('websockets').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
+
+# Field data types that the requests library treats as already being in-memory.
+# Anything else needs to fall back to the slow path
+_IN_MEMORY_FIELD_DATA_TYPES = (bytes, bytearray, str)
+
+
+def _EncodeMultipartFormData(files: Any) -> Optional[Tuple[bytes, str]]:
+    """Encodes in-memory multipart/form-data fields into a request body in a single allocation.
+
+    The requests library hands multipart fields to urllib3, which appends each part to a BytesIO.
+    This reallocates and copies on each resize, and the final getvalue() copies again.
+    Joining a list of binary parts instead computes the final size up front, and copies only once.
+
+    This optimization only works for fields that are actually in-memory types.
+    Anything with more custom handling inside of requests (file descriptors, etc) needs to fall back.
+
+    :param files: multipart fields as a sequence of (fieldName, (filename, data[, contentType[, headers]])) pairs
+    :return: the (body, contentType) pair, or None if the fields are not all in-memory.
+    """
+    if not files or not isinstance(files, (list, tuple)):
+        return None
+
+    fields: List[RequestField] = []
+    for entry in files:
+        # Only the (fieldName, valueTuple) form is handled.
+        # requests applies extra filename guessing to the bare-value form, which would change the body.
+        if not isinstance(entry, (list, tuple)) or len(entry) != 2:
+            return None
+        fieldName, value = entry
+        if not isinstance(value, (list, tuple)) or not 2 <= len(value) <= 4:
+            return None
+        data = value[1]
+        if not isinstance(data, _IN_MEMORY_FIELD_DATA_TYPES):
+            return None
+        field = RequestField(
+            name=fieldName,
+            data=data,
+            filename=value[0],
+            headers=value[3] if len(value) == 4 else None,
+        )
+
+        # A two-element value carries no content type, and requests leaves it unset rather than guessing.
+        # Replicate this behaviour for consistency.
+        field.make_multipart(content_type=value[2] if len(value) >= 3 else None)
+        fields.append(field)
+
+    # Accumulate our list of encoded fields
+    boundary = choose_boundary()
+    parts: List[bytes] = []
+    for field in fields:
+        parts.append(('--%s\r\n' % boundary).encode('latin-1'))
+        parts.append(field.render_headers().encode('utf-8'))
+        parts.append(field.data.encode('utf-8') if isinstance(field.data, str) else field.data)
+        parts.append(b'\r\n')
+    parts.append(('--%s--\r\n' % boundary).encode('latin-1'))
+
+    # A binary join performs a single allocation + copy of all the input data
+    return b''.join(parts), 'multipart/form-data; boundary=%s' % boundary
 
 
 class JSONWebTokenAuth(requests_auth.AuthBase):
@@ -382,6 +442,14 @@ class ControllerWebClientRaw(object):
 
         if headers is None:
             headers = {}
+
+        # If the files consist of only in-memory data, encode the body ourselves.
+        # Requests uses BytesIO, which performs unnecessary copies/doubling operations that we can avoid.
+        if files is not None and data is None and 'Content-Type' not in headers:
+            encodedMultipart = _EncodeMultipartFormData(files)
+            if encodedMultipart is not None:
+                data, headers['Content-Type'] = encodedMultipart
+                files = None
 
         # GET/HEAD must not carry a request body
         # Some forwarding proxies (e.g. privoxy) hang when a GET arrives with a body,
