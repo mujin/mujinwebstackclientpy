@@ -249,11 +249,11 @@ class ControllerWebClientRaw(object):
             with self._subscriptionLock:
                 future = self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down'))))
                 try:
-                    # Bonded so that an event loop waiting on the lock can't deadlock shutdown.
+                    # Bounded so that an event loop waiting on the lock can't deadlock shutdown.
                     # The tasks are cancelled when the thread is destroyed below.
                     future.result(timeout=5.0)
-                except Exception as e:
-                    log.warning('failed to stop all subscriptions cleanly while shutting down: %s', e)
+                except Exception as error:
+                    log.warning('failed to stop all subscriptions cleanly while shutting down: %s', error)
             # next destroy the thread
             self._backgroundThread.Destroy()
             self._backgroundThread = None
@@ -513,8 +513,19 @@ class ControllerWebClientRaw(object):
                 # Create the background thread for async operations
                 self._backgroundThread = BackgroundThread()
             if self._webSocket is None:
-                # Wait for connect with a timeout so that if something gets stuck we throw instead of hang
-                self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result(timeout=timeout)
+                openWebsocketFuture = self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection())
+                try:
+                    # Wait for connect with a timeout so that if something gets stuck we throw instead of hang
+                    openWebsocketFuture.result(timeout=timeout)
+                except BaseException:
+                    # Cancel so that a slow connect can't finish later and publish a socket nobody listens on
+                    openWebsocketFuture.cancel()
+
+                    # If the connect finished right before the cancel, it might still have created a socket.
+                    # Ensure that we tear down any existing socket just to be safe.
+                    self._backgroundThread.RunCoroutine(self._CloseWebSocket())
+                    raise
+
                 # Start listening without blocking
                 self._backgroundThread.RunCoroutine(self._ListenToWebSocket())
 
@@ -522,9 +533,10 @@ class ControllerWebClientRaw(object):
         return self._webSocket is not None
 
     async def _CloseWebSocket(self):
-        if self._webSocket is not None:
-            await self._webSocket.close()
-            self._webSocket = None
+        # Swap out the socket before we close it so that nobody can see it while it's being shut down
+        webSocket, self._webSocket = self._webSocket, None
+        if webSocket is not None:
+            await webSocket.close()
 
     async def _OpenWebSocketConnection(self):
         authorization = self._session.auth.GetAuthorizationHeader()
@@ -563,7 +575,7 @@ class ControllerWebClientRaw(object):
         # decide on using unix socket or not
         adapter = self._session.adapters.get('http://')
         if isinstance(adapter, UnixSocketAdapter):
-            self._webSocket = await websockets.unix_connect(
+            webSocket = await websockets.unix_connect(
                 path=adapter.get_unix_endpoint(),
                 uri=uri,
                 subprotocols=subprotocols,
@@ -573,7 +585,7 @@ class ControllerWebClientRaw(object):
                 max_size=None,
             )
         else:
-            self._webSocket = await websockets.connect(
+            webSocket = await websockets.connect(
                 uri=uri,
                 subprotocols=subprotocols,
                 additional_headers=headers,
@@ -582,19 +594,28 @@ class ControllerWebClientRaw(object):
                 max_size=None,
             )
 
-        # text=True keeps this a text frame, as required by the graphql-ws subprotocol,
-        # since websockets would otherwise send the encoded bytes as a binary frame
-        await self._webSocket.send(
-            self.EncodeJSON(
-                {
-                    'type': 'connection_init',
-                    'payload': {
-                        'Authorization': authorization,
+        try:
+            # text=True keeps this a text frame, as required by the graphql-ws subprotocol,
+            # since websockets would otherwise send the encoded bytes as a binary frame
+            await webSocket.send(
+                self.EncodeJSON(
+                    {
+                        'type': 'connection_init',
+                        'payload': {
+                            'Authorization': authorization,
+                        },
                     },
-                },
-            ),
-            text=True,
-        )
+                ),
+                text=True,
+            )
+        except BaseException:
+            # Includes cancellation from a caller that timed out waiting on this coroutine
+            await webSocket.close()
+            raise
+
+        # Only publish the socket once the connection is actually initialized.
+        # We don't want to accidentally latch a half-initialized socket somewhere other callers could see it.
+        self._webSocket = webSocket
 
     async def _ListenToWebSocket(self):
         try:
@@ -696,7 +717,10 @@ class ControllerWebClientRaw(object):
 
         # Make sure the websocket connection is running.
         # Done outside _subscriptionLock so the background event loop can take it on connect.
-        self._EnsureWebSocketConnection(timeout=timeout)
+        try:
+            self._EnsureWebSocketConnection(timeout=timeout)
+        except Exception as error:
+            raise ControllerGraphClientException(f'Failed to ensure websocket connection: {error}')
 
         with self._subscriptionLock:
             # wait until the subscription is created
