@@ -443,12 +443,15 @@ class ControllerWebClientRaw(object):
         if headers is None:
             headers = {}
 
+        # Sanitize header keys as lower case so that further presence checks can use hash lookups
+        headers = {key.lower(): value for key, value in headers.items()}
+
         # If the files consist of only in-memory data, encode the body ourselves.
         # Requests uses BytesIO, which performs unnecessary copies/doubling operations that we can avoid.
-        if files is not None and data is None and 'Content-Type' not in headers:
+        if files is not None and data is None and 'content-type' not in headers:
             encodedMultipart = _EncodeMultipartFormData(files)
             if encodedMultipart is not None:
-                data, headers['Content-Type'] = encodedMultipart
+                data, headers['content-type'] = encodedMultipart
                 files = None
 
         # GET/HEAD must not carry a request body
@@ -458,12 +461,12 @@ class ControllerWebClientRaw(object):
             data = {}
 
         # Default to json content type if not using multipart/form-data
-        if 'Content-Type' not in headers and files is None and data is not None:
-            headers['Content-Type'] = 'application/json'
+        if 'content-type' not in headers and files is None and data is not None:
+            headers['content-type'] = 'application/json'
             data = self.EncodeJSON(data)
 
-        if 'Accept' not in headers:
-            headers['Accept'] = 'application/json'
+        if 'accept' not in headers:
+            headers['accept'] = 'application/json'
 
         response = self.Request(method, path, params=params, data=data, files=files, headers=headers, timeout=timeout)
 
