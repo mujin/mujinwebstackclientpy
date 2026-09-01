@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.1 (2026-08-13)
+## 1.1.2 (2026-09-01)
 
 - Removed a deadlock that occurred when re-subscribing after a subscription dropped. `_EnsureWebSocketConnection` waited for the WebSocket to open while holding the subscription lock, which the background thread needs in order to report the dropped subscription, so neither thread could make progress. Connection setup now happens outside the subscription lock and is bounded by the subscribe timeout.
 - The event loop thread now runs as a daemon so that a stalled event loop cannot block interpreter shutdown, and `Destroy` no longer waits indefinitely for subscriptions to stop.
@@ -11,6 +11,17 @@
 - Subscription callbacks are no longer invoked while the subscription lock is held, so a callback may call back into the client. `SubscribeGraphAPI` and `UnsubscribeGraphAPI` still cannot be called from a callback, since they wait on the event loop that the callback is running on, and they now raise `ControllerGraphClientException` saying so rather than blocking forever.
 - `SubscribeGraphAPI` and `UnsubscribeGraphAPI` pin the connection they send on. A connection replaced between establishing it and sending fails the subscribe instead of being written to blindly, and `UnsubscribeGraphAPI` drops the subscription even when the connection is already gone.
 - `Destroy` no longer holds the subscription lock while waiting for subscriptions to stop, which is the lock the event loop needs in order to stop them.
+
+## 1.1.1 (2026-09-01)
+
+- Encode `multipart/form-data` request bodies directly when every field holds in-memory data
+  (`bytes`, `bytearray` or `str`), instead of letting `requests` build the body up in a `BytesIO`.
+  Joining the parts sizes the body once and copies each field a single time, which noticeably
+  reduces both time and peak memory when uploading large fields. Requests carrying file objects,
+  an explicit `Content-Type`, or a separate `data` payload keep using `requests` as before.
+- Request headers set by the client are now normalized to lower case. HTTP header names are
+  case-insensitive, so servers see the same request, but callers that passed a header in a
+  different case previously got it sent twice alongside the client default.
 
 ## 1.1.0 (2026-08-12)
 
