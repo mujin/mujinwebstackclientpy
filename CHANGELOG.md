@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.1 (2026-09-01)
+
+- Encode `multipart/form-data` request bodies directly when every field holds in-memory data
+  (`bytes`, `bytearray` or `str`), instead of letting `requests` build the body up in a `BytesIO`.
+  Joining the parts sizes the body once and copies each field a single time, which noticeably
+  reduces both time and peak memory when uploading large fields. Requests carrying file objects,
+  an explicit `Content-Type`, or a separate `data` payload keep using `requests` as before.
+- Request headers set by the client are now normalized to lower case. HTTP header names are
+  case-insensitive, so servers see the same request, but callers that passed a header in a
+  different case previously got it sent twice alongside the client default.
+
 ## 1.1.0 (2026-08-12)
 
 - `CreateLogEntries` now accepts a payload that is already encoded as JSON `bytes` and sends those bytes

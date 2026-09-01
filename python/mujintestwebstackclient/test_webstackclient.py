@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import io
 import msgspec
 import pytest
 import requests_mock
 import random
+import requests.models
 import sys
 import copy
 import graphql
+import urllib3.filepost
 
 from unittest import mock
 
+from mujinwebstackclient import controllerwebclientraw
 from mujinwebstackclient.webstackclient import WebstackClient
 from mujinwebstackclient.webstackclientutils import QueryIterator, GetMaximumQueryLimit
 from mujinwebstackclient.webstackgraphclientutils import GraphQueryIterator
@@ -507,7 +511,7 @@ def test_CreateLogEntriesAcceptsPreEncodedPayloads():
     logEntry = {
         'occurredAt': '2026-08-12T00:00:00Z',
         'version': 1,
-        'soukoExecutionTask': {'taskId': 'aeon_cycleCount:C6E3KZP5K1LQMQL5', 'taskType': 'aeon_cycleCount'},
+        'soukoExecutionTask': {'taskId': 'cycleCount:C6E3KZP5K1LQMQL5', 'taskType': 'cycleCount'},
     }
 
     webstackclient.CreateLogEntries(logEntries=[('SoukoExecutionTask', logEntry, {})])
@@ -521,3 +525,44 @@ def test_CreateLogEntriesAcceptsPreEncodedPayloads():
     assert filesFromBytes == filesFromDict
     # The encoded payload went out as given rather than being run through the encoder again.
     webstackclient._webclient.EncodeJSON.assert_not_called()
+
+
+def test_MultipartBodyMatchesTheEncodingRequestsWouldHaveProduced(monkeypatch):
+    """The multipart body is built directly rather than through requests, so it must be byte-identical.
+
+    requests appends every part to a growing BytesIO and copies the result again, which for a batch of
+    already-encoded log entries costs several times the size of the body. Sidestepping that is only safe
+    if what reaches the server is unchanged, so compare against requests' own encoder part for part.
+    """
+    # Both encoders pick a random boundary, so pin it to compare the rest of the body
+    fixedBoundary = 'ff00ff00ff00ff00ff00ff00ff00ff00'
+    monkeypatch.setattr(controllerwebclientraw, 'choose_boundary', lambda: fixedBoundary)
+    monkeypatch.setattr(urllib3.filepost, 'choose_boundary', lambda: fixedBoundary)
+
+    files = [
+        ('logEntry/soukoExecutionTask', ('', b'{"taskId":"cycleCount:C6E3KZP5K1LQMQL5"}', 'application/json')),
+        ('logEntry/soukoExecutionTaskStateUpdate', ('', b'{"version":2}', 'application/json')),
+        ('logEntry/unicodePayload', ('', '{"note":"\u65e5\u672c\u8a9e"}', 'application/json')),
+        ('attachment', ('response.json', b'{"ok":true}')),
+        ('attachment', ('empty.json', b'')),
+    ]
+    expectedBody, expectedContentType = requests.models.RequestEncodingMixin._encode_files(files, None)
+
+    body, contentType = controllerwebclientraw.ControllerWebClientRaw._EncodeMultipartFormData(files)
+    assert body == expectedBody
+    assert contentType == expectedContentType
+
+
+@pytest.mark.parametrize(
+    'files',
+    [
+        [('files', ('a.txt', io.BytesIO(b'contents')))],  # a real file object has to be read by requests
+        {'file': b'contents'},  # requests guesses a filename for the mapping form
+        [('field', b'contents')],  # and for a bare value, which would change the body
+        [('attachment', ('a.json', None))],  # a None payload is dropped by requests, not encoded
+        [],  # requests raises its own error for no fields
+    ],
+)
+def test_MultipartEncodingDeclinesFieldsItCannotEncodeItself(files):
+    """Anything requests would treat differently must fall back to requests instead of being guessed at."""
+    assert controllerwebclientraw.ControllerWebClientRaw._EncodeMultipartFormData(files) is None
