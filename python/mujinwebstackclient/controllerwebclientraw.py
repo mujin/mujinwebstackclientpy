@@ -105,6 +105,7 @@ class Subscription(object):
 
     _subscriptionId: str  # subscription id
     _subscriptionCallbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]  # subscription callback function
+    _webSocket: Optional[websockets.asyncio.client.ClientConnection] = None  # connection this subscription was started on, the only one that may fail it
 
     def __init__(self, subscriptionId: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
         self._subscriptionId = subscriptionId
@@ -112,6 +113,12 @@ class Subscription(object):
 
     def GetSubscriptionID(self) -> str:
         return self._subscriptionId
+
+    def GetWebSocket(self) -> Optional[websockets.asyncio.client.ClientConnection]:
+        return self._webSocket
+
+    def SetWebSocket(self, webSocket: Optional[websockets.asyncio.client.ClientConnection]):
+        self._webSocket = webSocket
 
     def GetSubscriptionCallbackFunction(self) -> Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]:
         return self._subscriptionCallbackFunction
@@ -668,11 +675,20 @@ class ControllerWebClientRaw(object):
         webSocket = self._webSocket
         return webSocket is not None and webSocket.state is websockets.protocol.State.OPEN
 
-    async def _CloseWebSocket(self):
-        # Swap out the socket before we close it so that nobody can see it while it's being shut down
-        webSocket, self._webSocket = self._webSocket, None
-        if webSocket is not None:
-            await webSocket.close()
+    async def _CloseIdleWebSocket(self, webSocket: websockets.asyncio.client.ClientConnection):
+        """
+        Closes a connection that was left without subscribers.
+
+        The subscriber set is checked again here because the close is scheduled without waiting for it.
+        A subscribe may have attached to the connection in the meantime, in which  case it is still in use.
+        Deciding and retracting the connection under a single lock hold is what makes that safe,
+        since a subscribe either registers first and keeps the connection, or finds it already retracted and fails.
+        """
+        with self._subscriptionLock:
+            if self._webSocket is not webSocket or len(self._subscriptions) > 0:
+                return
+            self._webSocket = None
+        await webSocket.close()
 
     def _ResolveGraphQLEndpointURL(self):
         """
@@ -837,29 +853,36 @@ class ControllerWebClientRaw(object):
                 # Iteration ended by itself, so the server closed the connection or we are shutting down
                 error = ControllerGraphClientException(_('WebSocket connection closed'))
 
-            # Hand the socket to _StopAllSubscriptions so it can check if this is the active socket
+            # Naming the socket keeps this to our own subscribers, so a newer connection that has
+            # already taken over keeps its own. The socket is closed on the way out either way.
             await self._StopAllSubscriptions(error, webSocket=webSocket)
-
-            # Always close our own socket, even when a newer connection has already taken over
-            await webSocket.close()
 
     async def _StopAllSubscriptions(self, error: Optional[ControllerGraphClientException], webSocket: Optional[websockets.asyncio.client.ClientConnection] = None):
         """
-        Fails every subscription with the given error, drops it, and closes the connection it ran on.
+        Fails subscriptions with the given error, drops them, and closes the connection they ran on.
 
-        A caller that passes webSocket speaks only for that connection.
-        Once the client has moved on to a newer one, the subscriptions belong to that newer connection,
-        so a connection on its way out must leave them alone rather than tear down its successor's subscribers.
+        A caller that passes webSocket speaks only for that connection, so only the subscriptions that were started on it are failed.
+        Ownership is tracked per subscription rather than by comparing against the currently established connection.
+        Connections on their way out must still fail their own subscribers even once the client has moved on to a newer connection,
+        or those subscribers would be left waiting on a connection that is gone and never hear that it went away.
+
+        Passing no webSocket speaks for the whole client and takes down whatever is currently established.
         """
         # Decide and take everything in one step.
-        # A connection published concurrently must end up with its subscriptions dropped by the connection it replaced.
+        # A subscribe racing this either registers before the decision and is honoured, or fails against a retracted connection.
         with self._subscriptionLock:
-            if webSocket is not None and self._webSocket is not webSocket:
-                # Already replaced, so both the current socket and the subscriptions are the newer connection's
-                return
-            webSocketToClose, self._webSocket = self._webSocket, None
-            subscriptions = list(self._subscriptions.values())
-            self._subscriptions.clear()
+            if webSocket is None:
+                webSocketToClose, self._webSocket = self._webSocket, None
+                subscriptions = list(self._subscriptions.values())
+                self._subscriptions.clear()
+            else:
+                subscriptions = [subscription for subscription in self._subscriptions.values() if subscription.GetWebSocket() is webSocket]
+                for subscription in subscriptions:
+                    del self._subscriptions[subscription.GetSubscriptionID()]
+                # This connection is going away either way, but retract the pointer only while it still names this connection
+                webSocketToClose = webSocket
+                if self._webSocket is webSocket:
+                    self._webSocket = None
 
         # Close and notify outside the lock, since both block and a callback may re-enter the client
         if webSocketToClose is not None:
@@ -890,17 +913,23 @@ class ControllerWebClientRaw(object):
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
 
+        # Encode the start message up front so that unserializable data only fails this subscribe, rather than poisoning the shared connection.
+        message: dict[str, Any] = {
+            'id': subscriptionId,
+            'type': 'start',
+            'payload': {'query': query},
+        }
+        if variables:
+            message['payload']['variables'] = variables
+        try:
+            encodedMessage = self.EncodeJSON(message)
+        except Exception as error:
+            raise ControllerGraphClientException(_('Failed to encode the subscribe request: %s') % (error,)) from error
+
         async def _Subscribe(webSocket: websockets.asyncio.client.ClientConnection):
             try:
                 # start a new subscription on the WebSocket connection
-                message = {
-                    'id': subscription.GetSubscriptionID(),
-                    'type': 'start',
-                    'payload': {'query': query},
-                }
-                if variables:
-                    message['payload']['variables'] = variables
-                await webSocket.send(self.EncodeJSON(message), text=True)
+                await webSocket.send(encodedMessage, text=True)
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)), webSocket=webSocket)
@@ -933,6 +962,13 @@ class ControllerWebClientRaw(object):
         except Exception as e:
             raise ControllerGraphClientException(f'Failed to subscribe within timeout: {e}')
         with self._subscriptionLock:
+            # The connection the start message went out on must still be the established one.
+            # Had it been torn down while we waited, its teardown has already run and would never see this subscription,
+            # which would leave it registered against a connection that is gone.
+            if self._webSocket is not webSocket:
+                raise ControllerGraphClientException(_('WebSocket connection dropped before the subscribe completed'))
+            # Record the connection so that only its own teardown can fail this subscription
+            subscription.SetWebSocket(webSocket)
             self._subscriptions[subscriptionId] = subscription
         return subscription
 
@@ -985,6 +1021,7 @@ class ControllerWebClientRaw(object):
         with self._subscriptionLock:
             self._subscriptions.pop(subscriptionId, None)
 
-            # close the websocket connection if no more subscribers are left
+            # Close the websocket connection if no more subscribers are left.
+            # Name the connection so that the close can tell whether a subscribe has claimed it by the time it runs
             if len(self._subscriptions) == 0 and self._IsWebSocketConnectionOpen():
-                self._backgroundThread.RunCoroutine(self._CloseWebSocket())
+                self._backgroundThread.RunCoroutine(self._CloseIdleWebSocket(self._webSocket))
