@@ -511,7 +511,7 @@ def test_CreateLogEntriesAcceptsPreEncodedPayloads():
     logEntry = {
         'occurredAt': '2026-08-12T00:00:00Z',
         'version': 1,
-        'soukoExecutionTask': {'taskId': 'aeon_cycleCount:C6E3KZP5K1LQMQL5', 'taskType': 'aeon_cycleCount'},
+        'soukoExecutionTask': {'taskId': 'cycleCount:C6E3KZP5K1LQMQL5', 'taskType': 'cycleCount'},
     }
 
     webstackclient.CreateLogEntries(logEntries=[('SoukoExecutionTask', logEntry, {})])
@@ -540,7 +540,7 @@ def test_MultipartBodyMatchesTheEncodingRequestsWouldHaveProduced(monkeypatch):
     monkeypatch.setattr(urllib3.filepost, 'choose_boundary', lambda: fixedBoundary)
 
     files = [
-        ('logEntry/soukoExecutionTask', ('', b'{"taskId":"aeon_cycleCount:C6E3KZP5K1LQMQL5"}', 'application/json')),
+        ('logEntry/soukoExecutionTask', ('', b'{"taskId":"cycleCount:C6E3KZP5K1LQMQL5"}', 'application/json')),
         ('logEntry/soukoExecutionTaskStateUpdate', ('', b'{"version":2}', 'application/json')),
         ('logEntry/unicodePayload', ('', '{"note":"\u65e5\u672c\u8a9e"}', 'application/json')),
         ('attachment', ('response.json', b'{"ok":true}')),
