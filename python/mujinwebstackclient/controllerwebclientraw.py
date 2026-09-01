@@ -154,6 +154,46 @@ class BackgroundThread(object):
         self._eventLoop.close()
 
 
+class WebSocketHandoff(object):
+    """
+    Settles which side owns a WebSocket, the thread that asked for the connect or the event loop that ran it.
+    The requester waits with a timeout while the connect runs on the event loop, so both can finish at the same moment.
+    Exactly one of them takes ownership, and is then responsible for closing it.
+    """
+
+    # Guards the fields below, only ever held across non-blocking assignments
+    _lock: threading.Lock
+
+    # Socket that the connect produced, if it got that far
+    _webSocket: websockets.asyncio.client.ClientConnection | None = None
+
+    # Whether the requester stopped waiting for the connect
+    _isAbandoned: bool = False
+
+    def __init__(self):
+        self._lock = threading.Lock()
+
+    def Publish(self, webSocket: websockets.asyncio.client.ClientConnection) -> bool:
+        """
+        Offers a newly connected socket to the requester, returning whether it took it.
+        A false return means the requester already gave up, leaving the connect to close the socket.
+        """
+        with self._lock:
+            if self._isAbandoned:
+                return False
+            self._webSocket = webSocket
+            return True
+
+    def Abandon(self) -> Optional[websockets.asyncio.client.ClientConnection]:
+        """
+        Stops waiting for the connect, returning a socket that arrived too late to be used, if any.
+        Any returned socket is now the caller's to close.
+        """
+        with self._lock:
+            self._isAbandoned = True
+            return self._webSocket
+
+
 class ControllerWebClientRaw(object):
     _baseurl = None  # Base URL of the controller
     _username = None  # Username to login with
@@ -513,18 +553,34 @@ class ControllerWebClientRaw(object):
                 # Create the background thread for async operations
                 self._backgroundThread = BackgroundThread()
             if self._webSocket is None:
-                openWebsocketFuture = self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection())
+                # Resolve the endpoint here instead of on the event loop, since it issues a blocking HTTP request.
+                # If run on the loop, it would stall for the entire call duration, interfering with the connect's timeout.
+                parsedUrl = self._ResolveGraphQLEndpointURL()
+
+                # Wrap the socket handoff so that we can know for sure who owns it
+                handoff = WebSocketHandoff()
+                openWebSocketFuture = self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection(parsedUrl, handoff))
                 try:
                     # Wait for connect with a timeout so that if something gets stuck we throw instead of hang
-                    openWebsocketFuture.result(timeout=timeout)
+                    webSocket = openWebSocketFuture.result(timeout=timeout)
                 except BaseException:
-                    # Cancel so that a slow connect can't finish later and publish a socket nobody listens on
-                    openWebsocketFuture.cancel()
+                    # Cancel so that a slow connect can't finish later and hand back a socket nobody owns
+                    openWebSocketFuture.cancel()
 
-                    # If the connect finished right before the cancel, it might still have created a socket.
-                    # Ensure that we tear down any existing socket just to be safe.
-                    self._backgroundThread.RunCoroutine(self._CloseWebSocket())
+                    # The connect can still complete in the window between the timeout firing and the cancel landing.
+                    # If this happens, the socket it produced is ours to close.
+                    abandonedWebSocket = handoff.Abandon()
+                    if abandonedWebSocket is not None:
+                        try:
+                            self._backgroundThread.RunCoroutine(abandonedWebSocket.close())
+                        except Exception as error:
+                            # Never mask the failure that is already on its way to the caller
+                            log.warning('failed to close the WebSocket left by a timed out connect: %s', error)
                     raise
+
+                # Only publish the socket from the thread holding _connectionLock.
+                # We don't want to publish a socket if the caller has given up on the connect and won't listen on it.
+                self._webSocket = webSocket
 
                 # Start listening without blocking
                 self._backgroundThread.RunCoroutine(self._ListenToWebSocket())
@@ -538,21 +594,31 @@ class ControllerWebClientRaw(object):
         if webSocket is not None:
             await webSocket.close()
 
-    async def _OpenWebSocketConnection(self):
-        authorization = self._session.auth.GetAuthorizationHeader()
-
+    def _ResolveGraphQLEndpointURL(self):
+        """
+        Resolves the GraphQL endpoint URL, following an http to https upgrade if there is one.
+        Issues a blocking HTTP request, so it must run on the calling thread rather than on the event loop.
+        """
         # URL to http GraphQL endpoint on Mujin controller
         path = '/api/v2/graphql'
         try:
             # make a test call to check for http to https upgrades, if there is any
             response = self.Request('HEAD', path)
-            parsedUrl = urlparse(response.url)
+            return urlparse(response.url)
         except Exception as e:
             log.exception('failed to query graphql endpoint: %s', e)
             # fall back to original URL
-            parsedUrl = urlparse(self._baseurl + path)
+            return urlparse(self._baseurl + path)
 
-        # parse url and handle different scheme
+    async def _OpenWebSocketConnection(self, parsedUrl, handoff: WebSocketHandoff) -> websockets.asyncio.client.ClientConnection:
+        """
+        Connects a WebSocket and initializes the graphql-ws session on it.
+        Offers the socket through the handoff object rather than publishing it directly.
+        This way, a connect the requester has already timed out on can clean up after itself properly.
+        """
+        authorization = self._session.auth.GetAuthorizationHeader()
+
+        # handle different scheme
         sslContext = None
         webSocketScheme = ''
         if parsedUrl.scheme == 'https':
@@ -613,9 +679,14 @@ class ControllerWebClientRaw(object):
             await webSocket.close()
             raise
 
-        # Only publish the socket once the connection is actually initialized.
-        # We don't want to accidentally latch a half-initialized socket somewhere other callers could see it.
-        self._webSocket = webSocket
+        # Only hand off the socket once the connection is actually initialized.
+        # Half-initialized sockets should never be visible to other callers.
+        if not handoff.Publish(webSocket):
+            # The requester timed out while we were connecting, so this socket is ours to clean up
+            await webSocket.close()
+            raise asyncio.CancelledError()
+
+        return webSocket
 
     async def _ListenToWebSocket(self):
         try:
@@ -714,6 +785,9 @@ class ControllerWebClientRaw(object):
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
+                # Re-raise so that the caller waiting on this future learns the subscribe failed,
+                # instead of being handed a subscription that no socket is backing.
+                raise
 
         # Make sure the websocket connection is running.
         # Done outside _subscriptionLock so the background event loop can take it on connect.
