@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.2 (2026-09-01)
+
+- Removed a deadlock that occurred when re-subscribing after a subscription dropped. `_EnsureWebSocketConnection` waited for the WebSocket to open while holding the subscription lock, which the background thread needs in order to report the dropped subscription, so neither thread could make progress. Connection setup now happens outside the subscription lock and is bounded by the subscribe timeout.
+- The event loop thread now runs as a daemon so that a stalled event loop cannot block interpreter shutdown, and `Destroy` no longer waits indefinitely for subscriptions to stop.
+- A connect that does not finish within the timeout no longer leaves a WebSocket behind that no listener is reading from, which every later subscribe would attach to and silently receive nothing on. The connect and its requester now settle ownership of the socket explicitly, so whichever side ends up holding it closes it. `SubscribeGraphAPI` reports the failure as `ControllerGraphClientException`.
+- The endpoint probe that resolves http to https upgrades runs on the calling thread instead of the event loop. It is a blocking HTTP request, and running it on the event loop stalled the loop for its full duration, which meant a connect could not observe its own timeout on a slow controller.
+- A subscribe whose start message fails to send now raises `ControllerGraphClientException` instead of returning a `Subscription` that no WebSocket is backing. Such a subscription received neither data nor an error callback.
+- A connection that the server closes cleanly now fails its subscriptions and is discarded, instead of being left in place for later subscribes to attach to and receive nothing on. Whether the listener ends on an error, a clean close, or a shutdown, it tears the connection down on its way out.
+- Each subscription records the connection it was started on, and only that connection's teardown fails it. A connection on its way out no longer skips failing its own subscribers because a newer connection has since been established, and a connection closed for having no subscribers left cannot take down a subscribe that claimed it in the meantime.
+- A subscribe request that cannot be encoded fails only that `SubscribeGraphAPI` call, rather than every other subscription sharing the connection.
+- Subscription callbacks are no longer invoked while the subscription lock is held, so a callback may call back into the client. `SubscribeGraphAPI` and `UnsubscribeGraphAPI` still cannot be called from a callback, since they wait on the event loop that the callback is running on, and they now raise `ControllerGraphClientException` saying so rather than blocking forever.
+- `SubscribeGraphAPI` and `UnsubscribeGraphAPI` pin the connection they send on. A connection replaced between establishing it and sending fails the subscribe instead of being written to blindly, and `UnsubscribeGraphAPI` drops the subscription even when the connection is already gone.
+- `Destroy` no longer holds the subscription lock while waiting for subscriptions to stop, which is the lock the event loop needs in order to stop them.
+
 ## 1.1.1 (2026-09-01)
 
 - Encode `multipart/form-data` request bodies directly when every field holds in-memory data

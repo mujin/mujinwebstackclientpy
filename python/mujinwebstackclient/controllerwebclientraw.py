@@ -33,6 +33,7 @@ from urllib3.filepost import choose_boundary
 
 import websockets.asyncio
 import websockets.asyncio.client
+import websockets.protocol
 
 # numpy is not a dependency of this client, but callers routinely pass numpy values in request bodies
 try:
@@ -104,6 +105,7 @@ class Subscription(object):
 
     _subscriptionId: str  # subscription id
     _subscriptionCallbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]  # subscription callback function
+    _webSocket: Optional[websockets.asyncio.client.ClientConnection] = None  # connection this subscription was started on, the only one that may fail it
 
     def __init__(self, subscriptionId: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]):
         self._subscriptionId = subscriptionId
@@ -111,6 +113,12 @@ class Subscription(object):
 
     def GetSubscriptionID(self) -> str:
         return self._subscriptionId
+
+    def GetWebSocket(self) -> Optional[websockets.asyncio.client.ClientConnection]:
+        return self._webSocket
+
+    def SetWebSocket(self, webSocket: Optional[websockets.asyncio.client.ClientConnection]):
+        self._webSocket = webSocket
 
     def GetSubscriptionCallbackFunction(self) -> Callable[[Optional[ControllerGraphClientException], Optional[dict]], None]:
         return self._subscriptionCallbackFunction
@@ -126,7 +134,8 @@ class BackgroundThread(object):
 
     def __init__(self):
         self._eventLoopReadyEvent = threading.Event()
-        self._thread = threading.Thread(target=self._RunEventLoop)
+        # Run the event loop as a daemon thread so it can't block interpreter shutdown
+        self._thread = threading.Thread(target=self._RunEventLoop, daemon=True)
         self._thread.start()
         # block and wait for the signal to make sure the event loop is created and set in the _thread
         self._eventLoopReadyEvent.wait()
@@ -144,6 +153,10 @@ class BackgroundThread(object):
         """Schedule a coroutine to run on the event loop from another thread"""
         return asyncio.run_coroutine_threadsafe(coroutine, self._eventLoop)
 
+    def IsCurrentThread(self) -> bool:
+        """Whether the calling thread is the event loop thread"""
+        return threading.current_thread() is self._thread
+
     def __del__(self):
         self.Destroy()
 
@@ -159,6 +172,46 @@ class BackgroundThread(object):
         self._eventLoop.close()
 
 
+class WebSocketHandoff(object):
+    """
+    Settles which side owns a WebSocket, the thread that asked for the connect or the event loop that ran it.
+    The requester waits with a timeout while the connect runs on the event loop, so both can finish at the same moment.
+    Exactly one of them takes ownership, and is then responsible for closing it.
+    """
+
+    # Guards the fields below, only ever held across non-blocking assignments
+    _lock: threading.Lock
+
+    # Socket that the connect produced, if it got that far
+    _webSocket: Optional[websockets.asyncio.client.ClientConnection] = None
+
+    # Whether the requester stopped waiting for the connect
+    _isAbandoned: bool = False
+
+    def __init__(self):
+        self._lock = threading.Lock()
+
+    def Publish(self, webSocket: websockets.asyncio.client.ClientConnection) -> bool:
+        """
+        Offers a newly connected socket to the requester, returning whether it took it.
+        A false return means the requester already gave up, leaving the connect to close the socket.
+        """
+        with self._lock:
+            if self._isAbandoned:
+                return False
+            self._webSocket = webSocket
+            return True
+
+    def Abandon(self) -> Optional[websockets.asyncio.client.ClientConnection]:
+        """
+        Stops waiting for the connect, returning a socket that arrived too late to be used, if any.
+        Any returned socket is now the caller's to close.
+        """
+        with self._lock:
+            self._isAbandoned = True
+            return self._webSocket
+
+
 class ControllerWebClientRaw(object):
     _baseurl = None  # Base URL of the controller
     _username = None  # Username to login with
@@ -168,7 +221,8 @@ class ControllerWebClientRaw(object):
     _session = None  # Requests session object
     _webSocket: websockets.asyncio.client.ClientConnection = None  # WebSocket used to connect to WebStack for subscriptions
     _subscriptions: dict[str, Subscription]  # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
-    _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
+    _subscriptionLock: threading.Lock  # Lock protecting _subscriptions and the _webSocket pointer, only ever held across non-blocking operations
+    _connectionLock: threading.Lock  # Lock serializing websocket connection setup and publication of _webSocket, only acquired off the event loop
     _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
 
     _threadName: Optional[str] = None  # The last thread this client was used in if we're warning on calls from different threads.
@@ -198,6 +252,7 @@ class ControllerWebClientRaw(object):
 
         self._subscriptions = {}
         self._subscriptionLock = threading.Lock()
+        self._connectionLock = threading.Lock()
 
         self._jsonEncoder = msgspec.json.Encoder(enc_hook=self._JSONEncodeHook)
         self._jsonDecoder = msgspec.json.Decoder()
@@ -248,9 +303,15 @@ class ControllerWebClientRaw(object):
     def Destroy(self):
         self.SetDestroy()
         if self._backgroundThread is not None:
-            # make sure to stop subscriptions and close the websocket first
-            with self._subscriptionLock:
-                self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down')))).result()
+            # make sure to stop subscriptions and close the websocket first, without holding _subscriptionLock.
+            # _StopAllSubscriptions takes this lock itself on the event loop.
+            future = self._backgroundThread.RunCoroutine(self._StopAllSubscriptions(ControllerGraphClientException(_('Shutting down'))))
+            try:
+                # Bounded so that a wedged event loop can't hold up shutdown.
+                # The tasks are cancelled when the thread is destroyed below.
+                future.result(timeout=5.0)
+            except Exception as error:
+                log.warning('failed to stop all subscriptions cleanly while shutting down: %s', error)
             # next destroy the thread
             self._backgroundThread.Destroy()
             self._backgroundThread = None
@@ -562,39 +623,98 @@ class ControllerWebClientRaw(object):
 
         return content['data']
 
-    def _EnsureWebSocketConnection(self):
-        if self._backgroundThread is None:
-            # create the background thread for async operations
-            self._backgroundThread = BackgroundThread()
-        if self._webSocket is None:
-            # wait until the connection is established
-            self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection()).result()
-            # start listening without blocking
-            self._backgroundThread.RunCoroutine(self._ListenToWebSocket())
+    def _EnsureWebSocketConnection(self, timeout: float = 5.0):
+        """
+        Opens the WebSocket connection if it is not up yet.
+
+        Must not be called while holding _subscriptionLock.
+        Opening runs on the background event loop, which also takes _subscriptionLock if a subscription drops.
+        Waiting for the open under the lock deadlocks the two threads against each other.
+        """
+        with self._connectionLock:
+            if self._backgroundThread is None:
+                # Create the background thread for async operations
+                self._backgroundThread = BackgroundThread()
+            if not self._IsWebSocketConnectionOpen():
+                # Resolve the endpoint here instead of on the event loop, since it issues a blocking HTTP request.
+                # If run on the loop, it would stall for the entire call duration, interfering with the connect's timeout.
+                parsedUrl = self._ResolveGraphQLEndpointURL()
+
+                # Wrap the socket handoff so that we can know for sure who owns it
+                handoff = WebSocketHandoff()
+                openWebSocketFuture = self._backgroundThread.RunCoroutine(self._OpenWebSocketConnection(parsedUrl, handoff))
+                try:
+                    # Wait for connect with a timeout so that if something gets stuck we throw instead of hang
+                    webSocket = openWebSocketFuture.result(timeout=timeout)
+                except BaseException:
+                    # Cancel so that a slow connect can't finish later and hand back a socket nobody owns
+                    openWebSocketFuture.cancel()
+
+                    # The connect can still complete in the window between the timeout firing and the cancel landing.
+                    # If this happens, the socket it produced is ours to close.
+                    abandonedWebSocket = handoff.Abandon()
+                    if abandonedWebSocket is not None:
+                        try:
+                            self._backgroundThread.RunCoroutine(abandonedWebSocket.close())
+                        except Exception as error:
+                            # Never mask the failure that is already on its way to the caller
+                            log.warning('failed to close the WebSocket left by a timed out connect: %s', error)
+                    raise
+
+                # Need to take both _connectionLock _and_ _subscriptionLock here.
+                # We don't want to publish a socket if the caller has given up on the connect and won't listen on it,
+                # or for a connection that is shutting down to see inconsistent state.
+                with self._subscriptionLock:
+                    self._webSocket = webSocket
+
+                # Start listening without blocking
+                self._backgroundThread.RunCoroutine(self._ListenToWebSocket(webSocket))
 
     def _IsWebSocketConnectionOpen(self):
-        return self._webSocket is not None
+        # Sockets stay referenced until teardown, so check if it's actually still open.
+        webSocket = self._webSocket
+        return webSocket is not None and webSocket.state is websockets.protocol.State.OPEN
 
-    async def _CloseWebSocket(self):
-        if self._webSocket is not None:
-            await self._webSocket.close()
+    async def _CloseIdleWebSocket(self, webSocket: websockets.asyncio.client.ClientConnection):
+        """
+        Closes a connection that was left without subscribers.
+
+        The subscriber set is checked again here because the close is scheduled without waiting for it.
+        A subscribe may have attached to the connection in the meantime, in which  case it is still in use.
+        Deciding and retracting the connection under a single lock hold is what makes that safe,
+        since a subscribe either registers first and keeps the connection, or finds it already retracted and fails.
+        """
+        with self._subscriptionLock:
+            if self._webSocket is not webSocket or len(self._subscriptions) > 0:
+                return
             self._webSocket = None
+        await webSocket.close()
 
-    async def _OpenWebSocketConnection(self):
-        authorization = self._session.auth.GetAuthorizationHeader()
-
+    def _ResolveGraphQLEndpointURL(self):
+        """
+        Resolves the GraphQL endpoint URL, following an http to https upgrade if there is one.
+        Issues a blocking HTTP request, so it must run on the calling thread rather than on the event loop.
+        """
         # URL to http GraphQL endpoint on Mujin controller
         path = '/api/v2/graphql'
         try:
             # make a test call to check for http to https upgrades, if there is any
             response = self.Request('HEAD', path)
-            parsedUrl = urlparse(response.url)
+            return urlparse(response.url)
         except Exception as e:
             log.exception('failed to query graphql endpoint: %s', e)
             # fall back to original URL
-            parsedUrl = urlparse(self._baseurl + path)
+            return urlparse(self._baseurl + path)
 
-        # parse url and handle different scheme
+    async def _OpenWebSocketConnection(self, parsedUrl, handoff: WebSocketHandoff) -> websockets.asyncio.client.ClientConnection:
+        """
+        Connects a WebSocket and initializes the graphql-ws session on it.
+        Offers the socket through the handoff object rather than publishing it directly.
+        This way, a connect the requester has already timed out on can clean up after itself properly.
+        """
+        authorization = self._session.auth.GetAuthorizationHeader()
+
+        # handle different scheme
         sslContext = None
         webSocketScheme = ''
         if parsedUrl.scheme == 'https':
@@ -617,7 +737,7 @@ class ControllerWebClientRaw(object):
         # decide on using unix socket or not
         adapter = self._session.adapters.get('http://')
         if isinstance(adapter, UnixSocketAdapter):
-            self._webSocket = await websockets.unix_connect(
+            webSocket = await websockets.unix_connect(
                 path=adapter.get_unix_endpoint(),
                 uri=uri,
                 subprotocols=subprotocols,
@@ -627,7 +747,7 @@ class ControllerWebClientRaw(object):
                 max_size=None,
             )
         else:
-            self._webSocket = await websockets.connect(
+            webSocket = await websockets.connect(
                 uri=uri,
                 subprotocols=subprotocols,
                 additional_headers=headers,
@@ -636,23 +756,38 @@ class ControllerWebClientRaw(object):
                 max_size=None,
             )
 
-        # text=True keeps this a text frame, as required by the graphql-ws subprotocol,
-        # since websockets would otherwise send the encoded bytes as a binary frame
-        await self._webSocket.send(
-            self.EncodeJSON(
-                {
-                    'type': 'connection_init',
-                    'payload': {
-                        'Authorization': authorization,
-                    },
-                },
-            ),
-            text=True,
-        )
-
-    async def _ListenToWebSocket(self):
         try:
-            async for response in self._webSocket:
+            # text=True keeps this a text frame, as required by the graphql-ws subprotocol,
+            # since websockets would otherwise send the encoded bytes as a binary frame
+            await webSocket.send(
+                self.EncodeJSON(
+                    {
+                        'type': 'connection_init',
+                        'payload': {
+                            'Authorization': authorization,
+                        },
+                    },
+                ),
+                text=True,
+            )
+        except BaseException:
+            # Includes cancellation from a caller that timed out waiting on this coroutine
+            await webSocket.close()
+            raise
+
+        # Only hand off the socket once the connection is actually initialized.
+        # Half-initialized sockets should never be visible to other callers.
+        if not handoff.Publish(webSocket):
+            # The requester timed out while we were connecting, so this socket is ours to clean up
+            await webSocket.close()
+            raise asyncio.CancelledError()
+
+        return webSocket
+
+    async def _ListenToWebSocket(self, webSocket: websockets.asyncio.client.ClientConnection):
+        error = None
+        try:
+            async for response in webSocket:
                 # stop if stop is requested
                 if not self._isok:
                     break
@@ -687,39 +822,84 @@ class ControllerWebClientRaw(object):
                     raise ControllerGraphClientException(_('Unexpected server response, missing id: %s') % (response))
 
                 # reply back to subscribers
+                subscriptionId = content['id']
                 with self._subscriptionLock:
                     # select the right subscription
-                    subscriptionId = content['id']
                     subscription = self._subscriptions.get(subscriptionId)
-                    if subscription is None:
-                        # subscriber is gone
-                        continue
+                if subscription is None:
+                    # subscriber is gone
+                    continue
 
-                    # return if there is an error
-                    if 'payload' in content and 'errors' in content['payload'] and len(content['payload']['errors']) > 0:
-                        message = content['payload']['errors'][0].get('message', response)
-                        errorCode = None
-                        if 'extensions' in content['payload']['errors'][0]:
-                            errorCode = content['payload']['errors'][0]['extensions'].get('errorCode', None)
-                        subscription.GetSubscriptionCallbackFunction()(error=ControllerGraphClientException(message, content=content, errorCode=errorCode), response=None)
-                        continue
+                # Dispatch without the lock held, so that callbacks that re-enter the client can't deadlock
+                callbackFunction = subscription.GetSubscriptionCallbackFunction()
 
-                    # return the payload
-                    subscription.GetSubscriptionCallbackFunction()(error=None, response=content.get('payload') or {})
+                # Return if there is an error
+                if 'payload' in content and 'errors' in content['payload'] and len(content['payload']['errors']) > 0:
+                    message = content['payload']['errors'][0].get('message', response)
+                    errorCode = None
+                    if 'extensions' in content['payload']['errors'][0]:
+                        errorCode = content['payload']['errors'][0]['extensions'].get('errorCode', None)
+                    callbackFunction(error=ControllerGraphClientException(message, content=content, errorCode=errorCode), response=None)
+                    continue
+
+                # Return the payload
+                callbackFunction(error=None, response=content.get('payload') or {})
 
         except Exception as e:
             log.exception('caught WebSocket exception: %s', e)
-            with self._subscriptionLock:
-                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to listen to WebSocket: %s') % (e)))
+            error = ControllerGraphClientException(_('Failed to listen to WebSocket: %s') % (e))
+        finally:
+            if error is None:
+                # Iteration ended by itself, so the server closed the connection or we are shutting down
+                error = ControllerGraphClientException(_('WebSocket connection closed'))
 
-    async def _StopAllSubscriptions(self, error: Optional[ControllerGraphClientException]):
-        """Needs to run under self._subscriptionLock"""
-        # close the websocket
-        await self._CloseWebSocket()
-        # send a message back to the callers using the callback function and drop all subscriptions
-        for subscriptionId, subscription in self._subscriptions.items():
+            # Naming the socket keeps this to our own subscribers, so a newer connection that has
+            # already taken over keeps its own. The socket is closed on the way out either way.
+            await self._StopAllSubscriptions(error, webSocket=webSocket)
+
+    async def _StopAllSubscriptions(self, error: Optional[ControllerGraphClientException], webSocket: Optional[websockets.asyncio.client.ClientConnection] = None):
+        """
+        Fails subscriptions with the given error, drops them, and closes the connection they ran on.
+
+        A caller that passes webSocket speaks only for that connection, so only the subscriptions that were started on it are failed.
+        Ownership is tracked per subscription rather than by comparing against the currently established connection.
+        Connections on their way out must still fail their own subscribers even once the client has moved on to a newer connection,
+        or those subscribers would be left waiting on a connection that is gone and never hear that it went away.
+
+        Passing no webSocket speaks for the whole client and takes down whatever is currently established.
+        """
+        # Decide and take everything in one step.
+        # A subscribe racing this either registers before the decision and is honoured, or fails against a retracted connection.
+        with self._subscriptionLock:
+            if webSocket is None:
+                webSocketToClose, self._webSocket = self._webSocket, None
+                subscriptions = list(self._subscriptions.values())
+                self._subscriptions.clear()
+            else:
+                subscriptions = [subscription for subscription in self._subscriptions.values() if subscription.GetWebSocket() is webSocket]
+                for subscription in subscriptions:
+                    del self._subscriptions[subscription.GetSubscriptionID()]
+                # This connection is going away either way, but retract the pointer only while it still names this connection
+                webSocketToClose = webSocket
+                if self._webSocket is webSocket:
+                    self._webSocket = None
+
+        # Close and notify outside the lock, since both block and a callback may re-enter the client
+        if webSocketToClose is not None:
+            await webSocketToClose.close()
+
+        # Send a message back to the callers using the callback function
+        for subscription in subscriptions:
             subscription.GetSubscriptionCallbackFunction()(error=error, response=None)
-        self._subscriptions.clear()
+
+    def _RejectCallFromEventLoop(self, operationName: str):
+        """
+        Rejects a blocking client call that is being made from the event loop thread.
+        Subscription callbacks run on the event loop, and these calls wait on work scheduled onto that same loop,
+        so calling them from a callback would block the loop against itself.
+        """
+        if self._backgroundThread is not None and self._backgroundThread.IsCurrentThread():
+            raise ControllerGraphClientException(_('%s cannot be called from a subscription callback') % (operationName,))
 
     def SubscribeGraphAPI(self, query: str, callbackFunction: Callable[[Optional[ControllerGraphClientException], Optional[dict]], None], variables: Optional[dict] = None, timeout: float = 5.0) -> Subscription:
         """Subscribes to changes on Mujin controller.
@@ -733,27 +913,48 @@ class ControllerWebClientRaw(object):
         subscriptionId = str(uuid.uuid4())
         subscription = Subscription(subscriptionId, callbackFunction)
 
-        async def _Subscribe():
+        # Encode the start message up front so that unserializable data only fails this subscribe, rather than poisoning the shared connection.
+        message: dict[str, Any] = {
+            'id': subscriptionId,
+            'type': 'start',
+            'payload': {'query': query},
+        }
+        if variables:
+            message['payload']['variables'] = variables
+        try:
+            encodedMessage = self.EncodeJSON(message)
+        except Exception as error:
+            raise ControllerGraphClientException(_('Failed to encode the subscribe request: %s') % (error,)) from error
+
+        async def _Subscribe(webSocket: websockets.asyncio.client.ClientConnection):
             try:
                 # start a new subscription on the WebSocket connection
-                message = {
-                    'id': subscription.GetSubscriptionID(),
-                    'type': 'start',
-                    'payload': {'query': query},
-                }
-                if variables:
-                    message['payload']['variables'] = variables
-                await self._webSocket.send(self.EncodeJSON(message), text=True)
+                await webSocket.send(encodedMessage, text=True)
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
-                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
+                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)), webSocket=webSocket)
+                # Re-raise so that the caller waiting on this future learns the subscribe failed,
+                # instead of being handed a subscription that no socket is backing.
+                raise
+
+        # This blocks on the event loop, so it cannot be reached from a subscription callback
+        self._RejectCallFromEventLoop('SubscribeGraphAPI')
+
+        # Make sure the websocket connection is running.
+        # Done outside _subscriptionLock so the background event loop can take it on connect.
+        try:
+            self._EnsureWebSocketConnection(timeout=timeout)
+        except Exception as error:
+            raise ControllerGraphClientException(f'Failed to ensure websocket connection: {error}')
 
         with self._subscriptionLock:
-            # make sure the websocket connection is running
-            self._EnsureWebSocketConnection()
-
+            # Pin the connection that we run this subscribe operation on.
+            # Otherwise, a connection replaced between here and the send fails the subscribe
+            webSocket = self._webSocket
+            if webSocket is None or webSocket.state is not websockets.protocol.State.OPEN:
+                raise ControllerGraphClientException(_('WebSocket connection dropped before the subscribe could be sent'))
             # wait until the subscription is created
-            future = self._backgroundThread.RunCoroutine(_Subscribe())
+            future = self._backgroundThread.RunCoroutine(_Subscribe(webSocket))
         try:
             # wait for the subscribe outside _subscriptionLock to avoid deadlocking
             # with websocket callbacks that may acquire the same lock while resolving
@@ -761,6 +962,13 @@ class ControllerWebClientRaw(object):
         except Exception as e:
             raise ControllerGraphClientException(f'Failed to subscribe within timeout: {e}')
         with self._subscriptionLock:
+            # The connection the start message went out on must still be the established one.
+            # Had it been torn down while we waited, its teardown has already run and would never see this subscription,
+            # which would leave it registered against a connection that is gone.
+            if self._webSocket is not webSocket:
+                raise ControllerGraphClientException(_('WebSocket connection dropped before the subscribe completed'))
+            # Record the connection so that only its own teardown can fail this subscription
+            subscription.SetWebSocket(webSocket)
             self._subscriptions[subscriptionId] = subscription
         return subscription
 
@@ -772,9 +980,9 @@ class ControllerWebClientRaw(object):
         """
         subscriptionId = subscription.GetSubscriptionID()
 
-        async def _Unsubscribe():
+        async def _Unsubscribe(webSocket: websockets.asyncio.client.ClientConnection):
             try:
-                await self._webSocket.send(
+                await webSocket.send(
                     self.EncodeJSON(
                         {
                             'id': subscriptionId,
@@ -785,27 +993,35 @@ class ControllerWebClientRaw(object):
                 )
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
-                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to unsubscribe: %s') % (e)))
+                await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to unsubscribe: %s') % (e)), webSocket=webSocket)
+
+        # This blocks on the event loop, so it cannot be reached from a subscription callback
+        self._RejectCallFromEventLoop('UnsubscribeGraphAPI')
 
         with self._subscriptionLock:
-            # nothing to do if websocket is not established
-            if not self._IsWebSocketConnectionOpen():
-                return
             # check if self._subscriptionIds has subscriptionId
             if subscriptionId not in self._subscriptions:
                 return
-            # request unsubscribe under lock
-            future = self._backgroundThread.RunCoroutine(_Unsubscribe())
-        try:
-            # wait for the async result outside the lock
-            future.result(timeout=timeout)
-        except Exception as e:
-            log.exception('timeout or error while unsubscribing: %s', e)
+            # nothing to send if the websocket is not established, but still drop the subscription
+            # below so that it cannot linger and hold the connection open forever
+            webSocket = self._webSocket
+            if webSocket is None or webSocket.state is not websockets.protocol.State.OPEN:
+                future = None
+            else:
+                # request unsubscribe under lock, pinned to the connection it is being sent on
+                future = self._backgroundThread.RunCoroutine(_Unsubscribe(webSocket))
+        if future is not None:
+            try:
+                # wait for the async result outside the lock
+                future.result(timeout=timeout)
+            except Exception as e:
+                log.exception('timeout or error while unsubscribing: %s', e)
 
         # re-acquire lock to safely modify the dictionary and check for shutdown
         with self._subscriptionLock:
             self._subscriptions.pop(subscriptionId, None)
 
-            # close the websocket connection if no more subscribers are left
+            # Close the websocket connection if no more subscribers are left.
+            # Name the connection so that the close can tell whether a subscribe has claimed it by the time it runs
             if len(self._subscriptions) == 0 and self._IsWebSocketConnectionOpen():
-                self._backgroundThread.RunCoroutine(self._CloseWebSocket())
+                self._backgroundThread.RunCoroutine(self._CloseIdleWebSocket(self._webSocket))
