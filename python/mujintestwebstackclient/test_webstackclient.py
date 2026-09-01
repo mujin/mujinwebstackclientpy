@@ -548,7 +548,7 @@ def test_MultipartBodyMatchesTheEncodingRequestsWouldHaveProduced(monkeypatch):
     ]
     expectedBody, expectedContentType = requests.models.RequestEncodingMixin._encode_files(files, None)
 
-    body, contentType = controllerwebclientraw._EncodeMultipartFormData(files)
+    body, contentType = controllerwebclientraw.ControllerWebClientRaw._EncodeMultipartFormData(files)
     assert body == expectedBody
     assert contentType == expectedContentType
 
@@ -565,4 +565,4 @@ def test_MultipartBodyMatchesTheEncodingRequestsWouldHaveProduced(monkeypatch):
 )
 def test_MultipartEncodingDeclinesFieldsItCannotEncodeItself(files):
     """Anything requests would treat differently must fall back to requests instead of being guessed at."""
-    assert controllerwebclientraw._EncodeMultipartFormData(files) is None
+    assert controllerwebclientraw.ControllerWebClientRaw._EncodeMultipartFormData(files) is None
