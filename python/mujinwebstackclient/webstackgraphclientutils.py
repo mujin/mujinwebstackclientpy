@@ -274,14 +274,17 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         else:
             self._currentFields = self._queryKwargs['fields']
 
-        # initialize meta and total count
-        self._currentFields.setdefault('meta', {})
-        if type(self._currentFields['meta']) is dict:
+        # Only ask for the total count when the caller selected meta. Paging does not
+        # need it, GraphQueryIterator stops on a short page, so it is read by len(),
+        # repr() and indexing alone and those fall back to fetching without it. The
+        # count is a scan of the whole matching set on the server, so a caller that
+        # did not ask for it must not be charged for it.
+        if 'meta' in self._currentFields and type(self._currentFields['meta']) is dict:
             # do not modify fields if caller provided incorrect meta fields
             # e.g. client.graphApi.ListEnvironments(fields={'meta': None})
             self._currentFields['meta'].setdefault('totalCount', None)
 
-        # get the meta only with a minimal webstack call
+        # establish the key name and type name with a minimal webstack call
         self._currentOffset = self._initialOffset
         self._currentLimit = 1
         self._APICall()
@@ -297,6 +300,42 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         self._queryKwargs['options']['offset'] = self._initialOffset
         self._queryKwargs['options']['first'] = self._initialLimit
         return GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)
+
+    def _EnsureTotalCount(self):
+        """Query the total count on its own, for the members that cannot answer without one.
+
+        Fetching the whole result to measure it would defeat the point of this class, so the
+        count is asked for directly instead. It stays cheap for a caller that never needs it.
+        """
+        if self._totalCount is not None:
+            return
+        queryKwargs = copy.deepcopy(self._queryKwargs)
+        queryKwargs['fields'] = {'meta': {'totalCount': None}}
+        queryKwargs['options']['offset'] = self._initialOffset
+        # a limit of zero means unlimited to webstack, and some queries reject it outright
+        queryKwargs['options']['first'] = 1
+        data = self._queryFunction(*self._queryArgs, **queryKwargs)
+        self._totalCount = data['meta']['totalCount']
+
+    # The three members below need a total to answer. It is absent when the caller did not
+    # select meta, so they fetch just the count at that point rather than the whole result.
+
+    def __len__(self):
+        if not self._fetchedAll:
+            self._EnsureTotalCount()
+        return super(LazyGraphQuery, self).__len__()
+
+    def __getitem__(self, index):
+        if not self._fetchedAll and type(index) is not slice:
+            self._EnsureTotalCount()
+        return super(LazyGraphQuery, self).__getitem__(index)
+
+    def __repr__(self):
+        if not self._fetchedAll and self._totalCount is None:
+            # repr must not reach the network, so without a total the buffer cannot be
+            # compared against the full result and is reported as partial
+            return '[..., ' + self._items.__repr__()[1:-1] + ', ...]'
+        return super(LazyGraphQuery, self).__repr__()
 
     def _APICall(self):
         """Make one webstack query"""
@@ -335,6 +374,12 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         """
         return self._typeName
 
+    @property
+    def totalCount(self):
+        """the number of items available in webstack, queried on demand when the caller did not select meta"""
+        self._EnsureTotalCount()
+        return self._totalCount
+
     def FetchAll(self):
         """fetch the complete query result from webstack"""
         if self._fetchedAll:
@@ -354,6 +399,18 @@ def UseLazyGraphQuery(queryFunction):
     def wrapper(self, *args, **kwargs):
         if 'fields' in kwargs and not isinstance(kwargs['fields'], dict):
             kwargs['fields'] = {key: None for key in kwargs['fields']}
+
+        # A limit that already fits in one page has nothing to paginate, so answer it with a
+        # single plain query. Going through LazyGraphQuery would add a round trip and, for a
+        # caller that selected meta, a count over the whole matching set.
+        first = (kwargs.get('options') or {}).get('first') or 0
+        if 0 < first <= webstackclientutils.GetMaximumQueryLimit(0):
+            # copy before defaulting the offset, so the caller's own dictionaries are left alone
+            kwargs = dict(kwargs)
+            kwargs['options'] = dict(kwargs['options'])
+            kwargs['options'].setdefault('offset', 0)
+            return queryFunction(self, *args, **kwargs)
+
         queryResult = LazyGraphQuery(queryFunction, *((self,) + args), **kwargs)
         response = {}
         if queryResult.typeName is not None:

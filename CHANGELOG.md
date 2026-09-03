@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.2 (2026-09-01)
+
+- Graph list queries no longer ask the server for `meta.totalCount` unless the caller selected
+  it. `LazyGraphQuery` used to add the field to every request so that `len()` could answer
+  without fetching, which made each call pay for a count of the whole matching set. Automatic
+  paging never needed it, `GraphQueryIterator` stops on a short page, so the count is now
+  requested only when it was asked for. `len()`, `repr()` and indexing fall back to fetching the
+  result when it is absent, so they still return the same answers. Callers that select
+  `meta` are unaffected, as is the v1 `LazyQuery` used by `GetScenes` and friends.
+
 ## 1.1.1 (2026-09-01)
 
 - Encode `multipart/form-data` request bodies directly when every field holds in-memory data
