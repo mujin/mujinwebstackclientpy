@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.2 (2026-09-01)
+
+- Graph list queries no longer make webstack count the whole matching set unless the count is
+  actually needed. `LazyGraphQuery` used to add `meta.totalCount` to every request so that
+  `len()` could answer without fetching. It is now fetched on demand, and several things that
+  used to force it no longer do: a limit that fits one page is complete after the first call,
+  truthiness is answered by that page rather than falling through to `len()`, and an index
+  inside it is returned from it. Paging never needed the total, `GraphQueryIterator` stops on a
+  short page. When a total is genuinely required the query keeps the caller's field selection,
+  since a resolver such as `ListBodies` only loads, and so only counts, the rows when the data
+  field is selected. The return type is unchanged, callers still get a `LazyGraphQuery` with
+  `FetchAll()`, `totalCount` and the other list helpers. The v1 `LazyQuery` behind `GetScenes`
+  is untouched.
+
 ## 1.1.1 (2026-09-01)
 
 - Encode `multipart/form-data` request bodies directly when every field holds in-memory data
