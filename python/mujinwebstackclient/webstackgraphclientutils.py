@@ -274,27 +274,23 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         else:
             self._currentFields = self._queryKwargs['fields']
 
-        # A limit that already fits in a single page is satisfied by the one call below, so the
-        # window is complete and len(), indexing and repr() answer from the items. Such a query
-        # needs no total at all, and asking for one costs a count over the whole matching set on
-        # the server. Every other query still asks for the count up front, unchanged, because
-        # callers depend on the total being there without another round trip.
-        fitsInOnePage = 0 < self._initialLimit <= webstackclientutils.GetMaximumQueryLimit(0)
-        if not fitsInOnePage:
-            # initialize meta and total count
-            self._currentFields.setdefault('meta', {})
-            if type(self._currentFields['meta']) is dict:
-                # do not modify fields if caller provided incorrect meta fields
-                # e.g. client.graphApi.ListEnvironments(fields={'meta': None})
-                self._currentFields['meta'].setdefault('totalCount', None)
+        # Only ask for the total count when the caller selected meta. Nothing in paging needs it,
+        # GraphQueryIterator stops on a short page, and truthiness answers from the first page,
+        # so len(), indexing and totalCount fetch it on demand instead. The count is a scan of
+        # the whole matching set on the server, so a caller that never needs it must not pay.
+        if 'meta' in self._currentFields and type(self._currentFields['meta']) is dict:
+            # do not modify fields if caller provided incorrect meta fields
+            # e.g. client.graphApi.ListEnvironments(fields={'meta': None})
+            self._currentFields['meta'].setdefault('totalCount', None)
 
-        # fetch the whole window when it fits one page, otherwise just enough to establish the
-        # key name, the type name and the total count
+        # fetch the whole window when the limit fits one page, in which case the result is
+        # already complete, otherwise just enough to establish the key name and the type name
+        fitsInOnePage = 0 < self._initialLimit <= webstackclientutils.GetMaximumQueryLimit(0)
         self._currentOffset = self._initialOffset
         self._currentLimit = self._initialLimit if fitsInOnePage else 1
         self._APICall()
         if fitsInOnePage:
-            list.__init__(self, self._items)
+            list.__init__(self, self._items or [])
             self._fetchedAll = True
 
         # update the current limit
@@ -308,6 +304,57 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         self._queryKwargs['options']['offset'] = self._initialOffset
         self._queryKwargs['options']['first'] = self._initialLimit
         return GraphQueryIterator(self._queryFunction, *self._queryArgs, **self._queryKwargs)
+
+    def _EnsureTotalCount(self):
+        """Fetch the total count on demand, keeping the caller's own field selection.
+
+        The selection has to be kept. A resolver such as ListBodies only loads, and therefore
+        only counts, the rows when the data field is selected, so a query asking for meta alone
+        would report zero. Fetching one row alongside the count is the price of a correct total.
+        """
+        if self._totalCount is not None:
+            return
+        queryKwargs = copy.deepcopy(self._queryKwargs)
+        fields = dict(self._currentFields)
+        fields['meta'] = {'totalCount': None}
+        queryKwargs['fields'] = fields
+        queryKwargs['options']['offset'] = self._initialOffset
+        # a limit of zero means unlimited to webstack, and some queries reject it outright
+        queryKwargs['options']['first'] = 1
+        data = self._queryFunction(*self._queryArgs, **queryKwargs)
+        if 'meta' in data:
+            self._totalCount = data['meta']['totalCount']
+
+    def __bool__(self):
+        # Truthiness only asks whether there is at least one item, which the page already
+        # fetched answers. Falling through to __len__ would make "result or []" pay for a count.
+        if self._fetchedAll:
+            return list.__len__(self) > 0
+        if self._totalCount is not None:
+            return self._totalCount > self._initialOffset
+        return len(self._items or []) > 0
+
+    def __len__(self):
+        if not self._fetchedAll:
+            self._EnsureTotalCount()
+        return super(LazyGraphQuery, self).__len__()
+
+    def __getitem__(self, index):
+        if not self._fetchedAll and type(index) is int and index >= 0:
+            # an index already inside the buffered page needs no total to bounds check against
+            offset = self._initialOffset + index
+            if self._currentOffset <= offset < self._currentOffset + len(self._items or []):
+                return (self._items or [])[offset - self._currentOffset]
+        if not self._fetchedAll and type(index) is not slice:
+            self._EnsureTotalCount()
+        return super(LazyGraphQuery, self).__getitem__(index)
+
+    def __repr__(self):
+        if not self._fetchedAll and self._totalCount is None:
+            # repr must not reach the network, so without a total the buffer cannot be
+            # compared against the full result and is reported as partial
+            return '[..., ' + (self._items or []).__repr__()[1:-1] + ', ...]'
+        return super(LazyGraphQuery, self).__repr__()
 
     def _APICall(self):
         """Make one webstack query"""
@@ -345,6 +392,12 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         e.g. 'ListEnvironmentsReturnValue', 'ListBodiesReturnValue', 'ListGeometryReturnValue'
         """
         return self._typeName
+
+    @property
+    def totalCount(self):
+        """the number of items available in webstack, fetched on demand when the caller did not select meta"""
+        self._EnsureTotalCount()
+        return self._totalCount
 
     def FetchAll(self):
         """fetch the complete query result from webstack"""
