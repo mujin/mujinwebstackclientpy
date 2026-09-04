@@ -2,14 +2,13 @@
 
 ## 1.1.2 (2026-09-01)
 
-- Graph list queries no longer ask webstack for `meta.totalCount` unless it is needed.
-  `LazyGraphQuery` used to add the field to every request so that `len()` could answer without
-  fetching, which charged every caller for a count over the whole matching set. A limit that
-  already fits in a single page is now satisfied by the first call and kept, so it needs no count
-  at all, and an unbounded query asks for one only when `len()`, indexing or `totalCount` needs
-  it. Paging itself never needed the count, `GraphQueryIterator` stops on a short page. The
-  return type is unchanged, callers still get a `LazyGraphQuery`. Callers that select `meta` are
-  unaffected, as is the v1 `LazyQuery` behind `GetScenes`.
+- A graph list query whose limit already fits in a single page no longer makes webstack count the
+  whole matching set. `LazyGraphQuery` added `meta.totalCount` to every request so that `len()`
+  could answer without fetching, but such a query is complete after the first call, so `len()`,
+  indexing and `repr()` can answer from the items and no count is needed. Queries that page are
+  unchanged and still ask for the total up front. The return type is unchanged, callers still get
+  a `LazyGraphQuery` with `FetchAll()`, `totalCount` and the other list helpers. The v1
+  `LazyQuery` behind `GetScenes` is untouched.
 
 ## 1.1.1 (2026-09-01)
 

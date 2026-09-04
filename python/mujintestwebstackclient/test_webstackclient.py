@@ -353,13 +353,13 @@ def _CountTotalCountQueries(mocker):
 
 
 def test_LazyGraphQueryOnlyRequestsTotalCountWhenSelected():
-    """the total count is a scan of the whole matching set on the server, so it is asked for
-    only when the caller selected meta or when something actually needs it
+    """a limit that fits one page is complete after the first call, so it needs no total and
+    must not make the server count the whole matching set. every other query is unchanged.
     """
     totalCount = 2500  # more than one page, so paging would show up in the request count
     webstackclient = WebstackClient('http://controller', 'mujin', 'mujin')
 
-    # a limit that fits one page is answered by a single plain query, with no count
+    # a limit that fits one page: one request, no count, and still a LazyGraphQuery
     with requests_mock.Mocker() as mock:
         _RegisterMockListEnvironmentsAPI(mock, totalCount)
 
@@ -369,8 +369,9 @@ def test_LazyGraphQueryOnlyRequestsTotalCountWhenSelected():
         assert 'meta' not in queryResult
         assert len(mock.request_history) == 1
         assert _CountTotalCountQueries(mock) == 0
-        # the payload stays a LazyGraphQuery so callers keep the list-like helpers
+        # the payload keeps the list-like helpers, and the window is already complete
         assert isinstance(environments, LazyGraphQuery)
+        assert len(environments) == 1
         environments.FetchAll()
         assert _CountTotalCountQueries(mock) == 0
 
@@ -382,26 +383,17 @@ def test_LazyGraphQueryOnlyRequestsTotalCountWhenSelected():
         assert queryResult['meta'] == {'totalCount': totalCount}
         assert _CountTotalCountQueries(mock) == 1
 
-    # an unbounded query pays for no count until something needs one
+    # a query that needs paging is untouched, it still asks for the total up front so that
+    # len() and indexing answer without another round trip
     with requests_mock.Mocker() as mock:
         _RegisterMockListEnvironmentsAPI(mock, totalCount)
 
         environments = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}})['environments']
-        assert _CountTotalCountQueries(mock) == 0
-
-        # len() asks for the count on its own rather than fetching every page to measure it
-        assert len(environments) == totalCount
         assert _CountTotalCountQueries(mock) == 1
-        assert len(mock.request_history) == 2, 'len() walked the pages instead of querying the count'
-        assert list.__len__(environments) == 0, 'len() materialized the result instead of counting it'
-
-    # iterating never needs a count, it stops on a short page
-    with requests_mock.Mocker() as mock:
-        _RegisterMockListEnvironmentsAPI(mock, totalCount)
-
-        environments = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}})['environments']
+        requestsSoFar = len(mock.request_history)
+        assert len(environments) == totalCount
+        assert len(mock.request_history) == requestsSoFar, 'len() should not have queried again'
         assert [environment['id'] for environment in environments] == [str(index) for index in range(totalCount)]
-        assert _CountTotalCountQueries(mock) == 0
 
 
 def test_LazyQueryStandardListOperations():
