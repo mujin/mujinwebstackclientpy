@@ -16,7 +16,7 @@ from unittest import mock
 from mujinwebstackclient import controllerwebclientraw
 from mujinwebstackclient.webstackclient import WebstackClient
 from mujinwebstackclient.webstackclientutils import QueryIterator, GetMaximumQueryLimit
-from mujinwebstackclient.webstackgraphclientutils import GraphQueryIterator
+from mujinwebstackclient.webstackgraphclientutils import GraphQueryIterator, LazyGraphQuery
 
 
 def _RegisterMockGetScenesAPI(mocker, totalCount):
@@ -364,9 +364,14 @@ def test_LazyGraphQueryOnlyRequestsTotalCountWhenSelected():
         _RegisterMockListEnvironmentsAPI(mock, totalCount)
 
         queryResult = webstackclient.graphApi.ListEnvironments(fields={'environments': {'id': None}}, options={'first': 1})
-        assert [environment['id'] for environment in queryResult['environments']] == ['0']
+        environments = queryResult['environments']
+        assert [environment['id'] for environment in environments] == ['0']
         assert 'meta' not in queryResult
         assert len(mock.request_history) == 1
+        assert _CountTotalCountQueries(mock) == 0
+        # the payload stays a LazyGraphQuery so callers keep the list-like helpers
+        assert isinstance(environments, LazyGraphQuery)
+        environments.FetchAll()
         assert _CountTotalCountQueries(mock) == 0
 
     # selecting meta on that same query still returns the count

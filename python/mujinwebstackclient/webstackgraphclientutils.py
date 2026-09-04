@@ -284,10 +284,17 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
             # e.g. client.graphApi.ListEnvironments(fields={'meta': None})
             self._currentFields['meta'].setdefault('totalCount', None)
 
-        # establish the key name and type name with a minimal webstack call
+        # Establish the key name and type name with one webstack call. A limit that already fits
+        # in a single page is satisfied by that very call, so fetch the whole window at once and
+        # keep it. len(), indexing and repr() then answer from the items, and the most common
+        # bounded query needs no count at all.
         self._currentOffset = self._initialOffset
-        self._currentLimit = 1
+        fitsInOnePage = 0 < self._initialLimit <= webstackclientutils.GetMaximumQueryLimit(0)
+        self._currentLimit = self._initialLimit if fitsInOnePage else 1
         self._APICall()
+        if fitsInOnePage:
+            list.__init__(self, self._items)
+            self._fetchedAll = True
 
         # update the current limit
         self._currentLimit = webstackclientutils.GetMaximumQueryLimit(self._initialLimit)
@@ -399,18 +406,6 @@ def UseLazyGraphQuery(queryFunction):
     def wrapper(self, *args, **kwargs):
         if 'fields' in kwargs and not isinstance(kwargs['fields'], dict):
             kwargs['fields'] = {key: None for key in kwargs['fields']}
-
-        # A limit that already fits in one page has nothing to paginate, so answer it with a
-        # single plain query. Going through LazyGraphQuery would add a round trip and, for a
-        # caller that selected meta, a count over the whole matching set.
-        first = (kwargs.get('options') or {}).get('first') or 0
-        if 0 < first <= webstackclientutils.GetMaximumQueryLimit(0):
-            # copy before defaulting the offset, so the caller's own dictionaries are left alone
-            kwargs = dict(kwargs)
-            kwargs['options'] = dict(kwargs['options'])
-            kwargs['options'].setdefault('offset', 0)
-            return queryFunction(self, *args, **kwargs)
-
         queryResult = LazyGraphQuery(queryFunction, *((self,) + args), **kwargs)
         response = {}
         if queryResult.typeName is not None:
