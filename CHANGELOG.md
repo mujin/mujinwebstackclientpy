@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.2 (2026-09-01)
+
+- `LazyGraphQuery` no longer requests `meta.totalCount` on every graph list query. The count is
+  fetched on demand by `len()`, `totalCount` and out-of-page indexing. A limit that fits one page
+  is complete after the first call, truthiness and in-page indexing answer from the fetched page,
+  and iteration stops on a short page. Return type unchanged. The v1 `LazyQuery` is untouched.
+
 ## 1.1.1 (2026-09-01)
 
 - Encode `multipart/form-data` request bodies directly when every field holds in-memory data
