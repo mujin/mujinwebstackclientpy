@@ -278,7 +278,7 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         # GraphQueryIterator stops on a short page, and truthiness answers from the first page,
         # so len(), indexing and totalCount fetch it on demand instead. The count is a scan of
         # the whole matching set on the server, so a caller that never needs it must not pay.
-        if 'meta' in self._currentFields and type(self._currentFields['meta']) is dict:
+        if isinstance(self._currentFields.get('meta'), dict):
             # do not modify fields if caller provided incorrect meta fields
             # e.g. client.graphApi.ListEnvironments(fields={'meta': None})
             self._currentFields['meta'].setdefault('totalCount', None)
@@ -353,7 +353,9 @@ class LazyGraphQuery(webstackclientutils.LazyQuery):
         if not self._fetchedAll and self._totalCount is None:
             # repr must not reach the network, so without a total the buffer cannot be
             # compared against the full result and is reported as partial
-            return '[..., ' + (self._items or []).__repr__()[1:-1] + ', ...]'
+            if not self._items:
+                return '[...]'
+            return '[..., ' + self._items.__repr__()[1:-1] + ', ...]'
         return super(LazyGraphQuery, self).__repr__()
 
     def _APICall(self):
