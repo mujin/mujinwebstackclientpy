@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.2 (2026-09-01)
+## 1.1.3 (2026-09-01)
 
 - Removed a deadlock that occurred when re-subscribing after a subscription dropped. `_EnsureWebSocketConnection` waited for the WebSocket to open while holding the subscription lock, which the background thread needs in order to report the dropped subscription, so neither thread could make progress. Connection setup now happens outside the subscription lock and is bounded by the subscribe timeout.
 - The event loop thread now runs as a daemon so that a stalled event loop cannot block interpreter shutdown, and `Destroy` no longer waits indefinitely for subscriptions to stop.
@@ -13,6 +13,13 @@
 - Subscription callbacks are no longer invoked while the subscription lock is held, so a callback may call back into the client. `SubscribeGraphAPI` and `UnsubscribeGraphAPI` still cannot be called from a callback, since they wait on the event loop that the callback is running on, and they now raise `ControllerGraphClientException` saying so rather than blocking forever.
 - `SubscribeGraphAPI` and `UnsubscribeGraphAPI` pin the connection they send on. A connection replaced between establishing it and sending fails the subscribe instead of being written to blindly, and `UnsubscribeGraphAPI` drops the subscription even when the connection is already gone.
 - `Destroy` no longer holds the subscription lock while waiting for subscriptions to stop, which is the lock the event loop needs in order to stop them.
+
+## 1.1.2 (2026-09-01)
+
+- `LazyGraphQuery` no longer requests `meta.totalCount` on every graph list query. The count is
+  fetched on demand by `len()`, `totalCount` and out-of-page indexing. A limit that fits one page
+  is complete after the first call, truthiness and in-page indexing answer from the fetched page,
+  and iteration stops on a short page. Return type unchanged. The v1 `LazyQuery` is untouched.
 
 ## 1.1.1 (2026-09-01)
 
