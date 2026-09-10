@@ -9,6 +9,37 @@ from typing import Optional, Callable, List, Tuple, Union, Dict, Any
 
 log = logging.getLogger(__name__)
 
+# A variable or field whose lowercase name contains any of these words holds a credential. The
+# Login mutation takes a password and returns a json web token, and both are logged at verbose.
+_credentialKeywords = ('password', 'secret', 'token', 'credential', 'apikey')
+
+# What replaces a credential value when logging.
+_scrubbedValuePlaceholder = '***'
+
+
+def _ScrubCredentialsForLogging(value: Any, _depth: int = 0) -> Any:
+    """Returns a copy of value with credential values replaced by '***', so it is safe to log.
+
+    Recurses into dict and list. This package has to work with none of its optional dependencies
+    installed, so it keeps its own copy instead of importing a shared helper. Never raises, so it
+    is safe to call inside a logging statement.
+    """
+    try:
+        if _depth > 10:
+            return value
+        if isinstance(value, dict):
+            return {
+                key: _scrubbedValuePlaceholder
+                if isinstance(key, str) and any(keyword in key.lower() for keyword in _credentialKeywords)
+                else _ScrubCredentialsForLogging(subValue, _depth + 1)
+                for key, subValue in value.items()
+            }
+        if isinstance(value, list):
+            return [_ScrubCredentialsForLogging(subValue, _depth + 1) for subValue in value]
+        return value
+    except Exception:  # Never raise from a logging path.
+        return _scrubbedValuePlaceholder
+
 
 def _IsScalarType(typeName: str) -> bool:
     return typeName in (
@@ -73,10 +104,10 @@ class GraphClientBase(object):
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
         if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
-            log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
+            log.verbose('executing graph query with variables %r:\n\n%s\n', _ScrubCredentialsForLogging(variables), query)
         data = self._webclient.CallGraphAPI(query, variables, timeout=timeout)
         if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
-            log.verbose('got response from graph query: %r', data)
+            log.verbose('got response from graph query: %r', _ScrubCredentialsForLogging(data))
         return data.get(operationName)
 
     def _CallSubscribeGraphAPI(
@@ -105,7 +136,7 @@ class GraphClientBase(object):
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
         if log.isEnabledFor(5):  # logging.VERBOSE might not be available in the system
-            log.verbose('executing graph subscription with variables %r:\n\n%s\n', variables, query)
+            log.verbose('executing graph subscription with variables %r:\n\n%s\n', _ScrubCredentialsForLogging(variables), query)
         subscription = self._webclient.SubscribeGraphAPI(query, callbackFunction, variables)
         return subscription
 
