@@ -11,7 +11,7 @@ import base64
 from email.utils import parsedate
 
 import six
-from typing import List, Tuple, Any, Dict, Union  # noqa: F401
+from typing import List, Optional, Tuple, Any, Dict, Union  # noqa: F401
 
 # Mujin imports
 from . import WebstackClientError
@@ -26,6 +26,9 @@ from .webstackclientutils import UseLazyQuery
 import logging
 
 log = logging.getLogger(__name__)
+
+# Content type the certificate API speaks in both directions
+CERTIFICATE_CONTENT_TYPE = 'application/x-pem-file'
 
 
 def GetFilenameFromURI(uri, mujinpath):
@@ -873,6 +876,43 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
+
+    #
+    # Certificate related
+    #
+
+    def GetCertificate(self, certificateId, timeout=5):
+        # type: (str, float) -> Optional[bytes]
+        """Downloads a stored TLS certificate as PEM.
+
+        The private key is write only, so what comes back is the leaf certificate followed by any
+        intermediates, never the key it may have been uploaded with.
+
+        :param certificateId: id the certificate is stored under
+        :param timeout: number of seconds to wait for the response
+        :return: the PEM encoded certificate chain, or None when nothing is stored under that id
+        """
+        response = self._webclient.Request('GET', '/api/v2/certificate/%s' % certificateId, headers={'Accept': CERTIFICATE_CONTENT_TYPE}, timeout=timeout)
+        if response.status_code == 404:
+            return None
+        if response.status_code != 200:
+            raise WebstackClientError(_('Failed to download certificate "%s", status code is %d: %s') % (certificateId, response.status_code, response.content.decode('utf-8', 'replace')), response=response)
+        return response.content
+
+    def UploadCertificate(self, certificateId, certificatePem, timeout=5):
+        # type: (str, bytes, float) -> Any
+        """Creates or replaces a TLS certificate from a PEM bundle.
+
+        The bundle holds the leaf certificate followed by any intermediates, and optionally the
+        matching private key, which is stored but never served back. A key that does not match the
+        leaf is rejected. Any name and description already set on the certificate are preserved.
+
+        :param certificateId: id to store the certificate under
+        :param certificatePem: PEM bundle of the certificate chain, optionally with its private key
+        :param timeout: number of seconds to wait for the response
+        :return: the stored certificate and its derived metadata, without any key material
+        """
+        return self._webclient.APICall('PUT', 'certificate/%s' % certificateId, data=certificatePem, headers={'Content-Type': CERTIFICATE_CONTENT_TYPE}, expectedStatusCode=200, timeout=timeout, apiVersion='v2')
 
     #
     # Log related

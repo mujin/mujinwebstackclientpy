@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 (2026-09-10)
+
+- Added `GetCertificate` and `UploadCertificate` for the webstack certificate API. `GetCertificate`
+  returns the stored PEM chain, or `None` when nothing is stored under that id; the private key is
+  write only and never comes back. `UploadCertificate` creates or replaces a certificate from a PEM
+  bundle of the chain and, optionally, its matching private key.
+
 ## 1.1.2 (2026-09-01)
 
 - `LazyGraphQuery` no longer requests `meta.totalCount` on every graph list query. The count is
