@@ -419,7 +419,7 @@ class ControllerWebClientRaw(object):
         files: Optional[Dict[str, Any]] = None,
         timeout: float = 5,
         apiVersion: str = 'v1',
-        parseJSONResponse: bool = True,
+        parseJsonResponse: bool = True,
     ) -> Any:
         path = '/api/%s/%s' % (apiVersion, path.lstrip('/'))
         if apiVersion == 'v1' and not path.endswith('/'):
@@ -475,7 +475,7 @@ class ControllerWebClientRaw(object):
         # success, so decode the body whenever it could be carrying one
         raw = response.content.decode('utf-8', 'replace').strip()
         content: Optional[Dict[str, Any]] = None
-        if len(raw) > 0 and (parseJSONResponse or response.status_code >= 400):
+        if len(raw) > 0 and (parseJsonResponse or response.status_code >= 400):
             content = self.DecodeJSON(raw)
 
         # First check error
@@ -505,7 +505,7 @@ class ControllerWebClientRaw(object):
             raise APIServerError(_('Unexpected server response %d: %s') % (response.status_code, raw))
 
         # Hand back the body untouched for endpoints whose successful response is not JSON
-        if not parseJSONResponse:
+        if not parseJsonResponse:
             return response.content
 
         return content

@@ -892,7 +892,7 @@ class WebstackClient(object):
         :param timeout: number of seconds to wait for the response
         :return: the PEM encoded certificate chain
         """
-        return self._webclient.APICall('GET', 'certificate/%s' % certificateId, headers={'Accept': CERTIFICATE_CONTENT_TYPE}, timeout=timeout, apiVersion='v2', parseJSONResponse=False)
+        return self._webclient.APICall('GET', 'certificate/%s' % certificateId, headers={'Accept': CERTIFICATE_CONTENT_TYPE}, timeout=timeout, apiVersion='v2', parseJsonResponse=False)
 
     def UploadCertificate(self, certificateId, pemData, timeout=5):
         # type: (str, bytes, float) -> Any
