@@ -419,6 +419,7 @@ class ControllerWebClientRaw(object):
         files: Optional[Dict[str, Any]] = None,
         timeout: float = 5,
         apiVersion: str = 'v1',
+        parseJSONResponse: bool = True,
     ) -> Any:
         path = '/api/%s/%s' % (apiVersion, path.lstrip('/'))
         if apiVersion == 'v1' and not path.endswith('/'):
@@ -470,10 +471,11 @@ class ControllerWebClientRaw(object):
 
         response = self.Request(method, path, params=params, data=data, files=files, headers=headers, timeout=timeout)
 
-        # Try to parse response
+        # Errors always come back as JSON, even from endpoints that serve another content type on
+        # success, so decode the body whenever it could be carrying one
         raw = response.content.decode('utf-8', 'replace').strip()
         content: Optional[Dict[str, Any]] = None
-        if len(raw) > 0:
+        if len(raw) > 0 and (parseJSONResponse or response.status_code >= 400):
             content = self.DecodeJSON(raw)
 
         # First check error
@@ -501,6 +503,10 @@ class ControllerWebClientRaw(object):
         if response.status_code != expectedStatusCode:
             log.error('response status code is %d, expecting %d for %s %s: %s', response.status_code, expectedStatusCode, method, path, raw)
             raise APIServerError(_('Unexpected server response %d: %s') % (response.status_code, raw))
+
+        # Hand back the body untouched for endpoints whose successful response is not JSON
+        if not parseJSONResponse:
+            return response.content
 
         return content
 
