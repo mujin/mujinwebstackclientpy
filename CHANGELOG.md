@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 (2026-09-10)
+
+- Added `GetCertificate` and `UploadCertificate` for the webstack certificate API. `GetCertificate`
+  returns the stored PEM chain and raises `APIServerError` when nothing is stored under that id; the
+  private key is write only and never comes back. `UploadCertificate` creates or replaces a
+  certificate from a PEM bundle of the chain and, optionally, its matching private key.
+- `APICall` accepts `parseJsonResponse`, which returns the response body as `bytes` instead of
+  decoding it as JSON. Endpoints that serve another content type on success, such as the certificate
+  download, can now go through `APICall` and get its error handling; error responses are still
+  decoded as JSON either way.
+
 ## 1.1.2 (2026-09-01)
 
 - `LazyGraphQuery` no longer requests `meta.totalCount` on every graph list query. The count is

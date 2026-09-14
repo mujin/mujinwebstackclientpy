@@ -27,6 +27,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+# Content type the certificate API speaks in both directions
+CERTIFICATE_CONTENT_TYPE = 'application/x-pem-file'
+
 
 def GetFilenameFromURI(uri, mujinpath):
     """Returns the filesystem path that the URI points to.
@@ -873,6 +876,38 @@ class WebstackClient(object):
         if response.status_code != 200:
             raise WebstackClientError(response.content.decode('utf-8'), response=response.content)
         return response
+
+    #
+    # Certificate related
+    #
+
+    def GetCertificate(self, certificateId, timeout=5):
+        # type: (str, float) -> bytes
+        """Downloads a stored TLS certificate as PEM.
+
+        The private key is write only, so what comes back is the leaf certificate followed by any
+        intermediates, never the key it may have been uploaded with.
+
+        :param certificateId: id the certificate is stored under
+        :param timeout: number of seconds to wait for the response
+        :return: the PEM encoded certificate chain
+        """
+        return self._webclient.APICall('GET', 'certificate/%s' % certificateId, headers={'Accept': CERTIFICATE_CONTENT_TYPE}, timeout=timeout, apiVersion='v2', parseJsonResponse=False)
+
+    def UploadCertificate(self, certificateId, pemData, timeout=5):
+        # type: (str, bytes, float) -> Any
+        """Creates or replaces a TLS certificate from a PEM bundle.
+
+        The bundle holds the leaf certificate followed by any intermediates, and optionally the
+        matching private key, which is stored but never served back. A key that does not match the
+        leaf is rejected. Any name and description already set on the certificate are preserved.
+
+        :param certificateId: id to store the certificate under
+        :param pemData: PEM bundle of the certificate chain, optionally with its private key
+        :param timeout: number of seconds to wait for the response
+        :return: the stored certificate and its derived metadata, without any key material
+        """
+        return self._webclient.APICall('PUT', 'certificate/%s' % certificateId, data=pemData, headers={'Content-Type': CERTIFICATE_CONTENT_TYPE}, expectedStatusCode=200, timeout=timeout, apiVersion='v2')
 
     #
     # Log related
