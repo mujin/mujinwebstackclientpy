@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1 (2026-09-23)
+
+- The `CreateLogEntries` annotation now says what the method accepts. The attachments of a log entry
+  are optional, which the method already checks for. The log entries are only iterated over, never
+  written to, so they are a `Sequence` rather than a `List`. A `List` would let the method put an
+  element of its own into the caller's list, so a type checker only accepts one whose element type is
+  the declared one, and turned away callers holding a list of perfectly good log entries.
+
 ## 1.2.0 (2026-09-10)
 
 - Added `GetCertificate` and `UploadCertificate` for the webstack certificate API. `GetCertificate`
