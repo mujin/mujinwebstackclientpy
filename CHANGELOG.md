@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0 (2026-11-12)
+
+- Regenerated `webstackgraphclient.py` against the current webstack schema. It adds
+  `LockEnvironment` and `UnlockEnvironment`, which lock an environment against modification and
+  deletion until it is unlocked, along with the other queries and mutations webstack gained since
+  the client was last generated against 3.4.1.
+- Removed the schedule event methods (`CreateScheduleEvent`, `DeleteAllScheduleEvents`,
+  `DeleteScheduleEvent`, `GetScheduleEvent`, `ListScheduleEventsWithInstances`,
+  `ModifyScheduleEvent`) and `SubscribeCloudAgentState`. Webstack replaced schedules with calendar
+  events and dropped cloud agent support, so these already failed against a current controller.
+
 ## 1.2.1 (2026-09-23)
 
 - The `CreateLogEntries` annotation now says what the method accepts. The attachments of a log entry
