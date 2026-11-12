@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.0 (2026-10-14)
+## 1.3.0 (2026-11-12)
 
 - Regenerated `webstackgraphclient.py` against the current webstack schema. It adds
   `LockEnvironment` and `UnlockEnvironment`, which lock an environment against modification and
