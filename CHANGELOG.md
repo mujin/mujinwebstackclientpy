@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.2 (2026-11-13)
+
+- A failed GraphQL endpoint probe when opening the subscription websocket no longer leaves reference
+  cycles behind. The tracebacks of the `requests`/`urllib3` exception chain kept their frames alive,
+  and those frames held the session, its adapters and the exceptions themselves, so every failed
+  probe (for example while the webstack is still starting up) produced garbage that only the cyclic
+  GC could reclaim. The frames of the whole chain are now cleared once the failure has been logged.
+
 ## 1.2.1 (2026-09-23)
 
 - The `CreateLogEntries` annotation now says what the method accepts. The attachments of a log entry

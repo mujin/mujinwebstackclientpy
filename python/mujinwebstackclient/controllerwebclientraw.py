@@ -159,6 +159,25 @@ class BackgroundThread(object):
         self._eventLoop.close()
 
 
+def _ClearExceptionChainFrames(exception: BaseException) -> None:
+    """Clears the local variables of every frame referenced by the tracebacks of an exception and its causes.
+
+    Frames that are still executing cannot be cleared and are skipped by traceback.clear_frames.
+    """
+    # Track visited exceptions since __cause__ and __context__ can point at the same exception, or loop.
+    visitedExceptionIds = set()
+    pendingExceptions: List[BaseException] = [exception]
+    while pendingExceptions:
+        currentException = pendingExceptions.pop()
+        if id(currentException) in visitedExceptionIds:
+            continue
+        visitedExceptionIds.add(id(currentException))
+        traceback.clear_frames(currentException.__traceback__)
+        for linkedException in (currentException.__cause__, currentException.__context__):
+            if linkedException is not None:
+                pendingExceptions.append(linkedException)
+
+
 class ControllerWebClientRaw(object):
     _baseurl = None  # Base URL of the controller
     _username = None  # Username to login with
@@ -597,6 +616,10 @@ class ControllerWebClientRaw(object):
             parsedUrl = urlparse(response.url)
         except Exception as e:
             log.exception('failed to query graphql endpoint: %s', e)
+            # The tracebacks of the requests/urllib3 exception chain keep their frames alive.
+            # These frames pin the session, its adapters and the exceptions themselves, forming reference cycles.
+            # Clear the frames now that the failure has been logged so that we don't need cyclic GC enabled.
+            _ClearExceptionChainFrames(e)
             # fall back to original URL
             parsedUrl = urlparse(self._baseurl + path)
 
