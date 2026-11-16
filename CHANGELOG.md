@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 (2026-11-16)
+
+- A failed GraphQL endpoint probe when opening the subscription websocket no longer leaves reference
+  cycles behind. The tracebacks of the `requests`/`urllib3` exception chain kept their frames alive,
+  and those frames held the session, its adapters and the exceptions themselves, so every failed
+  probe (for example while the webstack is still starting up) produced garbage that only the cyclic
+  GC could reclaim. The frames of the whole chain are now cleared once the failure has been logged.
+
 ## 1.3.0 (2026-11-12)
 
 - Regenerated `webstackgraphclient.py` against the current webstack schema. It adds
