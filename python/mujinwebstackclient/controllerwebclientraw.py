@@ -33,6 +33,7 @@ from urllib3.filepost import choose_boundary
 
 import websockets.asyncio
 import websockets.asyncio.client
+import websockets.exceptions
 
 # numpy is not a dependency of this client, but callers routinely pass numpy values in request bodies
 try:
@@ -48,6 +49,9 @@ import logging
 
 logging.getLogger('websockets').setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
+
+# Close code webstack sends on the graphql websocket when it does not accept the connection's credentials
+_webSocketUnauthorizedCloseCode = 4401
 
 # Field data types that the requests library treats as already being in-memory.
 # Anything else needs to fall back to the slow path
@@ -83,6 +87,23 @@ class JSONWebTokenAuth(requests_auth.AuthBase):
     def _SetJSONWebToken(self, response, *args, **kwargs):
         # switch to JWT authentication
         self._jsonWebToken = response.cookies.get('jwttoken')
+
+    def GetJSONWebToken(self) -> Optional[str]:
+        return self._jsonWebToken
+
+    def ClearJSONWebToken(self, rejectedJSONWebToken: str) -> bool:
+        """Drops the cached token so that the next request authenticates with basic auth and receives a new one.
+
+        The token is only dropped if it is still the one the server rejected,
+        so that a token renewed in the meantime by a concurrent request is kept.
+
+        Returns:
+            True if the cached token was dropped.
+        """
+        if self._jsonWebToken != rejectedJSONWebToken:
+            return False
+        self._jsonWebToken = None
+        return True
 
     def GetAuthorizationHeader(self) -> str:
         if self._jsonWebToken is None:
@@ -189,6 +210,7 @@ class ControllerWebClientRaw(object):
     _subscriptions: dict[str, Subscription]  # Dictionary that stores the subscriptionId(key) and the corresponding subscription(value)
     _subscriptionLock: threading.Lock  # Lock protecting _webSocket and _subscriptions
     _backgroundThread: BackgroundThread = None  # The background thread to handle async operations
+    _webSocketJSONWebToken: Optional[str] = None  # The JSON web token the current websocket authenticated with, None if it used basic auth
 
     _threadName: Optional[str] = None  # The last thread this client was used in if we're warning on calls from different threads.
 
@@ -417,7 +439,7 @@ class ControllerWebClientRaw(object):
             if self._session.auth._jsonWebToken is not None:
                 log.debug('request %s %s received unauthorized error, clearing cached json web token and retrying', method, url)
                 # clear the token and retry the request to fetch a new token via basic auth
-                self._session.auth._jsonWebToken = None
+                self._ClearRejectedJSONWebToken(self._session.auth.GetJSONWebToken())
                 response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
         # in verbose logging, log the caller
@@ -542,6 +564,31 @@ class ControllerWebClientRaw(object):
         headers['Content-Type'] = 'application/json'
         headers['Accept'] = 'application/json'
 
+        usedJSONWebToken: Optional[str] = None
+        if isinstance(self._session.auth, JSONWebTokenAuth):
+            usedJSONWebToken = self._session.auth.GetJSONWebToken()
+        try:
+            return self._CallGraphAPIOnce(query, variables, headers, timeout)
+        except ControllerGraphClientException as e:
+            # The graph API reports a rejected token as an error in a 200 response rather than as a 401,
+            # so Request() cannot renew it. A token is rejected once the controller behind the URL changes,
+            # such as when a cluster failover moves the address to another controller.
+            # Without renewing it, every later call would fail even though the credentials are still valid.
+            if usedJSONWebToken is None or e.errorCode != 'unauthorized':
+                raise
+            if self._ClearRejectedJSONWebToken(usedJSONWebToken):
+                log.warning('graph query to %s was rejected as unauthorized, cleared cached json web token and retrying with basic auth', self._baseurl)
+            # Retry once, with either basic auth or a token a concurrent request renewed in the meantime.
+            # The rejected request was never executed, since authorization is checked before any resolver runs.
+            return self._CallGraphAPIOnce(query, variables, headers, timeout)
+
+    def _CallGraphAPIOnce(
+        self,
+        query: str,
+        variables: Optional[Dict[str, Any]],
+        headers: Dict[str, str],
+        timeout: float,
+    ) -> Dict[str, Any]:
         # make the request
         response = self.Request(
             'POST',
@@ -605,9 +652,37 @@ class ControllerWebClientRaw(object):
             await self._webSocket.close()
             self._webSocket = None
 
-    async def _OpenWebSocketConnection(self):
-        authorization = self._session.auth.GetAuthorizationHeader()
+    def _ClearRejectedJSONWebToken(self, rejectedJSONWebToken: str) -> bool:
+        """Drops a token the server rejected, so that the next request authenticates with basic auth.
 
+        Returns:
+            True if the cached token was dropped, False if it had already been replaced.
+        """
+        cleared = self._session.auth.ClearJSONWebToken(rejectedJSONWebToken)
+        # The session also keeps the token from the Set-Cookie header, and webstack reads that cookie whenever no bearer token is sent.
+        # Webstack rejects a request carrying an invalid token without trying basic auth,
+        # so the retry would fail the same way unless the cookie is dropped too.
+        rejectedCookies = [cookie for cookie in self._session.cookies if cookie.name == 'jwttoken' and cookie.value == rejectedJSONWebToken]
+        for cookie in rejectedCookies:
+            self._session.cookies.clear(cookie.domain, cookie.path, cookie.name)
+        return cleared
+
+    def _ClearJSONWebTokenIfWebSocketUnauthorized(self, error: Exception) -> None:
+        """Drops the cached token if the server closed the websocket because it rejected that token.
+
+        Subscribers resubscribe from their error callback, so this must run before they are notified.
+        Otherwise the new websocket would authenticate with the same rejected token.
+        """
+        if not isinstance(error, websockets.exceptions.ConnectionClosed):
+            return
+        if error.rcvd is None or error.rcvd.code != _webSocketUnauthorizedCloseCode:
+            return
+        if self._webSocketJSONWebToken is None or not isinstance(self._session.auth, JSONWebTokenAuth):
+            return
+        if self._ClearRejectedJSONWebToken(self._webSocketJSONWebToken):
+            log.warning('websocket to %s was closed as unauthorized, cleared cached json web token so the next connection uses basic auth', self._baseurl)
+
+    async def _OpenWebSocketConnection(self):
         # URL to http GraphQL endpoint on Mujin controller
         path = '/api/v2/graphql'
         try:
@@ -622,6 +697,12 @@ class ControllerWebClientRaw(object):
             _ClearExceptionChainFrames(e)
             # fall back to original URL
             parsedUrl = urlparse(self._baseurl + path)
+
+        # Read the credentials after the probe, which renews the cached token if the server rejects it with a 401.
+        authorization = self._session.auth.GetAuthorizationHeader()
+        self._webSocketJSONWebToken = None
+        if isinstance(self._session.auth, JSONWebTokenAuth):
+            self._webSocketJSONWebToken = self._session.auth.GetJSONWebToken()
 
         # parse url and handle different scheme
         sslContext = None
@@ -738,6 +819,7 @@ class ControllerWebClientRaw(object):
 
         except Exception as e:
             log.exception('caught WebSocket exception: %s', e)
+            self._ClearJSONWebTokenIfWebSocketUnauthorized(e)
             with self._subscriptionLock:
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to listen to WebSocket: %s') % (e)))
 
@@ -775,6 +857,7 @@ class ControllerWebClientRaw(object):
                 await self._webSocket.send(self.EncodeJSON(message), text=True)
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
+                self._ClearJSONWebTokenIfWebSocketUnauthorized(e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to subscribe: %s') % (e)))
 
         with self._subscriptionLock:
@@ -814,6 +897,7 @@ class ControllerWebClientRaw(object):
                 )
             except Exception as e:
                 log.exception('caught WebSocket exception: %s', e)
+                self._ClearJSONWebTokenIfWebSocketUnauthorized(e)
                 await self._StopAllSubscriptions(ControllerGraphClientException(_('Failed to unsubscribe: %s') % (e)))
 
         with self._subscriptionLock:

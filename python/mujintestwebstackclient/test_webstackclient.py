@@ -639,3 +639,85 @@ def test_MultipartBodyMatchesTheEncodingRequestsWouldHaveProduced(monkeypatch):
 def test_MultipartEncodingDeclinesFieldsItCannotEncodeItself(files):
     """Anything requests would treat differently must fall back to requests instead of being guessed at."""
     assert controllerwebclientraw.ControllerWebClientRaw._EncodeMultipartFormData(files) is None
+
+
+def _RegisterMockGraphAPIRejectingJSONWebToken(mocker, rejectedJSONWebToken, renewedJSONWebToken):
+    """Mocks a graph API that rejects one token the way webstack does, with an error in a 200 response."""
+    authorizationHeaders = []
+
+    def _GetResponse(request, context):
+        authorization = request.headers.get('Authorization', '')
+        authorizationHeaders.append(authorization)
+        context.status_code = 200
+        # webstack rejects an invalid token from either the bearer header or the cookie without trying basic auth
+        if authorization == 'Bearer %s' % rejectedJSONWebToken or 'jwttoken=%s' % rejectedJSONWebToken in request.headers.get('Cookie', ''):
+            return {'errors': [{'message': 'graphcommon: unauthorized', 'extensions': {'errorCode': 'unauthorized'}}], 'data': None}
+        if authorization.startswith('Basic '):
+            context.headers['Set-Cookie'] = 'jwttoken=%s; Path=/' % renewedJSONWebToken
+        return {'data': {'GetEnvironment': {'id': 'environment'}}}
+
+    mocker.post('http://controller/api/v2/graphql', json=_GetResponse)
+    return authorizationHeaders
+
+
+def test_CallGraphAPIRenewsRejectedJSONWebToken():
+    webclient = controllerwebclientraw.ControllerWebClientRaw('http://controller', 'mujin', 'mujin')
+    # the token is cached both by the auth and by the session cookie jar, as after a real basic auth response
+    webclient._session.auth._jsonWebToken = 'rejected'
+    webclient._session.cookies.set('jwttoken', 'rejected', domain='controller.local', path='/')
+    with requests_mock.Mocker() as mock:
+        authorizationHeaders = _RegisterMockGraphAPIRejectingJSONWebToken(mock, 'rejected', 'renewed')
+        assert webclient.CallGraphAPI('query { GetEnvironment { id } }') == {'GetEnvironment': {'id': 'environment'}}
+        assert authorizationHeaders[0] == 'Bearer rejected'
+        assert authorizationHeaders[1].startswith('Basic ')
+        assert webclient._session.auth.GetJSONWebToken() == 'renewed'
+        assert 'rejected' not in [cookie.value for cookie in webclient._session.cookies if cookie.name == 'jwttoken']
+
+        # later calls go back to using the renewed token
+        webclient.CallGraphAPI('query { GetEnvironment { id } }')
+        assert authorizationHeaders[2] == 'Bearer renewed'
+        assert len(authorizationHeaders) == 3
+
+
+def test_CallGraphAPIDoesNotRetryUnauthorizedBasicAuth():
+    webclient = controllerwebclientraw.ControllerWebClientRaw('http://controller', 'mujin', 'wrong')
+    with requests_mock.Mocker() as mock:
+        mock.post('http://controller/api/v2/graphql', json={'errors': [{'message': 'graphcommon: unauthorized', 'extensions': {'errorCode': 'unauthorized'}}], 'data': None})
+        with pytest.raises(controllerwebclientraw.ControllerGraphClientException) as excinfo:
+            webclient.CallGraphAPI('query { GetEnvironment { id } }')
+        assert excinfo.value.errorCode == 'unauthorized'
+        assert mock.call_count == 1
+
+
+def test_ClearJSONWebTokenKeepsConcurrentlyRenewedToken():
+    auth = controllerwebclientraw.JSONWebTokenAuth('mujin', 'mujin')
+    auth._jsonWebToken = 'renewed'
+    assert not auth.ClearJSONWebToken('rejected')
+    assert auth.GetJSONWebToken() == 'renewed'
+    assert auth.ClearJSONWebToken('renewed')
+    assert auth.GetJSONWebToken() is None
+
+
+@pytest.mark.parametrize(
+    'closeCode, webSocketJSONWebToken, expectedJSONWebToken',
+    [
+        # the websocket authenticated with the token the server rejected
+        (4401, 'rejected', None),
+        # the token was renewed after the websocket opened, so the rejection does not apply to it
+        (4401, 'stale', 'rejected'),
+        # the websocket used basic auth, so there is no token to blame
+        (4401, None, 'rejected'),
+        # the websocket closed for a reason unrelated to authorization
+        (1011, 'rejected', 'rejected'),
+    ],
+)
+def test_WebSocketUnauthorizedCloseClearsJSONWebToken(closeCode, webSocketJSONWebToken, expectedJSONWebToken):
+    import websockets.exceptions
+    import websockets.frames
+
+    webclient = controllerwebclientraw.ControllerWebClientRaw('http://controller', 'mujin', 'mujin')
+    webclient._session.auth._jsonWebToken = 'rejected'
+    webclient._webSocketJSONWebToken = webSocketJSONWebToken
+    close = websockets.frames.Close(closeCode, 'unauthorized')
+    webclient._ClearJSONWebTokenIfWebSocketUnauthorized(websockets.exceptions.ConnectionClosedError(close, close, True))
+    assert webclient._session.auth.GetJSONWebToken() == expectedJSONWebToken
