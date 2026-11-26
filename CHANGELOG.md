@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.3.2 (2026-11-26)
+
+- A cached JSON web token that the controller no longer accepts is now renewed for graph queries and
+  subscriptions. The token is rejected once a different controller answers at the same URL, for
+  example after a cluster failover. `Request` already renewed it on a 401, but the graph API reports
+  the rejection as an `unauthorized` error in a 200 response, and the subscription websocket closes
+  with code 4401, so neither path renewed it. Every later graph query and subscription then failed
+  until the process restarted, even though the username and password were still valid.
+  `CallGraphAPI` now drops the rejected token and retries once with basic auth, and a 4401 close drops
+  it before subscribers are notified, so they resubscribe with basic auth.
+- Renewing a rejected token also drops it from the session's `jwttoken` cookie. Webstack reads that
+  cookie when no bearer token is sent, and rejects a request carrying an invalid token without trying
+  basic auth, so a retry that still carried the cookie failed the same way.
+
 ## 1.3.1 (2026-11-16)
 
 - A failed GraphQL endpoint probe when opening the subscription websocket no longer leaves reference
